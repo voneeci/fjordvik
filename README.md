@@ -78,13 +78,20 @@ python -m venv .venv
 
 ### Connect it to Claude Desktop
 
-1. Open Claude Desktop's configuration file. On Windows it is
-   `%APPDATA%\Claude\claude_desktop_config.json`.
-2. Add the `fjordvik` entry from
-   [claude_desktop_config.example.json](claude_desktop_config.example.json), with the
-   full path to this repository's `.venv\Scripts\python.exe`. Keep any settings already
-   in the file.
-3. Restart Claude Desktop. "fjordvik" appears under the tools (connectors) menu.
+Claude Desktop rewrites its configuration file when it quits, so an edit made while it
+is running is lost. Make the change with the app fully closed:
+
+1. Quit Claude Desktop from the system tray (right-click the Claude icon, Quit).
+2. From this repository's folder, run:
+
+   ```powershell
+   python scripts\add_to_claude_desktop.py
+   ```
+
+   It backs up `%APPDATA%\Claude\claude_desktop_config.json`, adds the `fjordvik`
+   entry shown in [claude_desktop_config.example.json](claude_desktop_config.example.json),
+   and keeps every other setting. `--remove` takes it out again.
+3. Open Claude Desktop. "fjordvik" appears under **+ > Connectors** in a chat.
 
 Try:
 
