@@ -34,7 +34,7 @@ contact.
 | List | Columns (type) | Rows at start | Seed workbook |
 | --- | --- | --- | --- |
 | Emissions | date_key (number), site_id (text), source_id (text), activity_amount (number), unit (text), emission_factor (number), tco2e (number), submitted_file (text), run_id (text) | 1,379 (January 2023 to November 2025) | `sharepoint/seed/Emissions.xlsx` |
-| IntakeLog | run_id (text), file_name (text), site_id (text), month (text), status (choice: Accepted, Rejected), rows_loaded (number), tco2e_loaded (number), errors (multiple lines of text), processed_at (date and time) | 0 | none |
+| IntakeLog | run_id (text), file_name (text), site_id (text), month (text), status (choice: Accepted, Rejected, Failed), rows_loaded (number), tco2e_loaded (number), errors (multiple lines of text), processed_at (date and time) | 0 | none |
 
 What the IntakeLog statuses do, and why changing one by hand does nothing, is in
 [run-statuses.md](run-statuses.md).

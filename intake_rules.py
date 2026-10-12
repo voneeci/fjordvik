@@ -24,14 +24,14 @@ CHANGE_LOW, CHANGE_HIGH = 0.5, 2.0
 NO_CHANGE_CHECK = {"S04"}
 
 RULES = {
-    "R1": "The table has exactly the columns site_id, month, source_id, activity_amount, unit",
+    "R1": "The table has the columns site_id, month, source_id, activity_amount and unit",
     "R2": "Every row's site_id is the site the file belongs to",
     "R3": "Every row is for the reporting month",
-    "R4": "Every source_id is one this site reports",
+    "R4": "Every source_id is one this site reported last month",
     "R5": "Every unit is the unit for that source",
     "R6": "Every activity_amount is a number of zero or more",
     "R7": "No source appears twice",
-    "R8": "Every source this site reports is present",
+    "R8": "Every source this site reported last month is present",
     "R9": "Each amount is between half and double the same month last year",
     "R10": "This site and month are not already loaded",
 }
@@ -63,10 +63,19 @@ class Reference:
         rows = self.central_before() if loaded_rows is None else loaded_rows
         self.loaded = {(r["site_id"], int(r["date_key"])) for r in rows}
 
+    def sources_in(self, site_id, date_key):
+        return {s for (site, s, key) in self.history if site == site_id and key == str(date_key)}
+
     def central_before(self, month=REPORTING_MONTH):
         """The central Emissions list as it stands before the intake run."""
         key = month_key(month)
         return [r for r in self.facts if int(r["date_key"]) < key]
+
+
+def previous_month_key(month: str) -> int:
+    y, m = (int(x) for x in month.split("-"))
+    y, m = (y - 1, 12) if m == 1 else (y, m - 1)
+    return y * 10000 + m * 100 + 1
 
 
 def month_key(month: str) -> int:
@@ -81,12 +90,16 @@ def validate(rows, columns, file_site, ref: Reference, month=REPORTING_MONTH):
     def fail(rule, detail):
         fails.append({"rule": rule, "detail": detail})
 
-    if columns != COLUMNS:
-        fail("R1", f"columns are {columns}")
+    missing_columns = [c for c in COLUMNS if c not in columns]
+    if missing_columns:
+        fail("R1", f"missing columns {missing_columns}")
         return fails  # nothing else can be read reliably
 
     if (file_site, month_key(month)) in ref.loaded:
         fail("R10", f"{file_site} {month} is already in the central list")
+
+    # The sources this site reported in the previous month (one lookup in the flow).
+    expected = ref.sources_in(file_site, previous_month_key(month))
 
     seen = defaultdict(int)
     for i, r in enumerate(rows, start=2):  # row 1 is the header
@@ -96,8 +109,8 @@ def validate(rows, columns, file_site, ref: Reference, month=REPORTING_MONTH):
             fail("R3", f"row {i}: month {r['month']}, expected {month}")
         src = r["source_id"]
         seen[src] += 1
-        if src not in ref.expected[file_site]:
-            fail("R4", f"row {i}: {src} is not reported by {file_site}")
+        if src not in expected:
+            fail("R4", f"row {i}: {src} was not reported by {file_site} last month")
             continue
         if r["unit"] != ref.units[src]:
             fail("R5", f"row {i}: {src} unit {r['unit']}, expected {ref.units[src]}")
@@ -120,7 +133,7 @@ def validate(rows, columns, file_site, ref: Reference, month=REPORTING_MONTH):
     for src, n in seen.items():
         if n > 1:
             fail("R7", f"{src} appears {n} times")
-    for src in sorted(ref.expected[file_site] - set(seen)):
+    for src in sorted(expected - set(seen)):
         fail("R8", f"{src} is missing")
     return fails
 

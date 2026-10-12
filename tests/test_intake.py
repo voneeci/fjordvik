@@ -96,7 +96,7 @@ def test_each_remaining_rule_catches_its_problem(change, rule, ref):
 
 def test_wrong_columns_stop_everything_else(ref):
     columns, rows = read_submission(REPO / "intake" / "clean" / f"FI02_{REPORTING_MONTH}.xlsx")
-    bad = ["site", *COLUMNS[1:]]
+    bad = ["site", *COLUMNS[1:]]  # site_id renamed, so a required column is missing
     assert [f["rule"] for f in validate(rows, bad, "FI02", ref)] == ["R1"]
 
 

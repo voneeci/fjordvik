@@ -1,14 +1,14 @@
 {
   "reporting_month": "2025-12",
   "rules": {
-    "R1": "The table has exactly the columns site_id, month, source_id, activity_amount, unit",
+    "R1": "The table has the columns site_id, month, source_id, activity_amount and unit",
     "R2": "Every row's site_id is the site the file belongs to",
     "R3": "Every row is for the reporting month",
-    "R4": "Every source_id is one this site reports",
+    "R4": "Every source_id is one this site reported last month",
     "R5": "Every unit is the unit for that source",
     "R6": "Every activity_amount is a number of zero or more",
     "R7": "No source appears twice",
-    "R8": "Every source this site reports is present",
+    "R8": "Every source this site reported last month is present",
     "R9": "Each amount is between half and double the same month last year",
     "R10": "This site and month are not already loaded"
   },

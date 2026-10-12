@@ -7,14 +7,14 @@ any rule is rejected whole: no row from it is loaded.
 
 | Rule | Checks | Why | Planted example |
 | --- | --- | --- | --- |
-| R1 | The table has exactly the columns `site_id`, `month`, `source_id`, `activity_amount`, `unit` | Nothing else can be read reliably if the layout changed, so the other rules are skipped | |
+| R1 | The table has the columns `site_id`, `month`, `source_id`, `activity_amount` and `unit` | Nothing else can be read reliably if the layout changed, so the other rules are skipped | |
 | R2 | Every row's `site_id` is the site the file belongs to (from the file name) | Stops one site's numbers landing under another site | |
 | R3 | Every row is for the reporting month | Stops last month's file being loaded again as this month | |
-| R4 | Every `source_id` is one this site reports | A head office has no natural gas; a new source needs a decision first | |
+| R4 | Every `source_id` is one this site reported last month | A head office has no natural gas; a new source needs a decision first | |
 | R5 | Every `unit` is the unit for that source | A factor per kWh applied to MWh is wrong by a factor of 1,000 | Tampere: electricity in MWh |
 | R6 | Every `activity_amount` is a number of zero or more | Text and negative amounts can't be summed | |
 | R7 | No source appears twice | A duplicate row double-counts emissions | Gothenburg: diesel twice |
-| R8 | Every source the site reports is present | A missing row looks like zero emissions | Oulu: no district heating |
+| R8 | Every source the site reported last month is present | A missing row looks like zero emissions | Oulu: no district heating |
 | R9 | Each amount is between half and double the same month last year (refrigerant exempt) | Catches slips such as wrong units or extra zeros that pass the other rules | Tampere: 0.001 times last year |
 | R10 | This site and month are not already in the central list | Makes the flow safe to rerun: a month is never loaded twice | |
 

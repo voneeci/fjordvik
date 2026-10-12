@@ -11,14 +11,15 @@ the data owner.
 | --- | --- | --- | --- |
 | **Accepted** | Every rule (R1 to R10) passed | Added one row per source to the **Emissions** list, with the emission factor looked up and tCO2e worked out; moved the file to the **Processed** folder | Nothing |
 | **Rejected** | One or more rules failed | Added **nothing** to the Emissions list; moved the file to the **Rejected** folder; emailed the site contact the failed rules and row details | Fix the file and upload it to **Incoming** again |
+| **Failed** | The flow itself broke (for example the file has no `Submission` table, or SharePoint was unavailable) | Deleted any Emissions rows this run had created, so nothing is half loaded; left the file in **Incoming**; emailed the data owner | Nothing until the data owner has looked. The owner fixes the cause, then uploads the file again |
 
-There is no partial load: a file is accepted whole or rejected whole. That keeps every
+There is no partial load: a file is accepted whole, or nothing from it stays in the list. That keeps every
 site-month either complete or absent, never half there.
 
 ## What changing a status by hand does
 
 **Nothing.** The IntakeLog is a record of what happened, not a switch. Changing
-**Rejected** to **Accepted** does not load any rows, and changing **Accepted** to
+**Rejected** or **Failed** to **Accepted** does not load any rows, and changing **Accepted** to
 **Rejected** does not remove any. Change the data, not the log:
 
 | You want to | Do this | Why |
