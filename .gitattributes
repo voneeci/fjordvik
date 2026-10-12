@@ -1,0 +1,5 @@
+# Data files must stay byte-identical so their SHA-256 checksums hold after a clone.
+data/*.csv  text eol=lf
+data/*.json text eol=lf
+# Power BI Desktop writes CRLF; let git normalise everything else.
+*           text=auto
