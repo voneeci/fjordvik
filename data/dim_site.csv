@@ -1,0 +1,7 @@
+site_id,site_name,country,site_type
+FI01,Tampere Plant,Finland,Manufacturing plant
+FI02,Helsinki Head Office,Finland,Office
+FI03,Oulu Warehouse,Finland,Warehouse
+SE01,Gothenburg Plant,Sweden,Manufacturing plant
+EE01,Tallinn Plant,Estonia,Manufacturing plant
+EE02,Tartu Warehouse,Estonia,Warehouse

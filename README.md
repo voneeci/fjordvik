@@ -1,0 +1,151 @@
+# Fjordvik data: a synthetic emissions dataset
+
+Fjordvik Manufacturing Oy is a **fictional** manufacturer with six sites in Finland,
+Sweden and Estonia. This repository generates 36 months (January 2023 to December 2025)
+of monthly greenhouse gas emissions and site metrics for it. Three portfolio pieces use
+the same data, so they tell one story:
+
+| Repository | What it shows |
+| --- | --- |
+| `fjordvik-data` (this one) | The dataset, its generator and its quality tests |
+| `fjordvik-mcp` | A Model Context Protocol (MCP) connector that lets Claude query the data |
+| `fjordvik-powerbi` | A Power BI semantic model with Data Analysis Expressions (DAX) measures |
+| `fjordvik-power-automate` | Power Automate flows that take in and check monthly site files |
+
+> **Synthetic data only.** No real company, client or person is described. The emission
+> factors are **illustrative**, not cited, and must not be used for real reporting. See
+> [docs/emission-factors.md](docs/emission-factors.md).
+
+## Problem
+
+Portfolio pieces on business intelligence, automation and AI connectors need data that is
+realistic enough to be interesting, safe to publish, and identical everywhere it is used.
+Real client data fails the second test. Hand-made spreadsheets fail the third: copies
+drift, and nobody can tell which version a dashboard was built on.
+
+## Approach
+
+- **Generated, not hand-typed.** A Python script builds every table from a short
+  configuration file (`src/fjordvik_data/config.py`). It uses the Python standard library
+  only, so it needs no installs.
+- **Deterministic.** A fixed seed, and a separate random stream for each site and source,
+  give byte-identical files on every run. Changing one site never changes the others.
+- **A star schema.** Three dimension tables (date, site, source) and two fact tables
+  (emissions, site metrics), the shape Power BI models work best with.
+- **A story in the data**, so the dashboards and Claude have something to find:
+  - heating peaks in winter, and production and revenue grow about 4 to 5% a year;
+  - factories slow down in July for the summer holidays;
+  - Tampere Plant installs rooftop solar in July 2024, which cuts its purchased
+    electricity in spring and summer but barely in winter;
+  - Tartu Warehouse opens in July 2024 and ramps up over three months. Its data starts in
+    its first month, with nothing backfilled before it;
+  - the head office books no revenue, so emissions per euro must be blank for it, not an
+    error.
+- **Tested.** 24 automated tests check the schema, data quality rules, the story events and
+  that the committed files match the code.
+
+## Architecture
+
+```
+config.py ──> generate.py ──> data/*.csv + manifest.json ──> tagged release
+ (sites,       (builds the       (five tables, row counts,      │
+  sources,      five tables)      SHA-256 checksums)            ├─> fjordvik-mcp
+  factors,                                                      ├─> fjordvik-powerbi
+  story)                                                        └─> fjordvik-power-automate
+```
+
+Shared schema (names are a contract; the other repositories depend on them):
+
+| Table | Columns | Grain |
+| --- | --- | --- |
+| `dim_date` | date_key, date, year, quarter, month, month_name | One row per month |
+| `dim_site` | site_id, site_name, country, site_type | One row per site |
+| `dim_source` | source_id, source_name, scope, category | One row per emission source |
+| `fact_emissions` | date_key, site_id, source_id, activity_amount, unit, emission_factor, tco2e | One row per month, site and source |
+| `fact_site_metrics` | date_key, site_id, revenue_eur, fte | One row per month and site |
+
+`tco2e` is tonnes of carbon dioxide equivalent: `activity_amount × emission_factor / 1000`,
+with the factor in kilograms per unit. `fte` is full-time equivalent employees.
+`date_key` is the first day of the month as a number, for example `20230101`.
+
+**Sites:** Tampere Plant, Helsinki Head Office and Oulu Warehouse (Finland); Gothenburg
+Plant (Sweden); Tallinn Plant and Tartu Warehouse (Estonia).
+
+**Sources:** natural gas, diesel, liquefied petroleum gas (LPG) and refrigerant leakage
+(scope 1); purchased electricity and district heating (scope 2, location-based);
+business flights and waste to landfill (scope 3).
+
+### Dataset at a glance
+
+| Table | Rows |
+| --- | --- |
+| dim_date | 36 |
+| dim_site | 6 |
+| dim_source | 8 |
+| fact_emissions | 1,422 |
+| fact_site_metrics | 198 |
+
+Total emissions (illustrative): 9,454.0 tCO2e in 2023, 10,158.2 in 2024 and 10,921.8
+in 2025. Tallinn Plant is the largest emitter because Estonia's illustrative grid factor
+is the highest.
+
+## How to run
+
+You need Python 3.10 or newer. No other installs are needed to generate the data.
+
+```bash
+git clone <this repository>
+cd fjordvik-data
+python -m pip install -e ".[dev]"
+python -m fjordvik_data --out data
+python -m pytest
+```
+
+Without installing, from the repository folder in PowerShell:
+
+```powershell
+$env:PYTHONPATH = "src"; python -m fjordvik_data --out data
+```
+
+To use the data elsewhere, take the CSV files from a tagged release and check them against
+the SHA-256 checksums in `data/manifest.json`.
+
+## Test evidence
+
+```
+python -m pytest -q
+........................                                                 [100%]
+24 passed in 0.38s
+```
+
+| Test file | What it proves |
+| --- | --- |
+| `test_schema.py` | Table and column names match the shared schema exactly; 36 months; dates and keys agree |
+| `test_integrity.py` | Unique keys; every fact row joins to its dimensions; `tco2e` equals the formula; no negatives; one unit per source; factors match the configuration; every site reports every source every month from its opening (a zero is a row, never a gap) |
+| `test_story.py` | The solar effect is visible against a control site; Tartu starts in July 2024; heating peaks in winter; revenue grows |
+| `test_generator.py` | The solar logic cuts purchases by exactly the configured share; other sites are untouched; the ramp-up only applies to new sites |
+| `test_reproducible.py` | Regenerating gives byte-identical files; the manifest's checksums and row counts match |
+
+## Limitations
+
+- **Illustrative emission factors**, one per source for the whole period. Real reporting
+  needs cited factors for each year and country.
+- **Location-based scope 2 only.** The schema has one factor per row, so a market-based
+  figure (which would show the effect of buying renewable electricity) is not included.
+- **Monthly grain.** No daily or meter-level data.
+- **Simple patterns.** Seasonality, growth and noise are smooth formulas. Real data has
+  billing lags, estimates, restatements and one-off events.
+- The clean dataset has no data quality problems by design. Planted problems (a unit
+  error, a missing month, a duplicate row) live only in the intake files of
+  `fjordvik-power-automate`.
+
+## Next steps
+
+- Tag release `v1.0.0` and pin the other three repositories to it.
+- Add market-based scope 2 if the schema is ever extended.
+- Add yearly factor versions to show how restating a factor changes past totals.
+
+## Licence
+
+Code: MIT ([LICENSE](LICENSE)). Data: Creative Commons Attribution 4.0 (CC BY 4.0)
+([LICENSE-DATA.md](LICENSE-DATA.md)).
