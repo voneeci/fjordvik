@@ -1,0 +1,35 @@
+/// The six sites. Row-level security filters this table by country.
+table dim_site
+
+	column site_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: site_id
+
+	column site_name
+		dataType: string
+		summarizeBy: none
+		sourceColumn: site_name
+
+	column country
+		dataType: string
+		summarizeBy: none
+		sourceColumn: country
+
+	column site_type
+		dataType: string
+		summarizeBy: none
+		sourceColumn: site_type
+
+	partition dim_site = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(DataFolder & "\dim_site.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					// "en-US" so "0.200" is read with a full stop as the decimal mark on any Windows locale
+					Typed = Table.TransformColumnTypes(Promoted, {{"site_id", type text}, {"site_name", type text}, {"country", type text}, {"site_type", type text}}, "en-US")
+				in
+					Typed
+
+	annotation PBI_ResultType = Table

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "card_3",
+  "position": {
+    "x": 770,
+    "y": 95,
+    "z": 303,
+    "height": 110,
+    "width": 240,
+    "tabOrder": 303
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Scope 3 Emissions (tCO2e)"
+                }
+              },
+              "queryRef": "_Measures.Scope 3 Emissions (tCO2e)",
+              "nativeQueryRef": "Scope 3 Emissions (tCO2e)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

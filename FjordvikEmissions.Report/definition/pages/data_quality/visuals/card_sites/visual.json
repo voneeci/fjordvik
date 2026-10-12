@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "card_sites",
+  "position": {
+    "x": 660,
+    "y": 95,
+    "z": 102,
+    "height": 110,
+    "width": 300,
+    "tabOrder": 102
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Sites Reporting"
+                }
+              },
+              "queryRef": "_Measures.Sites Reporting",
+              "nativeQueryRef": "Sites Reporting"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}
