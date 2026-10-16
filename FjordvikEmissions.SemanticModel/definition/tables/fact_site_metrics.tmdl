@@ -1,28 +1,33 @@
 /// One row per month and site: revenue and full-time equivalent employees (FTE). FTE is a level: average it over months, never sum it.
 table fact_site_metrics
+	lineageTag: f1fbce72-2275-4a44-ad07-e35503fdde49
 
 	column date_key
 		dataType: int64
-		formatString: 0
 		isHidden
+		formatString: 0
+		lineageTag: 86faf622-bd9d-408e-8556-14014f8de444
 		summarizeBy: none
 		sourceColumn: date_key
 
 	column site_id
 		dataType: string
 		isHidden
+		lineageTag: fb5ff723-71c7-4b61-ae16-c67ce8d7c72c
 		summarizeBy: none
 		sourceColumn: site_id
 
 	column revenue_eur
 		dataType: double
 		formatString: #,0.00
+		lineageTag: 360a2db3-fc2e-406d-b543-61edb87ca4b3
 		summarizeBy: none
 		sourceColumn: revenue_eur
 
 	column fte
 		dataType: double
 		formatString: #,0.0
+		lineageTag: c290d9b7-f6a8-42e9-9232-dc9e30c5d9c8
 		summarizeBy: none
 		sourceColumn: fte
 
@@ -38,3 +43,4 @@ table fact_site_metrics
 					Typed
 
 	annotation PBI_ResultType = Table
+

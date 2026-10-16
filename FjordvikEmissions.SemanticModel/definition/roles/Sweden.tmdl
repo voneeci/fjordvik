@@ -3,3 +3,6 @@ role Sweden
 	modelPermission: read
 
 	tablePermission dim_site = dim_site[country] = "Sweden"
+
+	annotation PBI_Id = 53b9f8b2472d45ffb1130b0c17f8361a
+

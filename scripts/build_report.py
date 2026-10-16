@@ -173,8 +173,14 @@ def main():
         shutil.rmtree(definition)  # regenerated in full from this file
     write_json(definition / "version.json",
                {"$schema": f"{SCHEMA}/versionMetadata/1.0.0/schema.json", "version": "2.0.0"})
+    # Two report settings Power BI Desktop saved on 13 October 2026, kept so the
+    # generated files and Desktop's saved files agree: Filters pane collapsed,
+    # enhanced tooltips off.
     write_json(definition / "report.json",
-               {"$schema": f"{SCHEMA}/report/3.3.0/schema.json", "themeCollection": {}})
+               {"$schema": f"{SCHEMA}/report/3.3.0/schema.json", "themeCollection": {},
+                "objects": {"outspacePane": [{"properties": {"expanded": {
+                    "expr": {"Literal": {"Value": "false"}}}}}]},
+                "settings": {"useEnhancedTooltips": False}})
     write_json(definition / "pages" / "pages.json",
                {"$schema": f"{SCHEMA}/pagesMetadata/1.1.0/schema.json",
                 "pageOrder": [p[0] for p in PAGES], "activePageName": PAGES[0][0]})

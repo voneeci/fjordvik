@@ -190,8 +190,17 @@ def test_every_page_states_the_data_is_synthetic():
             assert "illustrative" in text and "Synthetic" in text, page.name
 
 
+# Desktop rewrites this on every save to remember the last page open; it is
+# viewer state, not report content, so the rebuild check leaves it out.
+DESKTOP_VIEW_STATE = {"pages.json": {"activePageName"}}
+
+
 def test_report_is_rebuilt_from_the_script(tmp_path, monkeypatch):
-    """The committed report files are exactly what scripts/build_report.py writes."""
+    """The committed report files hold the same content scripts/build_report.py writes.
+
+    Compared as parsed JSON, not bytes: Power BI Desktop formats JSON its own way
+    (line endings, no final newline), and a Desktop save must not fail this test
+    when nothing in the report changed (decision 16 October 2026)."""
     import importlib.util
     import shutil
     copy = tmp_path / "FjordvikEmissions.Report"
@@ -203,4 +212,9 @@ def test_report_is_rebuilt_from_the_script(tmp_path, monkeypatch):
     module.main()
     for original in REPORT.rglob("*.json"):
         rebuilt = copy / "definition" / original.relative_to(REPORT)
-        assert rebuilt.read_bytes() == original.read_bytes(), original
+        want = json.loads(rebuilt.read_text(encoding="utf-8-sig"))
+        have = json.loads(original.read_text(encoding="utf-8-sig"))
+        for key in DESKTOP_VIEW_STATE.get(original.name, set()):
+            want.pop(key, None)
+            have.pop(key, None)
+        assert have == want, original

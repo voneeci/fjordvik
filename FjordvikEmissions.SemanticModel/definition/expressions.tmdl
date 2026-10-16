@@ -1,4 +1,6 @@
 /// Folder holding the five Fjordvik CSV files (this repository's data folder). No trailing backslash.
 expression DataFolder = "C:\Users\Vihree Nelonen\Projects\fjordvik-powerbi\data" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: fac63a75-b421-4b3d-a8c6-c80dea564fa6
 
 	annotation PBI_ResultType = Text
+

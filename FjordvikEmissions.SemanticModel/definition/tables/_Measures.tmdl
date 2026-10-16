@@ -1,45 +1,54 @@
 /// Home table for every measure. Holds no data; its one column is hidden.
 table _Measures
+	lineageTag: fab0b0d6-ec8d-4b05-93d5-cdc75cc9aa13
 
 	/// Tonnes of CO2 equivalent across all scopes, from the stored tco2e column.
 	measure 'Total Emissions (tCO2e)' = SUM ( fact_emissions[tco2e] )
 		formatString: #,0.0
 		displayFolder: Emissions
+		lineageTag: e64cec5c-9db7-4ede-8586-6a5be079c405
 
 	/// Scope 1. Direct emissions: fuels burned on site and refrigerant leaks. KEEPFILTERS means a slicer on another scope gives blank, not this scope's total.
 	measure 'Scope 1 Emissions (tCO2e)' = CALCULATE ( [Total Emissions (tCO2e)], KEEPFILTERS ( dim_source[scope] = 1 ) )
 		formatString: #,0.0
 		displayFolder: Emissions
+		lineageTag: 8a4116c5-5b0f-4dd4-92bc-bf1cfd594c89
 
 	/// Scope 2. Purchased electricity and heat, location-based. KEEPFILTERS means a slicer on another scope gives blank, not this scope's total.
 	measure 'Scope 2 Emissions (tCO2e)' = CALCULATE ( [Total Emissions (tCO2e)], KEEPFILTERS ( dim_source[scope] = 2 ) )
 		formatString: #,0.0
 		displayFolder: Emissions
+		lineageTag: 1c8d9247-e126-4faa-9351-f5858f4ed090
 
 	/// Scope 3. Business flights and waste to landfill. KEEPFILTERS means a slicer on another scope gives blank, not this scope's total.
 	measure 'Scope 3 Emissions (tCO2e)' = CALCULATE ( [Total Emissions (tCO2e)], KEEPFILTERS ( dim_source[scope] = 3 ) )
 		formatString: #,0.0
 		displayFolder: Emissions
+		lineageTag: 91c60ff8-91c2-4174-a0ae-8dff3f7f9e63
 
 	/// Revenue in euros. A flow: it adds up over months.
 	measure 'Revenue (EUR)' = SUM ( fact_site_metrics[revenue_eur] )
 		formatString: #,0
 		displayFolder: Intensity
+		lineageTag: 29fb3324-d3d9-4c2a-bf98-d6becbc4013d
 
 	/// Full-time equivalent employees. A level, not a flow: summed across sites within each month, then averaged over the months.
 	measure 'Average FTE' = AVERAGEX ( VALUES ( dim_date[date_key] ), CALCULATE ( SUM ( fact_site_metrics[fte] ) ) )
 		formatString: #,0.0
 		displayFolder: Intensity
+		lineageTag: 69007e37-33a5-4d21-88af-25f6f86d6931
 
 	/// Total emissions divided by average FTE for the selected period.
 	measure 'Emissions per FTE (tCO2e)' = DIVIDE ( [Total Emissions (tCO2e)], [Average FTE] )
 		formatString: #,0.00
 		displayFolder: Intensity
+		lineageTag: 834b2853-9b42-456c-a463-c73a228a5fb9
 
 	/// Total emissions per million euros of revenue (1,000,000 converts euros to millions). Blank where there is no revenue, such as the head office.
 	measure 'Emissions per Million EUR (tCO2e)' = DIVIDE ( [Total Emissions (tCO2e)], DIVIDE ( [Revenue (EUR)], 1000000 ) )
 		formatString: #,0.0
 		displayFolder: Intensity
+		lineageTag: e3d5bdda-0f53-4faa-a270-02b6f219cbd9
 
 	/// Emissions for the same months one year earlier. dim_date has one row per month, so it can't be marked as a date table and SAMEPERIODLASTYEAR doesn't apply; this shifts each month key back a year instead (20250301 to 20240301).
 	measure 'Emissions Prior Year (tCO2e)' =
@@ -49,6 +58,7 @@ table _Measures
 				CALCULATE ( [Total Emissions (tCO2e)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
 		formatString: #,0.0
 		displayFolder: Time comparison
+		lineageTag: f78dccf5-9e9f-42eb-9501-c36ba12d785c
 
 	/// Like-for-like change against the same months a year earlier: only site-months with emissions in both years count, so a site that opened partway through (Tartu, July 2024) or months with no prior year (2023) don't inflate the change. Shown as a percentage; blank when nothing is comparable.
 	measure 'Emissions Change vs Prior Year (%)' =
@@ -64,30 +74,36 @@ table _Measures
 				DIVIDE ( CurrentYear - PriorYear, PriorYear )
 		formatString: 0.0%
 		displayFolder: Time comparison
+		lineageTag: 0d7e4e56-0804-407e-804d-412c0704ec00
 
 	/// Emissions worked out again row by row: activity times factor, divided by 1,000 to turn kilograms into tonnes.
 	measure 'Recalculated Emissions (tCO2e)' = SUMX ( fact_emissions, fact_emissions[activity_amount] * fact_emissions[emission_factor] / 1000 )
 		formatString: #,0.0
 		displayFolder: Data quality
+		lineageTag: 3bfe465a-607d-4148-b2e7-642163a23ccc
 
 	/// Stored minus recalculated emissions, rounded to 0.001 t (1 kg): the stored values carry 6 decimals, so adding 1,422 of them leaves a few grams of rounding. Anything that survives the rounding means a row's tco2e doesn't match its activity and factor.
 	measure 'Reconciliation Difference (tCO2e)' = ROUND ( [Total Emissions (tCO2e)] - [Recalculated Emissions (tCO2e)], 3 )
 		formatString: #,0.000
 		displayFolder: Data quality
+		lineageTag: df2622dd-4b32-4b09-85a9-0008ca90bc88
 
 	/// Number of emission rows in the current filter.
 	measure 'Emission Rows' = COUNTROWS ( fact_emissions )
 		formatString: #,0
 		displayFolder: Data quality
+		lineageTag: 000f0620-4c9f-4548-a651-1ee35e52911e
 
 	/// Number of sites with at least one emission row in the current filter.
 	measure 'Sites Reporting' = DISTINCTCOUNT ( fact_emissions[site_id] )
 		formatString: #,0
 		displayFolder: Data quality
+		lineageTag: 01975484-20ec-4e96-bcd0-90723b71461d
 
 	column Placeholder
 		dataType: string
 		isHidden
+		lineageTag: 931fea15-6e14-42f5-805b-385f2e6fcd80
 		summarizeBy: none
 		isNameInferred
 		sourceColumn: [Placeholder]
@@ -97,3 +113,4 @@ table _Measures
 		source = ROW ( "Placeholder", "" )
 
 	annotation PBI_ResultType = Table
+

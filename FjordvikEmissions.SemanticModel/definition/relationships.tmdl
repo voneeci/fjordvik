@@ -17,3 +17,4 @@ relationship fact_site_metrics_date_key
 relationship fact_site_metrics_site_id
 	fromColumn: fact_site_metrics.site_id
 	toColumn: dim_site.site_id
+

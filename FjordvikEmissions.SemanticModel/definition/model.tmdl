@@ -11,6 +11,8 @@ annotation __PBI_TimeIntelligenceEnabled = 0
 
 annotation PBI_QueryOrder = ["DataFolder","dim_date","dim_site","dim_source","fact_emissions","fact_site_metrics"]
 
+annotation PBI_ProTooling = ["DevMode"]
+
 ref table _Measures
 ref table dim_date
 ref table dim_site
@@ -21,3 +23,6 @@ ref table fact_site_metrics
 ref role Finland
 ref role Sweden
 ref role Estonia
+
+ref cultureInfo en-US
+

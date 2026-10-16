@@ -11,14 +11,20 @@ fjordvik-power-automate. Permanent rules in
   exception for the Fjordvik project, 12 October 2026). Every page and doc says so.
 - Never edit `data/` by hand: `python scripts/sync_data.py` verifies checksums.
 - Report JSON is generated: edit `scripts/build_report.py`, never the visual.json files.
-  The data dictionary is generated: run `scripts/build_data_dictionary.py` after any
-  model change. Tests fail if either is stale.
+  The rebuild test compares JSON content (not bytes), so a Desktop save that changes
+  nothing passes; a Desktop save that changes report settings means updating the
+  generator to match (as on 16 October 2026). The data dictionary is generated: run
+  `scripts/build_data_dictionary.py` after any model change. Tests fail if either is stale.
 - TMDL needs tab indentation and UTF-8 without BOM. Measure DAX sits three tabs deep.
 - Follow `docs/naming-conventions.md`: measures in `_Measures`, unit in the name,
   `DIVIDE()`, no typed-in rates (only unit conversions and the date-key shift).
 - dim_date is monthly, so it can't be a marked date table; no SAMEPERIODLASTYEAR.
 - Power BI Desktop holds the model in memory: close it **without saving** before
-  regenerating files, or it overwrites them. Reopen and select Refresh now.
+  regenerating files, or it overwrites them. Desktop's own save form (lineage tags,
+  cultures, .platform, diagramLayout.json) is the committed form. `.pbi/cache.abf` and
+  `.pbi/localSettings.json` stay out of git.
+- `scripts/run_dax_table.ps1 -Refresh` loads the data through the engine with no clicks;
+  raw output of every live run goes in `evidence/`.
 - Live tests (`tests/test_measures_live.py`) need Desktop open and refreshed; the
   runner finds the local engine's port from the msmdsrv.exe process.
 - A deliberate change to an expected value says which change and why.

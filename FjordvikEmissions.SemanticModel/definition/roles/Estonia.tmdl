@@ -3,3 +3,6 @@ role Estonia
 	modelPermission: read
 
 	tablePermission dim_site = dim_site[country] = "Estonia"
+
+	annotation PBI_Id = 60eb8b0300334a52a56f628534d85b84
+

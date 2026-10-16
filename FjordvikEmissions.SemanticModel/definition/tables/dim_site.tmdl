@@ -1,23 +1,28 @@
 /// The six sites. Row-level security filters this table by country.
 table dim_site
+	lineageTag: 14b53f24-4536-4f48-85ce-fc698839c633
 
 	column site_id
 		dataType: string
+		lineageTag: 3984683c-65dc-4e1b-badd-9095f4a4b28c
 		summarizeBy: none
 		sourceColumn: site_id
 
 	column site_name
 		dataType: string
+		lineageTag: 6e147281-f22b-4969-8ba5-49f133a42ba0
 		summarizeBy: none
 		sourceColumn: site_name
 
 	column country
 		dataType: string
+		lineageTag: 78d5232e-3292-4d7c-9716-337234849304
 		summarizeBy: none
 		sourceColumn: country
 
 	column site_type
 		dataType: string
+		lineageTag: 3e64b8d7-48ac-4f4a-af7f-4f8c87822c4a
 		summarizeBy: none
 		sourceColumn: site_type
 
@@ -33,3 +38,4 @@ table dim_site
 					Typed
 
 	annotation PBI_ResultType = Table
+
