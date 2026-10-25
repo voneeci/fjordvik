@@ -70,7 +70,7 @@ FjordvikEmissions.Report/definition/          PBIR: 3 pages, 19 visuals (from bu
 
 You need Power BI Desktop (free, Microsoft Store) and Python 3.10 or newer with pytest.
 
-1. Clone the repository. If it is not at `C:\Users\Vihree Nelonen\Projects\fjordvik-powerbi`,
+1. Clone the repository. If it is not at `C:\Users\reece\Projects\fjordvik-powerbi`,
    change the `DataFolder` value in
    `FjordvikEmissions.SemanticModel/definition/expressions.tmdl` (or in Desktop:
    **Transform data > Edit parameters**) to your `data` folder.
