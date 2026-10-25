@@ -2,7 +2,7 @@
 
 Synthetic dataset for Fjordvik Manufacturing Oy (fictional), shared by three portfolio
 repos: fjordvik-mcp, fjordvik-powerbi and fjordvik-power-automate. Permanent rules in
-`C:\Users\Vihree Nelonen\Projects\knowledge\RULES.md` override this file.
+`C:\Users\reece\Projects\knowledge\RULES.md` override this file.
 
 ## Rules for this repo
 
