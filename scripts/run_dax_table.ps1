@@ -1,7 +1,9 @@
 param([Parameter(Mandatory=$true)][string]$QueryFile, [Parameter(Mandatory=$true)][int]$Port, [switch]$Refresh)
 $ErrorActionPreference = "Stop"
-$pkg = Get-AppxPackage -Name "Microsoft.MicrosoftPowerBIDesktop"
-Add-Type -Path (Join-Path $pkg.InstallLocation "bin\Microsoft.PowerBI.AdomdClient.dll")
+$pkg = Get-AppxPackage -Name "Microsoft.MicrosoftPowerBIDesktop" -ErrorAction SilentlyContinue
+# Store version first, then the Program Files (installer) version.
+$dll = if ($pkg) { Join-Path $pkg.InstallLocation "bin\Microsoft.PowerBI.AdomdClient.dll" } else { "$env:ProgramFiles\Microsoft Power BI Desktop\bin\Microsoft.PowerBI.AdomdClient.dll" }
+Add-Type -Path $dll
 $conn = New-Object Microsoft.AnalysisServices.AdomdClient.AdomdConnection("Data Source=localhost:$Port")
 $conn.Open()
 if ($Refresh) {
