@@ -3,7 +3,7 @@
 Power Automate intake and reminder flows over the synthetic Fjordvik dataset. Part of
 four repos: fjordvik-data (source), fjordvik-mcp, fjordvik-powerbi,
 fjordvik-power-automate. Permanent rules in
-`C:\Users\Vihree Nelonen\Projects\knowledge\RULES.md` override this file.
+`C:\Users\reece\Projects\knowledge\RULES.md` override this file.
 
 ## Rules for this repo
 

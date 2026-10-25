@@ -1,0 +1,36 @@
+Run: 2026-10-25 16:56 +0200 on BIGRIG (new laptop). Base commit 788b0e5 plus the uncommitted path fix in this commit.
+Command: .venv\Scripts\python -m pytest -v -rs -p no:cacheprovider
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.7, pytest-9.1.1, pluggy-1.7.0 -- C:\Users\reece\Projects\fjordvik-power-automate\.venv\Scripts\python.exe
+rootdir: C:\Users\reece\Projects\fjordvik-power-automate
+collecting ... collected 26 items
+
+tests/test_data.py::test_bundled_files_match_manifest_checksums PASSED   [  3%]
+tests/test_data.py::test_source_commit_is_recorded PASSED                [  7%]
+tests/test_docs.py::test_every_rule_is_documented PASSED                 [ 11%]
+tests/test_docs.py::test_documented_seed_row_counts_match_the_workbooks PASSED [ 15%]
+tests/test_docs.py::test_seed_columns_match_the_documented_lists PASSED  [ 19%]
+tests/test_intake.py::test_clean_files_are_accepted[EE01_2025-12.xlsx] PASSED [ 23%]
+tests/test_intake.py::test_clean_files_are_accepted[EE02_2025-12.xlsx] PASSED [ 26%]
+tests/test_intake.py::test_clean_files_are_accepted[FI01_2025-12.xlsx] PASSED [ 30%]
+tests/test_intake.py::test_clean_files_are_accepted[FI02_2025-12.xlsx] PASSED [ 34%]
+tests/test_intake.py::test_clean_files_are_accepted[FI03_2025-12.xlsx] PASSED [ 38%]
+tests/test_intake.py::test_clean_files_are_accepted[SE01_2025-12.xlsx] PASSED [ 42%]
+tests/test_intake.py::test_problem_files_fail_exactly_the_planned_rules PASSED [ 46%]
+tests/test_intake.py::test_loading_the_clean_files_reproduces_fjordvik_data PASSED [ 50%]
+tests/test_intake.py::test_a_second_load_of_the_same_month_is_refused PASSED [ 53%]
+tests/test_intake.py::test_each_remaining_rule_catches_its_problem[<lambda>-R3] PASSED [ 57%]
+tests/test_intake.py::test_each_remaining_rule_catches_its_problem[<lambda>-R2] PASSED [ 61%]
+tests/test_intake.py::test_each_remaining_rule_catches_its_problem[<lambda>-R4] PASSED [ 65%]
+tests/test_intake.py::test_each_remaining_rule_catches_its_problem[<lambda>-R6_0] PASSED [ 69%]
+tests/test_intake.py::test_each_remaining_rule_catches_its_problem[<lambda>-R6_1] PASSED [ 73%]
+tests/test_intake.py::test_each_remaining_rule_catches_its_problem[<lambda>-R9] PASSED [ 76%]
+tests/test_intake.py::test_wrong_columns_stop_everything_else PASSED     [ 80%]
+tests/test_intake.py::test_refrigerant_is_exempt_from_the_change_check PASSED [ 84%]
+tests/test_intake.py::test_missing_submissions_lists_sites_without_an_accepted_file PASSED [ 88%]
+tests/test_intake.py::test_expected_results_are_current PASSED           [ 92%]
+tests/test_intake.py::test_every_workbook_holds_one_named_table PASSED   [ 96%]
+tests/test_intake.py::test_seed_emissions_stop_at_november_2025 PASSED   [100%]
+
+============================= 26 passed in 1.18s ==============================
