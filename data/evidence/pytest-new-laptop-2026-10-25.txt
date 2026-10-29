@@ -1,0 +1,36 @@
+Run: 2026-10-25 16:56 +0200 on BIGRIG (new laptop). Base commit c8791a3 plus the uncommitted path fix in this commit.
+Command: .venv\Scripts\python -m pytest -v -rs -p no:cacheprovider
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.7, pytest-9.1.1, pluggy-1.7.0 -- C:\Users\reece\Projects\fjordvik-data\.venv\Scripts\python.exe
+rootdir: C:\Users\reece\Projects\fjordvik-data
+configfile: pyproject.toml
+testpaths: tests
+collecting ... collected 24 items
+
+tests/test_generator.py::test_solar_reduces_purchases_by_exactly_the_solar_share PASSED [  4%]
+tests/test_generator.py::test_other_sites_are_untouched_by_the_solar_setting PASSED [  8%]
+tests/test_generator.py::test_ramp_applies_only_to_sites_opening_mid_period PASSED [ 12%]
+tests/test_generator.py::test_tco2e_formula PASSED                       [ 16%]
+tests/test_integrity.py::test_fact_keys_are_unique PASSED                [ 20%]
+tests/test_integrity.py::test_every_fact_row_joins_to_its_dimensions PASSED [ 25%]
+tests/test_integrity.py::test_tco2e_equals_activity_times_factor_over_1000 PASSED [ 29%]
+tests/test_integrity.py::test_no_negative_values PASSED                  [ 33%]
+tests/test_integrity.py::test_each_source_has_one_unit PASSED            [ 37%]
+tests/test_integrity.py::test_factors_match_config_for_the_site_country PASSED [ 41%]
+tests/test_integrity.py::test_grid_is_complete_from_each_site_opening PASSED [ 45%]
+tests/test_integrity.py::test_only_head_office_books_zero_revenue PASSED [ 50%]
+tests/test_reproducible.py::test_regenerating_gives_byte_identical_files PASSED [ 54%]
+tests/test_reproducible.py::test_manifest_checksums_and_counts_match_files PASSED [ 58%]
+tests/test_schema.py::test_generator_columns_match_contract PASSED       [ 62%]
+tests/test_schema.py::test_csv_headers_match_contract PASSED             [ 66%]
+tests/test_schema.py::test_dim_date_covers_36_months PASSED              [ 70%]
+tests/test_schema.py::test_dimensions_have_expected_members PASSED       [ 75%]
+tests/test_schema.py::test_numbers_parse PASSED                          [ 79%]
+tests/test_story.py::test_solar_cuts_tampere_summer_electricity_against_a_control_site PASSED [ 83%]
+tests/test_story.py::test_solar_does_little_in_winter PASSED             [ 87%]
+tests/test_story.py::test_tartu_warehouse_starts_in_july_2024 PASSED     [ 91%]
+tests/test_story.py::test_district_heating_peaks_in_winter PASSED        [ 95%]
+tests/test_story.py::test_revenue_grows_year_on_year_for_sites_open_all_period PASSED [100%]
+
+============================= 24 passed in 0.28s ==============================
