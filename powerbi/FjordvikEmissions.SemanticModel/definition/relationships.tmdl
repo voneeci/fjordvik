@@ -1,0 +1,20 @@
+relationship fact_emissions_date_key
+	fromColumn: fact_emissions.date_key
+	toColumn: dim_date.date_key
+
+relationship fact_emissions_site_id
+	fromColumn: fact_emissions.site_id
+	toColumn: dim_site.site_id
+
+relationship fact_emissions_source_id
+	fromColumn: fact_emissions.source_id
+	toColumn: dim_source.source_id
+
+relationship fact_site_metrics_date_key
+	fromColumn: fact_site_metrics.date_key
+	toColumn: dim_date.date_key
+
+relationship fact_site_metrics_site_id
+	fromColumn: fact_site_metrics.site_id
+	toColumn: dim_site.site_id
+

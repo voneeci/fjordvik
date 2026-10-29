@@ -1,0 +1,69 @@
+/// One row per month, site and source. tco2e = activity_amount * emission_factor / 1000. Factors are illustrative.
+table fact_emissions
+	lineageTag: 6b6f4c7e-4f77-42bb-a469-03948a7c105e
+
+	column date_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 93d5039c-1055-4956-bf75-53b14562c7d6
+		summarizeBy: none
+		sourceColumn: date_key
+
+	column site_id
+		dataType: string
+		isHidden
+		lineageTag: cb324fb6-048a-43e6-8382-2ed9b27faac1
+		summarizeBy: none
+		sourceColumn: site_id
+
+	column source_id
+		dataType: string
+		isHidden
+		lineageTag: 9c3bbcb6-3a8b-43f2-a0a9-45366210f6b9
+		summarizeBy: none
+		sourceColumn: source_id
+
+	/// Amount of activity in the row's unit (kWh, litre, kg, passenger-km or tonne).
+	column activity_amount
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 2e6ae31e-7dd8-432a-94cb-d39eac732020
+		summarizeBy: none
+		sourceColumn: activity_amount
+
+	column unit
+		dataType: string
+		lineageTag: d5b8dab8-9a81-4ab3-9011-fc2564b77f82
+		summarizeBy: none
+		sourceColumn: unit
+
+	/// Illustrative factor in kilograms of CO2 equivalent per unit. Not for real reporting.
+	column emission_factor
+		dataType: double
+		formatString: #,0.000
+		lineageTag: f5a6d6e1-f4f1-4669-8ffd-2101a5cff8ea
+		summarizeBy: none
+		sourceColumn: emission_factor
+
+	/// Tonnes of CO2 equivalent, as stored in the source data.
+	column tco2e
+		dataType: double
+		formatString: #,0.000000
+		lineageTag: ccfe26ee-41c8-4796-b40e-f1b1ea89406d
+		summarizeBy: none
+		sourceColumn: tco2e
+
+	partition fact_emissions = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(DataFolder & "\fact_emissions.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					// "en-US" so "0.200" is read with a full stop as the decimal mark on any Windows locale
+					Typed = Table.TransformColumnTypes(Promoted, {{"date_key", Int64.Type}, {"site_id", type text}, {"source_id", type text}, {"activity_amount", type number}, {"unit", type text}, {"emission_factor", type number}, {"tco2e", type number}}, "en-US")
+				in
+					Typed
+
+	annotation PBI_ResultType = Table
+

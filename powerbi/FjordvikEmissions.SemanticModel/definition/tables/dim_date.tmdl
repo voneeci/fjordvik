@@ -1,0 +1,63 @@
+/// One row per month, January 2023 to December 2025. Monthly grain, so it is not marked as a date table (that needs every day).
+table dim_date
+	lineageTag: 1792d929-f54f-416f-863c-c4f86adb16af
+
+	/// First day of the month as a number, for example 20240701.
+	column date_key
+		dataType: int64
+		formatString: 0
+		lineageTag: bc5bbadc-3086-4340-a109-df0dcec9cdde
+		summarizeBy: none
+		sourceColumn: date_key
+
+	/// First day of the month.
+	column date
+		dataType: dateTime
+		formatString: mmm yyyy
+		lineageTag: a26c4a2a-8819-4fc8-8039-25128c2859c4
+		summarizeBy: none
+		sourceColumn: date
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column year
+		dataType: int64
+		formatString: 0
+		lineageTag: a01c70bd-8413-4e8b-8c1b-aeed2d844ebe
+		summarizeBy: none
+		sourceColumn: year
+
+	column quarter
+		dataType: int64
+		formatString: 0
+		lineageTag: f058b66c-86fb-4aa3-9936-5a1bc5baca9e
+		summarizeBy: none
+		sourceColumn: quarter
+
+	column month
+		dataType: int64
+		formatString: 0
+		lineageTag: 55c7c92c-a305-4a1a-aa0f-5386bc0cff2b
+		summarizeBy: none
+		sourceColumn: month
+
+	column month_name
+		dataType: string
+		lineageTag: dbd93d81-1f4d-4ad8-b847-4d90b9dfc17d
+		summarizeBy: none
+		sourceColumn: month_name
+		sortByColumn: month
+
+	partition dim_date = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(DataFolder & "\dim_date.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					// "en-US" so "0.200" is read with a full stop as the decimal mark on any Windows locale
+					Typed = Table.TransformColumnTypes(Promoted, {{"date_key", Int64.Type}, {"date", type date}, {"year", Int64.Type}, {"quarter", Int64.Type}, {"month", Int64.Type}, {"month_name", type text}}, "en-US")
+				in
+					Typed
+
+	annotation PBI_ResultType = Table
+

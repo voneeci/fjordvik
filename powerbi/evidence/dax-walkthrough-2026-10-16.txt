@@ -1,0 +1,52 @@
+DAX walk-through queries, run 2026-10-16 against FjordvikEmissions.pbip in Power BI Desktop 2.158 (fjordvik-powerbi commit b3d4cd9), data refreshed through the engine.
+
+=== intro
+[Answer]=10921.770726
+rows: 1
+=== L1_total
+[All years]=30533.978015 | [2025]=10921.770726
+rows: 1
+=== L1_revenue
+[Revenue 2025]=155006886.61
+rows: 1
+=== L1_rows
+[All]=1422 | [2023]=432
+rows: 1
+=== L1_sites
+[2023]=5 | [2025]=6
+rows: 1
+=== L2_scopes
+[Scope 1]=3948.607213 | [Scope 2]=6243.608828 | [Scope 3]=729.554685
+rows: 1
+=== L2_keepfilters
+[Scope 1 measure, slicer on scope 2]=BLANK
+rows: 1
+=== L2_claim_without_keepfilters
+[plain filter]=11176.590399
+rows: 1
+=== L3_meur
+[Tallinn 2025]=146.542677611462 | [Head office]=BLANK
+rows: 1
+=== L3_fte
+[Average FTE 2024]=721.875 | [Wrong: FTE summed over 2024]=8662.5
+rows: 1
+=== L3_perfte
+[Per FTE 2024]=14.0719075324675
+rows: 1
+=== L4_recon
+[Stored]=30533.978015 | [Recalculated]=30533.9780277 | [Difference]=0 | [Unrounded]=-1.2699998478638E-05
+rows: 1
+=== L5_prior
+[Prior year of 2025]=10158.15825 | [2024 directly]=10158.15825 | [Prior year of 2023]=BLANK
+rows: 1
+=== L5_pairs
+dim_site[site_id]=EE02 | dim_date[date_key]=20250701
+dim_site[site_id]=EE02 | dim_date[date_key]=20250801
+dim_site[site_id]=EE02 | dim_date[date_key]=20250901
+dim_site[site_id]=EE02 | dim_date[date_key]=20251001
+dim_site[site_id]=EE02 | dim_date[date_key]=20251101
+dim_site[site_id]=EE02 | dim_date[date_key]=20251201
+rows: 6
+=== L5_change
+[Like-for-like 2025]=0.0287971772835889 | [Naive 2025]=0.075172335103167 | [Tartu like-for-like]=0.107253735753105
+rows: 1

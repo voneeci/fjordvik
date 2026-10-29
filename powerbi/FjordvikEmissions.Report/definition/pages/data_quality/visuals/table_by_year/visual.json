@@ -1,0 +1,109 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "table_by_year",
+  "position": {
+    "x": 20,
+    "y": 220,
+    "z": 200,
+    "height": 200,
+    "width": 1240,
+    "tabOrder": 200
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_date"
+                    }
+                  },
+                  "Property": "year"
+                }
+              },
+              "queryRef": "dim_date.year",
+              "nativeQueryRef": "year",
+              "displayName": "Year"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Emission Rows"
+                }
+              },
+              "queryRef": "_Measures.Emission Rows",
+              "nativeQueryRef": "Emission Rows"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Sites Reporting"
+                }
+              },
+              "queryRef": "_Measures.Sites Reporting",
+              "nativeQueryRef": "Sites Reporting"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Total Emissions (tCO2e)"
+                }
+              },
+              "queryRef": "_Measures.Total Emissions (tCO2e)",
+              "nativeQueryRef": "Total Emissions (tCO2e)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Recalculated Emissions (tCO2e)"
+                }
+              },
+              "queryRef": "_Measures.Recalculated Emissions (tCO2e)",
+              "nativeQueryRef": "Recalculated Emissions (tCO2e)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Reconciliation Difference (tCO2e)"
+                }
+              },
+              "queryRef": "_Measures.Reconciliation Difference (tCO2e)",
+              "nativeQueryRef": "Reconciliation Difference (tCO2e)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}
