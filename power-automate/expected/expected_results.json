@@ -1,0 +1,137 @@
+{
+  "reporting_month": "2025-12",
+  "rules": {
+    "R1": "The table has the columns site_id, month, source_id, activity_amount and unit",
+    "R2": "Every row's site_id is the site the file belongs to",
+    "R3": "Every row is for the reporting month",
+    "R4": "Every source_id is one this site reported last month",
+    "R5": "Every unit is the unit for that source",
+    "R6": "Every activity_amount is a number of zero or more",
+    "R7": "No source appears twice",
+    "R8": "Every source this site reported last month is present",
+    "R9": "Each amount is between half and double the same month last year",
+    "R10": "This site and month are not already loaded"
+  },
+  "clean": {
+    "EE01_2025-12.xlsx": {
+      "status": "Accepted",
+      "rules_failed": [],
+      "failures": [],
+      "rows_appended": 8,
+      "tco2e_appended": 508.378684
+    },
+    "EE02_2025-12.xlsx": {
+      "status": "Accepted",
+      "rules_failed": [],
+      "failures": [],
+      "rows_appended": 7,
+      "tco2e_appended": 79.409991
+    },
+    "FI01_2025-12.xlsx": {
+      "status": "Accepted",
+      "rules_failed": [],
+      "failures": [],
+      "rows_appended": 8,
+      "tco2e_appended": 249.989064
+    },
+    "FI02_2025-12.xlsx": {
+      "status": "Accepted",
+      "rules_failed": [],
+      "failures": [],
+      "rows_appended": 5,
+      "tco2e_appended": 47.815405
+    },
+    "FI03_2025-12.xlsx": {
+      "status": "Accepted",
+      "rules_failed": [],
+      "failures": [],
+      "rows_appended": 7,
+      "tco2e_appended": 44.491867
+    },
+    "SE01_2025-12.xlsx": {
+      "status": "Accepted",
+      "rules_failed": [],
+      "failures": [],
+      "rows_appended": 8,
+      "tco2e_appended": 140.01983
+    }
+  },
+  "problems": {
+    "EE01_2025-12.xlsx": {
+      "status": "Accepted",
+      "rules_failed": [],
+      "failures": [],
+      "rows_appended": 8,
+      "tco2e_appended": 508.378684
+    },
+    "FI01_2025-12.xlsx": {
+      "status": "Rejected",
+      "rules_failed": [
+        "R5",
+        "R9"
+      ],
+      "failures": [
+        {
+          "rule": "R5",
+          "detail": "row 6: S05 unit MWh, expected kWh"
+        },
+        {
+          "rule": "R9",
+          "detail": "row 6: S05 is 0.001 times the same month last year"
+        }
+      ],
+      "rows_appended": 0,
+      "tco2e_appended": 0
+    },
+    "FI02_2025-12.xlsx": {
+      "status": "Accepted",
+      "rules_failed": [],
+      "failures": [],
+      "rows_appended": 5,
+      "tco2e_appended": 47.815405
+    },
+    "FI03_2025-12.xlsx": {
+      "status": "Rejected",
+      "rules_failed": [
+        "R8"
+      ],
+      "failures": [
+        {
+          "rule": "R8",
+          "detail": "S06 is missing"
+        }
+      ],
+      "rows_appended": 0,
+      "tco2e_appended": 0
+    },
+    "SE01_2025-12.xlsx": {
+      "status": "Rejected",
+      "rules_failed": [
+        "R7"
+      ],
+      "failures": [
+        {
+          "rule": "R7",
+          "detail": "S02 appears 2 times"
+        }
+      ],
+      "rows_appended": 0,
+      "tco2e_appended": 0
+    }
+  },
+  "missing_submissions": {
+    "clean": [],
+    "problems": [
+      "EE02",
+      "FI01",
+      "FI03",
+      "SE01"
+    ]
+  },
+  "problem_descriptions": {
+    "FI01": "unit error: purchased electricity entered in MWh instead of kWh",
+    "FI03": "missing row: district heating left out",
+    "SE01": "duplicate row: diesel entered twice",
+    "EE02": "no file: the site misses the deadline"
+  }
+}
