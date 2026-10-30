@@ -1,0 +1,5 @@
+﻿Refresh before the live tests, 30 October 2026
+Command: scripts\run_dax_table.ps1 -QueryFile <empty query list> -Port 60002 -Refresh
+Desktop started by Claude Code on FjordvikEmissions.pbip at 18:18:50; engine (msmdsrv.exe) found listening on port 60002.
+Output:
+refreshed database 65c8f177-1955-4623-9b5d-bc887635e5c6

@@ -1,0 +1,40 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.7, pytest-9.2.0, pluggy-1.7.0 -- C:\Users\reece\Projects\fjordvik\powerbi\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\reece\Projects\fjordvik\powerbi
+collecting ... collected 31 items
+
+tests/test_measures_live.py::test_measure_matches_python[total_all] SKIPPED [  3%]
+tests/test_measures_live.py::test_measure_matches_python[total_2023] SKIPPED [  6%]
+tests/test_measures_live.py::test_measure_matches_python[total_2024] SKIPPED [  9%]
+tests/test_measures_live.py::test_measure_matches_python[total_2025] SKIPPED [ 12%]
+tests/test_measures_live.py::test_measure_matches_python[scope1_2025] SKIPPED [ 16%]
+tests/test_measures_live.py::test_measure_matches_python[scope2_2025] SKIPPED [ 19%]
+tests/test_measures_live.py::test_measure_matches_python[scope3_2025] SKIPPED [ 22%]
+tests/test_measures_live.py::test_measure_matches_python[scope1_under_scope2_filter] SKIPPED [ 25%]
+tests/test_measures_live.py::test_measure_matches_python[total_fi01_2024] SKIPPED [ 29%]
+tests/test_measures_live.py::test_measure_matches_python[total_estonia] SKIPPED [ 32%]
+tests/test_measures_live.py::test_measure_matches_python[recalculated_all] SKIPPED [ 35%]
+tests/test_measures_live.py::test_measure_matches_python[reconciliation_difference_all] SKIPPED [ 38%]
+tests/test_measures_live.py::test_measure_matches_python[revenue_2025] SKIPPED [ 41%]
+tests/test_measures_live.py::test_measure_matches_python[average_fte_2024] SKIPPED [ 45%]
+tests/test_measures_live.py::test_measure_matches_python[per_fte_2024] SKIPPED [ 48%]
+tests/test_measures_live.py::test_measure_matches_python[per_meur_ee01_2025] SKIPPED [ 51%]
+tests/test_measures_live.py::test_measure_matches_python[per_meur_head_office_is_blank] SKIPPED [ 54%]
+tests/test_measures_live.py::test_measure_matches_python[prior_year_of_2025] SKIPPED [ 58%]
+tests/test_measures_live.py::test_measure_matches_python[prior_year_of_2023_is_blank] SKIPPED [ 61%]
+tests/test_measures_live.py::test_measure_matches_python[prior_year_se01_march_2025] SKIPPED [ 64%]
+tests/test_measures_live.py::test_measure_matches_python[yoy_change_2025] SKIPPED [ 67%]
+tests/test_measures_live.py::test_measure_matches_python[yoy_change_tartu_2025] SKIPPED [ 70%]
+tests/test_measures_live.py::test_measure_matches_python[yoy_change_all_years] SKIPPED [ 74%]
+tests/test_measures_live.py::test_measure_matches_python[yoy_change_2023_is_blank] SKIPPED [ 77%]
+tests/test_measures_live.py::test_measure_matches_python[emission_rows_all] SKIPPED [ 80%]
+tests/test_measures_live.py::test_measure_matches_python[sites_reporting_2023] SKIPPED [ 83%]
+tests/test_measures_live.py::test_measure_matches_python[sites_reporting_2025] SKIPPED [ 87%]
+tests/test_measures_live.py::test_measure_matches_python[rls_finland_total] SKIPPED [ 90%]
+tests/test_measures_live.py::test_measure_matches_python[rls_finland_sites] SKIPPED [ 93%]
+tests/test_measures_live.py::test_measure_matches_python[rls_estonia_sites_2023] SKIPPED [ 96%]
+tests/test_measures_live.py::test_measure_matches_python[rls_sweden_cannot_see_finland] SKIPPED [100%]
+
+============================= 31 skipped in 0.30s =============================
+
