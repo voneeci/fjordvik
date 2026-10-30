@@ -15,7 +15,8 @@ monthly data (January 2023 to December 2025).
 | [`power-automate`](power-automate) | Power Automate intake and reminder flows with ten written rules, designed and tested offline | 26 |
 
 Each folder has its own README with the problem, approach, architecture, test evidence
-and limitations.
+and limitations. [docs/learning-guide.md](docs/learning-guide.md) explains how the four
+were built, in order, and why each main decision was made.
 
 ## How the parts fit
 
