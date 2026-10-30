@@ -3,14 +3,15 @@
 Fjordvik Manufacturing Oy is a **fictional** manufacturer with six sites in Finland,
 Sweden and Estonia. This repository generates 36 months (January 2023 to December 2025)
 of monthly greenhouse gas emissions and site metrics for it. Three portfolio pieces use
-the same data, so they tell one story:
+the same data, so they tell one story. All four are folders of the
+[fjordvik](https://github.com/voneeci/fjordvik) repository:
 
-| Repository | What it shows |
+| Folder | What it shows |
 | --- | --- |
-| `fjordvik-data` (this one) | The dataset, its generator and its quality tests |
-| `fjordvik-mcp` | A Model Context Protocol (MCP) connector that lets Claude query the data |
-| `fjordvik-powerbi` | A Power BI semantic model with Data Analysis Expressions (DAX) measures |
-| `fjordvik-power-automate` | Power Automate flows that take in and check monthly site files |
+| `data` (this one) | The dataset, its generator and its quality tests |
+| [`mcp`](../mcp) | A Model Context Protocol (MCP) connector that lets Claude query the data |
+| [`powerbi`](../powerbi) | A Power BI semantic model with Data Analysis Expressions (DAX) measures |
+| [`power-automate`](../power-automate) | Power Automate flows that take in and check monthly site files |
 
 > **Synthetic data only.** No real company, client or person is described. The emission
 > factors are **illustrative**, not cited, and must not be used for real reporting. See
@@ -49,9 +50,9 @@ drift, and nobody can tell which version a dashboard was built on.
 ```
 config.py ──> generate.py ──> data/*.csv + manifest.json ──> tagged release
  (sites,       (builds the       (five tables, row counts,      │
-  sources,      five tables)      SHA-256 checksums)            ├─> fjordvik-mcp
-  factors,                                                      ├─> fjordvik-powerbi
-  story)                                                        └─> fjordvik-power-automate
+  sources,      five tables)      SHA-256 checksums)            ├─> mcp/
+  factors,                                                      ├─> powerbi/
+  story)                                                        └─> power-automate/
 ```
 
 Shared schema (names are a contract; the other repositories depend on them):
@@ -94,8 +95,8 @@ is the highest.
 You need Python 3.10 or newer. No other installs are needed to generate the data.
 
 ```bash
-git clone <this repository>
-cd fjordvik-data
+git clone https://github.com/voneeci/fjordvik.git
+cd fjordvik/data
 python -m pip install -e ".[dev]"
 python -m fjordvik_data --out data
 python -m pytest
@@ -137,11 +138,11 @@ python -m pytest -q
   billing lags, estimates, restatements and one-off events.
 - The clean dataset has no data quality problems by design. Planted problems (a unit
   error, a missing month, a duplicate row) live only in the intake files of
-  `fjordvik-power-automate`.
+  `power-automate`.
 
 ## Next steps
 
-- Tag release `v1.0.0` and pin the other three repositories to it.
+- Tag release `v1.0.0` and pin the other three folders to it.
 - Add market-based scope 2 if the schema is ever extended.
 - Add yearly factor versions to show how restating a factor changes past totals.
 

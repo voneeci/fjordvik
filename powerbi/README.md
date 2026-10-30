@@ -70,7 +70,7 @@ FjordvikEmissions.Report/definition/          PBIR: 3 pages, 19 visuals (from bu
 
 You need Power BI Desktop (free, Microsoft Store) and Python 3.10 or newer with pytest.
 
-1. Clone the repository. If it is not at `C:\Users\reece\Projects\fjordvik-powerbi`,
+1. Clone the repository. If it is not at `C:\Users\reece\Projects\fjordvik` (this folder is `powerbi`),
    change the `DataFolder` value in
    `FjordvikEmissions.SemanticModel/definition/expressions.tmdl` (or in Desktop:
    **Transform data > Edit parameters**) to your `data` folder.
@@ -134,7 +134,7 @@ exposed a real fault in the first version of the change measure, which compared 
 - Publish to a Power BI workspace, assign RLS members, and run the live tests against the
   XMLA endpoint.
 - Add a Power Automate flow that refreshes the model after each monthly data load
-  (fjordvik-power-automate).
+  (the `power-automate` folder).
 - Re-pin the data to the fjordvik-data `v1.0.0` tag once it is created.
 
 ## Licence

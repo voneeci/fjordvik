@@ -1,0 +1,61 @@
+Run: 2026-10-30 08:59 +0200 on BIGRIG, in the combined fjordvik repository (folder mcp/). Base commit 2c351e7 plus the uncommitted path changes in this commit.
+Command: .venv\Scripts\python -m pytest -v -rs -p no:cacheprovider
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.7, pytest-9.2.0, pluggy-1.7.0 -- C:\Users\reece\Projects\fjordvik\mcp\.venv\Scripts\python.exe
+rootdir: C:\Users\reece\Projects\fjordvik\mcp
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.15.1
+collecting ... collected 48 items
+
+tests/test_data.py::test_bundled_files_match_manifest_checksums PASSED   [  2%]
+tests/test_data.py::test_source_commit_is_recorded PASSED                [  4%]
+tests/test_quality.py::test_clean_data_passes_every_check PASSED         [  6%]
+tests/test_quality.py::test_duplicate_row_is_caught PASSED               [  8%]
+tests/test_quality.py::test_missing_month_is_caught PASSED               [ 10%]
+tests/test_quality.py::test_unit_error_breaks_the_formula_check PASSED   [ 12%]
+tests/test_quality.py::test_unknown_site_is_caught PASSED                [ 14%]
+tests/test_quality.py::test_negative_activity_is_caught[-5.00] PASSED    [ 16%]
+tests/test_queries.py::test_total_by_year_reconciles PASSED              [ 18%]
+tests/test_queries.py::test_total_by_scope_and_country_reconciles PASSED [ 20%]
+tests/test_queries.py::test_company_total_without_grouping PASSED        [ 22%]
+tests/test_queries.py::test_month_range_is_inclusive PASSED              [ 25%]
+tests/test_queries.py::test_monthly_trend_for_new_site_starts_at_opening PASSED [ 27%]
+tests/test_queries.py::test_intensity_per_fte_averages_fte_over_months PASSED [ 29%]
+tests/test_queries.py::test_intensity_per_revenue_is_null_for_head_office PASSED [ 31%]
+tests/test_queries.py::test_intensity_per_revenue_reconciles PASSED      [ 33%]
+tests/test_queries.py::test_bad_filters_explain_valid_values[kwargs0-Unknown site_id] PASSED [ 35%]
+tests/test_queries.py::test_bad_filters_explain_valid_values[kwargs1-Unknown country] PASSED [ 37%]
+tests/test_queries.py::test_bad_filters_explain_valid_values[kwargs2-Unknown scope] PASSED [ 39%]
+tests/test_queries.py::test_bad_filters_explain_valid_values[kwargs3-Unknown year] PASSED [ 41%]
+tests/test_queries.py::test_bad_filters_explain_valid_values[kwargs4-start_month must look like] PASSED [ 43%]
+tests/test_queries.py::test_unknown_group_is_refused PASSED              [ 45%]
+tests/test_queries.py::test_describe_lists_sites_with_first_month PASSED [ 47%]
+tests/test_server.py::test_tools_are_listed_and_all_read_only PASSED     [ 50%]
+tests/test_server.py::test_group_by_choices_are_in_the_tool_schema PASSED [ 52%]
+tests/test_server.py::test_tool_call_returns_structured_content PASSED   [ 54%]
+tests/test_server.py::test_bad_input_returns_a_message_claude_can_act_on PASSED [ 56%]
+tests/test_server.py::test_refused_sql_explains_why PASSED               [ 58%]
+tests/test_server.py::test_resources_are_readable PASSED                 [ 60%]
+tests/test_server.py::test_server_runs_over_stdio_like_claude_desktop PASSED [ 62%]
+tests/test_sql_guard.py::test_select_and_cte_are_allowed PASSED          [ 64%]
+tests/test_sql_guard.py::test_results_are_capped PASSED                  [ 66%]
+tests/test_sql_guard.py::test_max_rows_bounds[0] PASSED                  [ 68%]
+tests/test_sql_guard.py::test_max_rows_bounds[1001] PASSED               [ 70%]
+tests/test_sql_guard.py::test_anything_but_one_select_is_refused[DROP TABLE dim_site] PASSED [ 72%]
+tests/test_sql_guard.py::test_anything_but_one_select_is_refused[DELETE FROM fact_emissions] PASSED [ 75%]
+tests/test_sql_guard.py::test_anything_but_one_select_is_refused[INSERT INTO dim_site VALUES ('X', 'X', 'X', 'X')] PASSED [ 77%]
+tests/test_sql_guard.py::test_anything_but_one_select_is_refused[UPDATE fact_emissions SET tco2e = 0] PASSED [ 79%]
+tests/test_sql_guard.py::test_anything_but_one_select_is_refused[CREATE TABLE x AS SELECT 1] PASSED [ 81%]
+tests/test_sql_guard.py::test_anything_but_one_select_is_refused[SET enable_external_access = true] PASSED [ 83%]
+tests/test_sql_guard.py::test_anything_but_one_select_is_refused[ATTACH 'other.db'] PASSED [ 85%]
+tests/test_sql_guard.py::test_anything_but_one_select_is_refused[COPY dim_site TO 'leak.csv'] PASSED [ 87%]
+tests/test_sql_guard.py::test_anything_but_one_select_is_refused[INSTALL httpfs] PASSED [ 89%]
+tests/test_sql_guard.py::test_anything_but_one_select_is_refused[SELECT 1; DROP TABLE dim_site] PASSED [ 91%]
+tests/test_sql_guard.py::test_a_select_cannot_reach_files_or_the_network[SELECT * FROM read_csv('data/dim_site.csv')] PASSED [ 93%]
+tests/test_sql_guard.py::test_a_select_cannot_reach_files_or_the_network[SELECT * FROM 'data/dim_site.csv'] PASSED [ 95%]
+tests/test_sql_guard.py::test_a_select_cannot_reach_files_or_the_network[SELECT * FROM read_text('README.md')] PASSED [ 97%]
+tests/test_sql_guard.py::test_a_select_cannot_reach_files_or_the_network[SELECT * FROM read_csv('https://example.com/x.csv')] PASSED [100%]
+
+============================= 48 passed in 6.49s ==============================

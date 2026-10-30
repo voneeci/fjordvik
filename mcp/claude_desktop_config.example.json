@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "fjordvik": {
-      "command": "C:\path\to\fjordvik-mcp\.venv\Scripts\python.exe",
+      "command": "C:\path\to\fjordvik\mcp\.venv\Scripts\python.exe",
       "args": ["-m", "fjordvik_mcp"]
     }
   }

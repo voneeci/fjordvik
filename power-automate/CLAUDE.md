@@ -1,8 +1,8 @@
 # fjordvik-power-automate
 
-Power Automate intake and reminder flows over the synthetic Fjordvik dataset. Part of
-four repos: fjordvik-data (source), fjordvik-mcp, fjordvik-powerbi,
-fjordvik-power-automate. Permanent rules in
+Power Automate intake and reminder flows over the synthetic Fjordvik dataset. One of
+four folders in the fjordvik repository: data (source), mcp, powerbi,
+power-automate. Permanent rules in
 `C:\Users\reece\Projects\knowledge\RULES.md` override this file.
 
 ## Rules for this repo
@@ -28,7 +28,7 @@ fjordvik-power-automate. Permanent rules in
 ## Commands
 
 ```bash
-python scripts/sync_data.py ..\fjordvik-data   # refresh data (checksums verified)
+python scripts/sync_data.py ..\data            # refresh data (checksums verified)
 python scripts/build_intake_files.py           # rebuild intake, seed and expected files
 python -m pytest -q                            # 26 tests
 ```

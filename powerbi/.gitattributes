@@ -3,3 +3,5 @@ data/*.csv  text eol=lf
 data/*.json text eol=lf
 # Power BI Desktop writes CRLF; let git normalise everything else.
 *           text=auto
+# The data dictionary is generated with LF and its test compares bytes.
+docs/data-dictionary.md text eol=lf

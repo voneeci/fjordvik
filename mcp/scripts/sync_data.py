@@ -1,6 +1,6 @@
 """Copy the Fjordvik CSV files from a fjordvik-data checkout and verify them.
 
-Usage:  python scripts/sync_data.py [path-to-fjordvik-data]   (default: ../fjordvik-data)
+Usage:  python scripts/sync_data.py [path-to-fjordvik-data]   (default: ../data)
 
 Every file is checked against the SHA-256 checksum in the source manifest before
 it is copied, so a hand-edited or half-written file can never slip in. The
@@ -32,7 +32,7 @@ def git(source: Path, *args: str) -> str | None:
 
 
 def main() -> int:
-    source = Path(sys.argv[1]) if len(sys.argv) > 1 else REPO.parent / "fjordvik-data"
+    source = Path(sys.argv[1]) if len(sys.argv) > 1 else REPO.parent / "data"
     src_data = source / "data"
     manifest = json.loads((src_data / "manifest.json").read_text(encoding="utf-8"))
 

@@ -4,7 +4,7 @@ A Model Context Protocol (MCP) server that lets Claude answer questions about th
 emissions of Fjordvik Manufacturing Oy, a **fictional** manufacturer with six sites in
 Finland, Sweden and Estonia. Claude calls five read-only tools; the server answers from
 a locked-down DuckDB database (a file-based analytics database) built from the shared
-[fjordvik-data](https://github.com/voneeci/fjordvik-data) dataset.
+[fjordvik-data](../data) dataset.
 
 > **Synthetic data only.** No real company, client or person is described. The emission
 > factors are **illustrative**, not cited, and must not be used for real reporting.
@@ -69,8 +69,8 @@ fjordvik-data commit the bundled data came from).
 You need Python 3.10 or newer.
 
 ```bash
-git clone <this repository>
-cd fjordvik-mcp
+git clone https://github.com/voneeci/fjordvik.git
+cd fjordvik/mcp
 python -m venv .venv
 .venv\Scripts\python -m pip install -e ".[dev]"
 .venv\Scripts\python -m pytest
@@ -82,7 +82,7 @@ Claude Desktop rewrites its configuration file when it quits, so an edit made wh
 is running is lost. Make the change with the app fully closed:
 
 1. Quit Claude Desktop from the system tray (right-click the Claude icon, Quit).
-2. From this repository's folder, run:
+2. From the `mcp` folder, run:
 
    ```powershell
    python scripts\add_to_claude_desktop.py
@@ -104,7 +104,7 @@ Try:
 ### Refresh the data
 
 ```bash
-python scripts/sync_data.py ..\fjordvik-data
+python scripts/sync_data.py ..\data
 ```
 
 The script refuses files whose checksum does not match the fjordvik-data manifest, and
