@@ -1,30 +1,34 @@
-# Fjordvik data: a synthetic emissions dataset
+# Fjordvik data: the governed emissions dataset
 
-Fjordvik Manufacturing Oy is a **fictional** manufacturer with six sites in Finland,
-Sweden and Estonia. This repository generates 36 months (January 2023 to December 2025)
-of monthly greenhouse gas emissions and site metrics for it. It is one part of the
-Fjordvik portfolio project; the other three parts use the same data, so they tell one
-story. All four are folders of the
-[fjordvik](https://github.com/voneeci/fjordvik) repository:
+Fjordvik Manufacturing Oy reports the greenhouse gas emissions of its six sites in
+Finland, Sweden and Estonia every month. This folder holds the one dataset behind those
+figures: 36 months (January 2023 to December 2025) of emissions by site and source, with
+each site's revenue and headcount. The Power BI report, the Claude connector and the
+intake checks all read it, so every answer comes from the same numbers. All four parts are
+folders of the [fjordvik](https://github.com/voneeci/fjordvik) repository:
 
-| Folder | What it shows |
+| Folder | What it does for the business |
 | --- | --- |
-| `data` (this one) | The dataset, its generator and its quality tests |
-| [`mcp`](../mcp) | A Model Context Protocol (MCP) connector that lets Claude query the data |
-| [`powerbi`](../powerbi) | A Power BI semantic model with Data Analysis Expressions (DAX) measures |
-| [`power-automate`](../power-automate) | Power Automate flows that take in and check monthly site files |
+| `data` (this one) | The governed dataset, with fixed names, checksums and quality tests |
+| [`mcp`](../mcp) | A Model Context Protocol (MCP) connector that lets Claude answer questions from the data |
+| [`powerbi`](../powerbi) | The Power BI model and report, with Data Analysis Expressions (DAX) measures |
+| [`power-automate`](../power-automate) | Power Automate flows that take in and check each site's monthly file |
 
-> **Synthetic data only.** No real company, client or person is described. The emission
-> factors are **illustrative**, not cited, and must not be used for real reporting. See
+> **Synthetic data only.** Fjordvik Manufacturing Oy is a fictional company, and this is a
+> portfolio project. No real company, client or person is described. The emission factors
+> are **illustrative**, not cited, and must not be used for real reporting. See
 > [docs/emission-factors.md](docs/emission-factors.md).
 
 ## Problem
 
-A portfolio project on business intelligence, automation and artificial intelligence (AI)
-connectors needs data that is realistic enough to be interesting, safe to publish, and
-identical everywhere it is used.
-Real client data fails the second test. Hand-made spreadsheets fail the third: copies
-drift, and nobody can tell which version a dashboard was built on.
+Fjordvik's figures used to live in copies of a central spreadsheet. Copies drift, so two
+charts built a week apart could disagree, and nobody could prove which version a report
+used. The business needs one dataset that every report reads: fixed table and column
+names that tools can rely on, checks that catch impossible values, and a way to prove the
+files have not been edited by hand.
+
+In this portfolio version the dataset is generated, so it is safe to publish. It stands in
+for the central Emissions list that the Power Automate intake flow fills each month.
 
 ## Approach
 

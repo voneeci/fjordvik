@@ -1,21 +1,24 @@
 # Fjordvik MCP: a Claude connector for emissions data
 
-A Model Context Protocol (MCP) server that lets Claude answer questions about the
-emissions of Fjordvik Manufacturing Oy, a **fictional** manufacturer with six sites in
-Finland, Sweden and Estonia. Claude calls five read-only tools; the server answers from
-a locked-down DuckDB database (a file-based analytics database) built from the
-repository's shared dataset in [`data/data`](../data).
+Fjordvik Manufacturing Oy's managers ask questions about the company's emissions that no
+dashboard page was built for. This connector lets them ask Claude in plain language and
+get an answer from the same governed data the Power BI report uses. It is a Model Context
+Protocol (MCP) server: Claude calls five read-only tools, and the server answers from a
+locked-down DuckDB database (a file-based analytics database) built from the shared
+dataset in [`data/data`](../data).
 
-> **Synthetic data only.** No real company, client or person is described. The emission
-> factors are **illustrative**, not cited, and must not be used for real reporting.
+> **Synthetic data only.** Fjordvik Manufacturing Oy is a fictional company, and this is a
+> portfolio project. No real company, client or person is described. The emission factors
+> are **illustrative**, not cited, and must not be used for real reporting.
 
 ## Problem
 
-People ask data questions in plain language ("which site is our worst emitter per euro
-of revenue?"), but the answers live in tables. An AI assistant can bridge that gap, but
-only if it can reach the data safely: it must not change anything, must not read files
-it was not given, and must get the arithmetic right (for example, averaging headcount
-over months instead of adding it up).
+Managers ask questions such as "which site is our worst emitter per euro of revenue?" or
+"what changed at Tampere Plant after the solar panels went in?". The answers are in the
+data, but each new question waits for an analyst to build a spreadsheet. An AI assistant
+can answer straight away, but only if it can reach the data safely: it must not change
+anything, must not read files it was not given, and must get the arithmetic right (for
+example, averaging headcount over months instead of adding it up).
 
 ## Approach
 

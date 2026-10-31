@@ -1,12 +1,14 @@
 # Fjordvik Power Automate: monthly site file intake
 
-Two Power Automate cloud flows that replace a manual monthly routine for Fjordvik
-Manufacturing Oy, a **fictional** manufacturer with six sites in Finland, Sweden and
-Estonia: collecting each site's emissions spreadsheet, checking it, chasing late or wrong
-files, and copying the numbers into a central list.
+Every month, each of Fjordvik Manufacturing Oy's six sites in Finland, Sweden and Estonia
+sends the sustainability team a spreadsheet of the fuel, energy, refrigerant, flights and
+waste it used. These two Power Automate cloud flows take over that routine: they collect
+each file, check it against ten written rules, load accepted files into a central list,
+tell sites what to fix, and chase sites that have not sent a file.
 
-> **Synthetic data only.** No real company, client or person is described. The emission
-> factors are **illustrative**, not cited, and must not be used for real reporting.
+> **Synthetic data only.** Fjordvik Manufacturing Oy is a fictional company, and this is a
+> portfolio project. No real company, client or person is described. The emission factors
+> are **illustrative**, not cited, and must not be used for real reporting.
 
 > **Status, 12 October 2026:** the design, the rules, the test files and the tests are
 > done and pass offline. The flows are built in a Microsoft 365 trial tenant next, following

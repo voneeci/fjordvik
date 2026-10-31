@@ -1,24 +1,29 @@
-# Fjordvik Power BI: a tested, version-controlled semantic model
+# Fjordvik Power BI: one trusted view of the emissions figures
 
-A Power BI semantic model and three-page report for Fjordvik Manufacturing Oy, a
-**fictional** manufacturer with six sites in Finland, Sweden and Estonia. The model is
-saved as a Power BI Project (PBIP): plain text files in git, written in Tabular Model
-Definition Language (TMDL) and the Power BI enhanced report format (PBIR). Every Data
-Analysis Expressions (DAX) measure is reconciled against an independent Python
-calculation by automated tests.
+Fjordvik Manufacturing Oy's Group Sustainability Manager and its country managers need one
+trusted view of the company's monthly greenhouse gas figures: totals by scope, site and
+country, emissions per employee and per euro of revenue, and honest year-on-year change.
+This Power BI semantic model and three-page report provide it. Country managers see only
+their own sites, and every Data Analysis Expressions (DAX) measure is reconciled against
+an independent Python calculation by automated tests. The model is saved as a Power BI
+Project (PBIP): plain text files in git, written in Tabular Model Definition Language
+(TMDL) and the Power BI enhanced report format (PBIR), so every change can be reviewed.
 
-> **Synthetic data only.** No real company, client or person is described. The emission
-> factors are **illustrative**, not cited, and must not be used for real reporting.
+> **Synthetic data only.** Fjordvik Manufacturing Oy is a fictional company, and this is a
+> portfolio project. No real company, client or person is described. The emission factors
+> are **illustrative**, not cited, and must not be used for real reporting.
 
 ![Overview page](docs/images/overview.jpg)
 
 ## Problem
 
-Corporate Power BI models drift: measures get edited in place, nobody can say which
-version a report used, and a number that looks right is never checked against a second
-route to the same answer. Access is often all-or-nothing. The questions a reviewer asks
-of a semantic model are: is it under version control, do its measures reconcile, who can
-see what, and is it documented well enough to certify?
+Fjordvik's charts used to be built by hand from copies of a central spreadsheet. Each
+report redid the calculations, so two reports could disagree, and nobody could say which
+version a chart used. When Tartu Warehouse opened in July 2024, a plain comparison of
+totals made the company's growth look larger than it was. A country manager saw every
+country or nothing. Management needs a model it can certify: under version control, with
+measures that reconcile, clear rules for who sees what, and documentation a reviewer can
+check.
 
 ## Approach
 
@@ -105,7 +110,7 @@ python -m pytest -q
 
 The tests were checked by planting mistakes: a typed-in factor (`* 0.95`) in a measure and
 a misspelt measure name in a visual were both caught. Writing the like-for-like test
-exposed a real fault in the first version of the change measure, which compared Tartu's
+exposed a fault in the first version of the change measure, which compared Tartu's
 12 months of 2025 with its 6 months of 2024.
 
 ![Data quality page](docs/images/data-quality.jpg)
