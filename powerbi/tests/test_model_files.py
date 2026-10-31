@@ -18,10 +18,24 @@ REPORT = REPO / "FjordvikEmissions.Report" / "definition"
 SHARED_SCHEMA = {
     "dim_date": ["date_key", "date", "year", "quarter", "month", "month_name"],
     "dim_site": ["site_id", "site_name", "country", "site_type"],
-    "dim_source": ["source_id", "source_name", "scope", "category"],
+    # scope3_category and method, and the seven value-chain tables, added 31 October 2026
+    "dim_source": ["source_id", "source_name", "scope", "category", "scope3_category", "method"],
     "fact_emissions": ["date_key", "site_id", "source_id", "activity_amount", "unit",
                        "emission_factor", "tco2e"],
     "fact_site_metrics": ["date_key", "site_id", "revenue_eur", "fte"],
+    "dim_scope3_category": ["scope3_category", "category_name", "status", "reason"],
+    "dim_contract": ["contract_id", "site_id", "source_id", "supplier_name", "instrument",
+                     "start_date_key", "end_date_key", "covered_share"],
+    "fact_scope2_market": ["date_key", "site_id", "source_id", "contract_id", "instrument",
+                           "activity_amount", "unit", "emission_factor", "tco2e"],
+    "fact_energy_upstream": ["date_key", "site_id", "source_id", "based_on_source_id",
+                             "activity_amount", "unit", "emission_factor", "tco2e"],
+    "dim_supplier": ["supplier_id", "supplier_name", "country", "spend_category"],
+    "fact_purchases": ["date_key", "site_id", "source_id", "supplier_id", "spend_category",
+                       "method", "activity_amount", "unit", "emission_factor", "tco2e"],
+    "fact_freight": ["date_key", "site_id", "source_id", "direction", "mode", "paid_by",
+                     "tonnes", "distance_km", "activity_amount", "unit", "emission_factor",
+                     "tco2e"],
 }
 
 # Numbers allowed in DAX, each a unit conversion or a key, never a rate or factor.
@@ -99,7 +113,8 @@ def test_measure_name_carries_its_unit(name):
         return
     # Activity units added 31 October 2026 with the Activity measures (Energy Used (kWh) and
     # others): each is the unit the sites report that source in, so the rule is unchanged.
-    assert re.search(r"\((tCO2e|EUR|%|kWh|litres|kg|passenger-km|tonnes)\)$", name), \
+    # tonne-km added the same day for Freight Transport (tonne-km), the unit of fact_freight.
+    assert re.search(r"\((tCO2e|EUR|%|kWh|litres|kg|passenger-km|tonnes|tonne-km)\)$", name), \
         "unit missing from the name"
 
 

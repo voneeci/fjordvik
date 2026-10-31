@@ -1,0 +1,100 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "matrix_market_by_instrument",
+  "position": {
+    "x": 660,
+    "y": 475,
+    "z": 700,
+    "height": 235,
+    "width": 600,
+    "tabOrder": 700
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_scope2_market"
+                    }
+                  },
+                  "Property": "instrument"
+                }
+              },
+              "queryRef": "fact_scope2_market.instrument",
+              "nativeQueryRef": "instrument",
+              "displayName": "Instrument",
+              "active": true
+            }
+          ]
+        },
+        "Columns": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_date"
+                    }
+                  },
+                  "Property": "year"
+                }
+              },
+              "queryRef": "dim_date.year",
+              "nativeQueryRef": "year",
+              "displayName": "Year",
+              "active": true
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Scope 2 Market-based Emissions (tCO2e)"
+                }
+              },
+              "queryRef": "_Measures.Scope 2 Market-based Emissions (tCO2e)",
+              "nativeQueryRef": "Scope 2 Market-based Emissions (tCO2e)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Market-based scope 2 by instrument and year (tCO2e)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

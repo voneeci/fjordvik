@@ -1,4 +1,4 @@
-/// The eight emission sources, with their Greenhouse Gas Protocol scope.
+/// The 13 emission sources, with their Greenhouse Gas Protocol scope, scope 3 category and calculation method.
 table dim_source
 	lineageTag: de6426e1-d0b4-4cfa-8587-eaaeecfaa15d
 
@@ -27,14 +27,30 @@ table dim_source
 		summarizeBy: none
 		sourceColumn: category
 
+	/// Greenhouse Gas Protocol scope 3 category, 1 to 15. Blank for scopes 1 and 2.
+	column scope3_category
+		dataType: int64
+		formatString: 0
+		lineageTag: 9c6bad23-a7a1-44da-b51d-a6875b4bfee7
+		summarizeBy: none
+		sourceColumn: scope3_category
+
+	column method
+		dataType: string
+		lineageTag: 935ba846-14d9-45cb-804b-c94da380db22
+		summarizeBy: none
+		sourceColumn: method
+
 	partition dim_source = m
 		mode: import
 		source =
 				let
 					Source = Csv.Document(File.Contents(DataFolder & "\dim_source.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
 					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					// An empty field is a blank, not empty text, so it types cleanly and joins to nothing
+					Blanks = Table.ReplaceValue(Promoted, "", null, Replacer.ReplaceValue, {"scope3_category"}),
 					// "en-US" so "0.200" is read with a full stop as the decimal mark on any Windows locale
-					Typed = Table.TransformColumnTypes(Promoted, {{"source_id", type text}, {"source_name", type text}, {"scope", Int64.Type}, {"category", type text}}, "en-US")
+					Typed = Table.TransformColumnTypes(Blanks, {{"source_id", type text}, {"source_name", type text}, {"scope", Int64.Type}, {"category", type text}, {"scope3_category", Int64.Type}, {"method", type text}}, "en-US")
 				in
 					Typed
 

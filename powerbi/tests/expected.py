@@ -18,10 +18,34 @@ def read(name):
         return list(csv.DictReader(f))
 
 
-EM = read("fact_emissions")
+# Since 31 October 2026 the location-based inventory is four tables: what the sites
+# report, plus the value-chain tables (category 3, purchases, freight).
+SITE_EM = read("fact_emissions")
+EM = SITE_EM + read("fact_energy_upstream") + read("fact_purchases") + read("fact_freight")
+MARKET = read("fact_scope2_market")
+PURCHASES = read("fact_purchases")
+FREIGHT = read("fact_freight")
 SM = read("fact_site_metrics")
 SITE = {r["site_id"]: r for r in read("dim_site")}
 SCOPE = {r["source_id"]: int(r["scope"]) for r in read("dim_source")}
+CATEGORY = {r["source_id"]: r["scope3_category"] for r in read("dim_source")}
+
+
+def keep(r, year=None, site=None, country=None, scope=None, month_key=None, source=None,
+         scope3_category=None):
+    return ((not year or r["date_key"].startswith(str(year)))
+            and (not month_key or r["date_key"] == str(month_key))
+            and (not site or r["site_id"] == site)
+            and (not country or SITE[r["site_id"]]["country"] == country)
+            and (not scope or SCOPE[r["source_id"]] == scope)
+            and (not source or r["source_id"] == source)
+            and (not scope3_category or CATEGORY[r["source_id"]] == str(scope3_category)))
+
+
+def total(rows, column="tco2e", **f):
+    """Sum a column over the rows that pass the filters; None (blank) if no rows do."""
+    picked = [float(r[column]) for r in rows if keep(r, **f)]
+    return sum(picked) if picked else None
 
 
 def emissions(year=None, site=None, country=None, scope=None, month_key=None):
@@ -89,7 +113,7 @@ MONTHS = {int(r["date_key"]) for r in read("dim_date")}
 
 def activity(source=None, unit=None, year=None, site=None, country=None):
     """Activity in the sites' own units, for one source or every source in one unit."""
-    return sum(float(r["activity_amount"]) for r in EM
+    return sum(float(r["activity_amount"]) for r in SITE_EM
                if (source is None or r["source_id"] == source)
                and (unit is None or r["unit"] == unit)
                and (year is None or r["date_key"].startswith(str(year)))
@@ -118,6 +142,8 @@ FILTERS = {
     "country": ("dim_site", "country", str),
     "scope": ("dim_source", "scope", int),
     "month_key": ("dim_date", "date_key", int),
+    "source": ("dim_source", "source_id", str),
+    "scope3_category": ("dim_scope3_category", "scope3_category", int),
 }
 
 
@@ -195,7 +221,7 @@ def cases():
         case("change_incl_new_pct_2025", "Emissions Change Including New Sites (%)",
              change_including_new_sites(year=2025) / emissions(year=2024), year=2025,
              tolerance=0.00001),
-        case("emission_rows_all", "Emission Rows", float(len(EM))),
+        case("emission_rows_all", "Emission Rows", float(len(SITE_EM))),
         case("sites_reporting_2023", "Sites Reporting", 5.0, year=2023),
         case("sites_reporting_2025", "Sites Reporting", 6.0, year=2025),
         # Row-level security: the Finland role sees only Finnish sites.
@@ -204,7 +230,73 @@ def cases():
         case("rls_estonia_sites_2023", "Sites Reporting", 1.0, role="Estonia", year=2023),
         case("rls_sweden_cannot_see_finland", total, None, role="Sweden", country="Finland"),
     ]
+    out += value_chain_cases()
     return out
+
+
+def value_chain_cases():
+    """Market-based scope 2 and scope 3 categories 1, 3, 4 and 9 (added 31 October 2026)."""
+    market = "Scope 2 Market-based Emissions (tCO2e)"
+    go_kwh = "Electricity with Guarantees of Origin (kWh)"
+
+    def go(**f):
+        return total([r for r in MARKET if r["contract_id"]], "activity_amount", **f)
+
+    def market_total(**f):
+        return emissions(**f) - emissions(scope=2, **f) + total(MARKET, **f)
+
+    def per_thousand(**f):
+        return total(PURCHASES, **f) / (total(PURCHASES, "activity_amount", **f) / 1000)
+
+    return [
+        case("market_scope2_2025", market, total(MARKET, year=2025), year=2025),
+        case("market_scope2_fi01_2025", market, total(MARKET, year=2025, site="FI01"),
+             year=2025, site="FI01"),
+        # Gothenburg's hydro guarantees cover every kWh: zero, not blank.
+        case("market_electricity_se01_is_zero", market, 0.0, site="SE01", source="S05"),
+        case("market_scope2_under_scope1_is_blank", market, None, scope=1),
+        case("market_total_2025", "Total Emissions Market-based (tCO2e)",
+             market_total(year=2025), year=2025),
+        case("market_total_estonia_2024", "Total Emissions Market-based (tCO2e)",
+             market_total(year=2024, country="Estonia"), year=2024, country="Estonia"),
+        case("go_kwh_2025", go_kwh, go(year=2025), year=2025, tolerance=0.01),
+        case("go_share_fi01_2025", "Electricity with Guarantees of Origin (%)",
+             go(year=2025, site="FI01") / activity(source="S05", year=2025, site="FI01"),
+             year=2025, site="FI01", tolerance=0.00001),
+        case("go_share_estonia_is_blank", "Electricity with Guarantees of Origin (%)", None,
+             country="Estonia"),
+        case("purchased_goods_2025", "Purchased Goods and Services Emissions (tCO2e)",
+             total(PURCHASES, year=2025), year=2025),
+        case("purchased_goods_ee01_2024", "Purchased Goods and Services Emissions (tCO2e)",
+             total(PURCHASES, year=2024, site="EE01"), year=2024, site="EE01"),
+        case("fuel_energy_2025", "Fuel and Energy Related Emissions (tCO2e)",
+             total(EM, year=2025, scope3_category=3), year=2025),
+        case("upstream_transport_2025", "Upstream Transport Emissions (tCO2e)",
+             total(FREIGHT, year=2025, source="S12"), year=2025),
+        case("downstream_transport_2025", "Downstream Transport Emissions (tCO2e)",
+             total(FREIGHT, year=2025, source="S13"), year=2025),
+        case("downstream_under_scope1_is_blank", "Downstream Transport Emissions (tCO2e)",
+             None, scope=1),
+        case("spend_2025", "Purchased Spend (EUR)", total(PURCHASES, "activity_amount", year=2025),
+             year=2025, tolerance=0.01),
+        case("freight_tkm_2025", "Freight Transport (tonne-km)",
+             total(FREIGHT, "activity_amount", year=2025), year=2025, tolerance=0.01),
+        case("per_thousand_eur_2025", "Purchased Goods Emissions per Thousand EUR (tCO2e)",
+             per_thousand(year=2025), year=2025, tolerance=0.00001),
+        case("market_reconciliation_all", "Market-based Reconciliation Difference (tCO2e)", 0.0,
+             tolerance=0.01),
+        # The category table filters through dim_source to every emission table.
+        case("total_under_category_1_2025", "Total Emissions (tCO2e)",
+             total(PURCHASES, year=2025), year=2025, scope3_category=1),
+        case("total_under_category_9", "Total Emissions (tCO2e)", total(FREIGHT, source="S13"),
+             scope3_category=9),
+        case("total_under_category_11_is_blank", "Total Emissions (tCO2e)", None,
+             scope3_category=11),
+        # Row-level security reaches the new tables through dim_site.
+        case("rls_finland_market", market, total(MARKET, country="Finland"), role="Finland"),
+        case("rls_estonia_purchases_2025", "Purchased Goods and Services Emissions (tCO2e)",
+             total(PURCHASES, year=2025, country="Estonia"), role="Estonia", year=2025),
+    ]
 
 
 def dax_query(c) -> str:

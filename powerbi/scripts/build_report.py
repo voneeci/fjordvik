@@ -224,6 +224,14 @@ SITE_COLOURS = {"Tampere Plant": "#2A78D6", "Helsinki Head Office": "#EB6834",
                 "Tallinn Plant": "#E87BA4", "Tartu Warehouse": "#008300"}
 ENERGY = [("Natural Gas Used (kWh)", "#2A78D6"), ("Electricity Purchased (kWh)", "#EB6834"),
           ("District Heating Purchased (kWh)", "#1BAF7A")]
+MARKET = "Scope 2 Market-based Emissions (tCO2e)"
+MARKET_COLOUR = "#8A5A0B"
+CATEGORY = column("dim_scope3_category", "category_name", "Scope 3 category")
+VALUE_CHAIN_CARDS = ["Scope 3 Emissions (tCO2e)", "Purchased Goods and Services Emissions (tCO2e)",
+                     "Fuel and Energy Related Emissions (tCO2e)",
+                     "Upstream Transport Emissions (tCO2e)", "Downstream Transport Emissions (tCO2e)"]
+FREIGHT = [("Upstream Transport Emissions (tCO2e)", "#7A5BA6"),
+           ("Downstream Transport Emissions (tCO2e)", "#3F2D63")]
 ACTIVITY_CARDS = ["Energy Used (kWh)", "Vehicle Fuel Used (litres)", "Refrigerant Leakage (kg)",
                   "Business Flights (passenger-km)", "Waste to Landfill (tonnes)"]
 
@@ -246,14 +254,16 @@ def introduction():
     return [
         textbox("title", 20, 10, 1240, 70, 0, [
             "Fjordvik Manufacturing Oy: monthly emissions report",
-            "A portfolio project on synthetic data. " + CAVEAT]),
+            "A portfolio project. " + CAVEAT]),
         page_navigator("page_buttons", 20, 90, 1240, 50, 100),
         section("about_company", 20, 155, 600, 175, 200, "About the company", [
-            "Fjordvik Manufacturing Oy is a manufacturer with three plants, two warehouses and a "
-            "head office in Finland, Sweden and Estonia.",
-            "Each month every site reports the energy, fuel, refrigerant, business flights and "
-            "waste it used. This report turns those figures into the company's greenhouse gas "
-            "emissions, from January 2023 to December 2025.",
+            "Fjordvik Manufacturing Oy makes electric pumps and pump systems for water utilities, "
+            "industry and buildings: process pumps in Tampere, water and wastewater pumps in "
+            "Gothenburg, pump packages and controls in Tallinn, with warehouses in Oulu and Tartu "
+            "and a head office in Helsinki.",
+            "Each month the sites report the energy, fuel, refrigerant, flights and waste they "
+            "used; purchasing, logistics and energy contracts add the value chain. This report "
+            "turns them into greenhouse gas emissions, January 2023 to December 2025.",
             "Tartu Warehouse opened in July 2024, and Tampere Plant installed rooftop solar panels "
             "the same month.",
         ]),
@@ -264,19 +274,22 @@ def introduction():
             "Technical owner: Data and AI Specialist, who maintains the model and this report.",
             "Country managers see only their own country's sites, through row-level security.",
         ]),
-        section("page_guide", 640, 155, 620, 250, 500, "What each page answers", [
+        section("page_guide", 640, 155, 620, 270, 500, "What each page answers", [
             "Overview: how much does Fjordvik emit, and where?",
             "Emissions breakdown: what are the emissions made of, by scope, source and country?",
+            "Value chain (scope 3): which scope 3 categories are counted, and why the rest are not?",
+            "Scope 2 methods: how do location-based and market-based scope 2 compare?",
             "Intensity and growth: is Fjordvik getting cleaner as it grows?",
             "Energy and activity: how much energy, fuel and other activity did each site use?",
             "What changed: why did emissions move on the prior year?",
             "Sites: how do the six sites compare?",
             "Data quality: do the figures reconcile, and is every site reporting?",
         ]),
-        section("reading_guide", 640, 415, 620, 290, 600, "How to read the figures", [
-            "Scope 1: direct emissions from fuel burned on site and refrigerant leaks. Scope 2: "
-            "electricity and heat bought, using each country's average factor (location-based). "
-            "Scope 3: business flights and waste to landfill.",
+        section("reading_guide", 640, 435, 620, 270, 600, "How to read the figures", [
+            "Scope 1: fuel burned on site and refrigerant leaks. Scope 2: electricity and heat "
+            "bought, at each country's average factor (location-based); market-based is shown "
+            "beside it. Scope 3: purchases, upstream fuel and grid losses, freight, flights and "
+            "landfill waste. Totals are location-based.",
             "tCO2e is tonnes of carbon dioxide equivalent: activity amount times emission factor, "
             "divided by 1,000.",
             "Intensity divides emissions by average full-time equivalent employees (FTE) or by "
@@ -321,6 +334,67 @@ def breakdown():
               [measure(TOTAL)], sort_by_value=True, title="Emissions by country (tCO2e)",
               colours=[(for_value(COUNTRY, k), c) for k, c in COUNTRY_COLOURS.items()],
               labels=True),
+    ]
+
+
+def value_chain():
+    return [
+        *header("Value chain (scope 3)",
+                "The scope 3 categories counted, and why the others are not. Category 11, use of "
+                "sold products, is likely the largest and needs product data."),
+        *[card(f"card_{i}", 20 + i * 250, 95, 240, 100, 300 + i, m)
+          for i, m in enumerate(VALUE_CHAIN_CARDS)],
+        # Scope 3 measure, not the total: scope 1 and 2 sources have no category, so the
+        # total would add a blank bar holding scopes 1 and 2.
+        chart("clusteredBarChart", "bar_by_scope3_category", 20, 210, 400, 250, 400, CATEGORY,
+              [measure("Scope 3 Emissions (tCO2e)")], sort_by_value=True, title="Scope 3 emissions by category (tCO2e)",
+              colours=single("#7A5BA6"), labels=True),
+        chart("clusteredBarChart", "bar_purchases_by_spend_category", 440, 210, 400, 250, 500,
+              column("fact_purchases", "spend_category", "Spend category"),
+              [measure("Purchased Goods and Services Emissions (tCO2e)")], sort_by_value=True,
+              title="Purchased goods and services by spend category (tCO2e)",
+              colours=single("#7A5BA6"), labels=True),
+        chart("clusteredColumnChart", "column_freight_by_mode", 860, 210, 400, 250, 600,
+              column("fact_freight", "mode", "Mode"), [measure(m) for m, _c in FREIGHT],
+              title="Freight by mode: paid by Fjordvik (category 4) and customers (9) (tCO2e)",
+              colours=[(for_measure(m), c) for m, c in FREIGHT], legend=True),
+        table("table_scope3_categories", 20, 475, 1240, 235, 700, [
+            column("dim_scope3_category", "scope3_category", "No."), CATEGORY,
+            column("dim_scope3_category", "status", "Status"),
+            column("dim_scope3_category", "reason", "What it covers, or why not")],
+            title="All 15 scope 3 categories (the Greenhouse Gas Protocol requires a reason for "
+                  "each one left out)"),
+    ]
+
+
+def scope2_methods():
+    cards = ["Scope 2 Emissions (tCO2e)", MARKET, TOTAL, "Total Emissions Market-based (tCO2e)",
+             "Electricity with Guarantees of Origin (%)"]
+    methods = [("Scope 2 Emissions (tCO2e)", SCOPE_COLOURS[2]), (MARKET, MARKET_COLOUR)]
+    return [
+        *header("Scope 2: location-based and market-based",
+                "Market-based uses the guarantees of origin Fjordvik buys and each country's "
+                "residual mix for the rest. It is shown beside the total, never added to it."),
+        *[card(f"card_{i}", 20 + i * 250, 95, 240, 100, 300 + i, m) for i, m in enumerate(cards)],
+        chart("clusteredColumnChart", "column_methods_by_year", 20, 210, 620, 250, 400, YEAR,
+              [measure(m) for m, _c in methods],
+              title="Scope 2 by method and year: location-based and market-based (tCO2e)",
+              colours=[(for_measure(m), c) for m, c in methods], labels=True, legend=True),
+        chart("clusteredBarChart", "bar_methods_by_site", 660, 210, 600, 250, 500, SITE,
+              [measure(m) for m, _c in methods],
+              title="Scope 2 by method and site (tCO2e)",
+              colours=[(for_measure(m), c) for m, c in methods], legend=True),
+        table("table_contracts", 20, 475, 620, 235, 600, [
+            column("dim_contract", "site_id", "Site"),
+            column("dim_contract", "supplier_name", "Supplier"),
+            column("dim_contract", "instrument", "Instrument"),
+            column("dim_contract", "covered_share", "Share of kWh covered"),
+            column("dim_contract", "start_date_key", "From"),
+            column("dim_contract", "end_date_key", "To")],
+            title="Electricity contracts with guarantees of origin"),
+        matrix("matrix_market_by_instrument", 660, 475, 600, 235, 700,
+               [column("fact_scope2_market", "instrument", "Instrument")], [YEAR],
+               [measure(MARKET)], title="Market-based scope 2 by instrument and year (tCO2e)"),
     ]
 
 
@@ -415,6 +489,8 @@ def data_quality():
         card("card_difference", 20, 95, 300, 110, 100, "Reconciliation Difference (tCO2e)"),
         card("card_rows", 340, 95, 300, 110, 101, "Emission Rows"),
         card("card_sites", 660, 95, 300, 110, 102, "Sites Reporting"),
+        card("card_market_difference", 980, 95, 280, 110, 103,
+             "Market-based Reconciliation Difference (tCO2e)"),
         table("table_by_year", 20, 220, 1240, 200, 200, [
             YEAR, measure("Emission Rows"), measure("Sites Reporting"), measure(TOTAL),
             measure("Recalculated Emissions (tCO2e)"), measure("Reconciliation Difference (tCO2e)")],
@@ -424,6 +500,8 @@ def data_quality():
 
 PAGES = [("introduction", "Introduction", introduction), ("overview", "Overview", overview),
          ("breakdown", "Emissions breakdown", breakdown),
+         ("value_chain", "Value chain (scope 3)", value_chain),
+         ("scope2_methods", "Scope 2 methods", scope2_methods),
          ("intensity", "Intensity and growth", intensity), ("energy", "Energy and activity", energy),
          ("changed", "What changed", changed), ("sites", "Sites", sites),
          ("data_quality", "Data quality", data_quality)]

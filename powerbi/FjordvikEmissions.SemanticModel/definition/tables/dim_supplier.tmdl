@@ -1,0 +1,40 @@
+/// Suppliers in the purchase ledger, each with its spend category. Names are synthetic.
+table dim_supplier
+	lineageTag: fbf498dc-31ba-48bd-90fe-e94403b4c484
+
+	column supplier_id
+		dataType: string
+		lineageTag: 6f2fb886-7732-491a-8aaa-712cc733489d
+		summarizeBy: none
+		sourceColumn: supplier_id
+
+	column supplier_name
+		dataType: string
+		lineageTag: 1cee01f3-08dc-4019-81f3-816c991dac4e
+		summarizeBy: none
+		sourceColumn: supplier_name
+
+	column country
+		dataType: string
+		lineageTag: 76d4f2b0-c781-40a4-9e5d-02abceb7d1d3
+		summarizeBy: none
+		sourceColumn: country
+
+	column spend_category
+		dataType: string
+		lineageTag: 6c662e06-3aa2-44c9-954a-978f9490e4a8
+		summarizeBy: none
+		sourceColumn: spend_category
+
+	partition dim_supplier = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(DataFolder & "\dim_supplier.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					// "en-US" so "0.200" is read with a full stop as the decimal mark on any Windows locale
+					Typed = Table.TransformColumnTypes(Promoted, {{"supplier_id", type text}, {"supplier_name", type text}, {"country", type text}, {"spend_category", type text}}, "en-US")
+				in
+					Typed
+
+	annotation PBI_ResultType = Table

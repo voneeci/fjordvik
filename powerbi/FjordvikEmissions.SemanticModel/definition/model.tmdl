@@ -9,7 +9,7 @@ model Model
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["DataFolder","dim_date","dim_site","dim_source","fact_emissions","fact_site_metrics"]
+annotation PBI_QueryOrder = ["DataFolder","dim_date","dim_site","dim_source","fact_emissions","fact_site_metrics","dim_scope3_category","dim_contract","fact_scope2_market","fact_energy_upstream","dim_supplier","fact_purchases","fact_freight"]
 
 annotation PBI_ProTooling = ["DevMode"]
 
@@ -19,6 +19,13 @@ ref table dim_site
 ref table dim_source
 ref table fact_emissions
 ref table fact_site_metrics
+ref table dim_scope3_category
+ref table dim_contract
+ref table fact_scope2_market
+ref table fact_energy_upstream
+ref table dim_supplier
+ref table fact_purchases
+ref table fact_freight
 
 ref role Finland
 ref role Sweden

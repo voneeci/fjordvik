@@ -1,0 +1,86 @@
+/// Scope 3 category 1, spend-based: one row per month, site and supplier from the purchase ledger, in euros. Factors (kg CO2e per euro) are illustrative.
+table fact_purchases
+	lineageTag: 7f75d671-497f-443d-a14e-41c940318fad
+
+	column date_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 09137490-ae8e-4e89-b764-91654b87f0fc
+		summarizeBy: none
+		sourceColumn: date_key
+
+	column site_id
+		dataType: string
+		isHidden
+		lineageTag: 85d9a6a4-0b0f-4109-aaaf-caf64a1e9ccc
+		summarizeBy: none
+		sourceColumn: site_id
+
+	column source_id
+		dataType: string
+		isHidden
+		lineageTag: 660f97d7-86dd-4b95-8b28-ba5d86798251
+		summarizeBy: none
+		sourceColumn: source_id
+
+	column supplier_id
+		dataType: string
+		isHidden
+		lineageTag: 45e19633-76a8-4a6d-b0da-7f4069d48d25
+		summarizeBy: none
+		sourceColumn: supplier_id
+
+	column spend_category
+		dataType: string
+		lineageTag: acaa82e3-45fc-4bdb-ac9b-7a7efe771385
+		summarizeBy: none
+		sourceColumn: spend_category
+
+	column method
+		dataType: string
+		lineageTag: d6c6462a-c394-4696-aaf8-fe501f55eef2
+		summarizeBy: none
+		sourceColumn: method
+
+	column activity_amount
+		dataType: double
+		formatString: #,0.00
+		lineageTag: e8fc991e-38cd-414a-a4e1-fc1589a9bd17
+		summarizeBy: none
+		sourceColumn: activity_amount
+
+	column unit
+		dataType: string
+		lineageTag: ef90099d-a2a0-4145-a42a-9287b13662b8
+		summarizeBy: none
+		sourceColumn: unit
+
+	/// Illustrative factor in kilograms of CO2 equivalent per unit. Not for real reporting.
+	column emission_factor
+		dataType: double
+		formatString: #,0.000
+		lineageTag: db060363-16da-4d19-ac20-196d4d6da81c
+		summarizeBy: none
+		sourceColumn: emission_factor
+
+	/// Tonnes of CO2 equivalent, as stored in the source data.
+	column tco2e
+		dataType: double
+		formatString: #,0.000000
+		lineageTag: 0f18413c-63da-4ef3-910f-d92fea63a99d
+		summarizeBy: none
+		sourceColumn: tco2e
+
+	partition fact_purchases = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(DataFolder & "\fact_purchases.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					// "en-US" so "0.200" is read with a full stop as the decimal mark on any Windows locale
+					Typed = Table.TransformColumnTypes(Promoted, {{"date_key", Int64.Type}, {"site_id", type text}, {"source_id", type text}, {"supplier_id", type text}, {"spend_category", type text}, {"method", type text}, {"activity_amount", type number}, {"unit", type text}, {"emission_factor", type number}, {"tco2e", type number}}, "en-US")
+				in
+					Typed
+
+	annotation PBI_ResultType = Table

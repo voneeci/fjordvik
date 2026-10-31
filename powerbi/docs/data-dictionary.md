@@ -9,10 +9,10 @@ Every measure lives in the `_Measures` table, grouped by display folder.
 
 ### Emissions
 
-**Total Emissions (tCO2e)**: Tonnes of CO2 equivalent across all scopes, from the stored tco2e column. Format: `#,0.0`.
+**Total Emissions (tCO2e)**: Tonnes of CO2 equivalent, location-based: scope 1, scope 2 location-based and the scope 3 categories held (1; 3 parts a and c; 4; 5 landfill only; 6 flights only; 9), from the stored tco2e columns of the four emission tables. Market-based scope 2 is a separate measure and is never added in. Format: `#,0.0`.
 
 ```dax
-SUM ( fact_emissions[tco2e] )
+SUM ( fact_emissions[tco2e] ) + SUM ( fact_energy_upstream[tco2e] ) + SUM ( fact_purchases[tco2e] ) + SUM ( fact_freight[tco2e] )
 ```
 
 **Scope 1 Emissions (tCO2e)**: Scope 1. Direct emissions: fuels burned on site and refrigerant leaks. KEEPFILTERS means a slicer on another scope gives blank, not this scope's total. Format: `#,0.0`.
@@ -21,13 +21,13 @@ SUM ( fact_emissions[tco2e] )
 CALCULATE ( [Total Emissions (tCO2e)], KEEPFILTERS ( dim_source[scope] = 1 ) )
 ```
 
-**Scope 2 Emissions (tCO2e)**: Scope 2. Purchased electricity and heat, location-based. KEEPFILTERS means a slicer on another scope gives blank, not this scope's total. Format: `#,0.0`.
+**Scope 2 Emissions (tCO2e)**: Scope 2, location-based: purchased electricity and heat at each country's grid or network average factor. KEEPFILTERS means a slicer on another scope gives blank, not this scope's total. Format: `#,0.0`.
 
 ```dax
 CALCULATE ( [Total Emissions (tCO2e)], KEEPFILTERS ( dim_source[scope] = 2 ) )
 ```
 
-**Scope 3 Emissions (tCO2e)**: Scope 3. Business flights and waste to landfill. KEEPFILTERS means a slicer on another scope gives blank, not this scope's total. Format: `#,0.0`.
+**Scope 3 Emissions (tCO2e)**: Scope 3: the categories held (purchased goods and services, upstream fuels and transmission losses, freight, waste to landfill, business flights). Category 11, use of sold products, is not yet calculated. KEEPFILTERS means a slicer on another scope gives blank, not this scope's total. Format: `#,0.0`.
 
 ```dax
 CALCULATE ( [Total Emissions (tCO2e)], KEEPFILTERS ( dim_source[scope] = 3 ) )
@@ -106,13 +106,13 @@ DIVIDE ( [Emissions Change Including New Sites (tCO2e)], [Emissions Prior Year (
 
 ### Data quality
 
-**Recalculated Emissions (tCO2e)**: Emissions worked out again row by row: activity times factor, divided by 1,000 to turn kilograms into tonnes. Format: `#,0.0`.
+**Recalculated Emissions (tCO2e)**: Emissions worked out again row by row in all four emission tables: activity times factor, divided by 1,000 to turn kilograms into tonnes. Format: `#,0.0`.
 
 ```dax
-SUMX ( fact_emissions, fact_emissions[activity_amount] * fact_emissions[emission_factor] / 1000 )
+SUMX ( fact_emissions, fact_emissions[activity_amount] * fact_emissions[emission_factor] / 1000 ) + SUMX ( fact_energy_upstream, fact_energy_upstream[activity_amount] * fact_energy_upstream[emission_factor] / 1000 ) + SUMX ( fact_purchases, fact_purchases[activity_amount] * fact_purchases[emission_factor] / 1000 ) + SUMX ( fact_freight, fact_freight[activity_amount] * fact_freight[emission_factor] / 1000 )
 ```
 
-**Reconciliation Difference (tCO2e)**: Stored minus recalculated emissions, rounded to 0.001 t (1 kg): the stored values carry 6 decimals, so adding 1,422 of them leaves a few grams of rounding. Anything that survives the rounding means a row's tco2e doesn't match its activity and factor. Format: `#,0.000`.
+**Reconciliation Difference (tCO2e)**: Stored minus recalculated emissions, rounded to 0.001 t (1 kg): the stored values carry 6 decimals, so adding thousands of them leaves a few grams of rounding. Anything that survives the rounding means a row's tco2e doesn't match its activity and factor. Format: `#,0.000`.
 
 ```dax
 ROUND ( [Total Emissions (tCO2e)] - [Recalculated Emissions (tCO2e)], 3 )
@@ -128,6 +128,12 @@ COUNTROWS ( fact_emissions )
 
 ```dax
 DISTINCTCOUNT ( fact_emissions[site_id] )
+```
+
+**Market-based Reconciliation Difference (tCO2e)**: Stored minus recalculated market-based scope 2, rounded to 0.001 t (1 kg). Anything that survives the rounding means a row's tco2e doesn't match its activity and factor. Format: `#,0.000`.
+
+```dax
+ROUND ( [Scope 2 Market-based Emissions (tCO2e)] - SUMX ( fact_scope2_market, fact_scope2_market[activity_amount] * fact_scope2_market[emission_factor] / 1000 ), 3 )
 ```
 
 ### Activity
@@ -180,7 +186,92 @@ CALCULATE ( SUM ( fact_emissions[activity_amount] ), KEEPFILTERS ( dim_source[so
 CALCULATE ( SUM ( fact_emissions[activity_amount] ), KEEPFILTERS ( dim_source[source_id] = "S08" ) )
 ```
 
+### Market-based scope 2
+
+**Scope 2 Market-based Emissions (tCO2e)**: Scope 2, market-based (GHG Protocol Scope 2 Guidance): kWh covered by guarantees of origin carry the certificate's factor, the rest the country's residual mix; heat uses the network's declared value. The same kWh as location-based. Factors are illustrative. Format: `#,0.0`.
+
+```dax
+SUM ( fact_scope2_market[tco2e] )
+```
+
+**Total Emissions Market-based (tCO2e)**: Total Emissions with market-based scope 2 in place of location-based scope 2. Scopes 1 and 3 are the same in both totals. Format: `#,0.0`.
+
+```dax
+[Total Emissions (tCO2e)] - [Scope 2 Emissions (tCO2e)] + [Scope 2 Market-based Emissions (tCO2e)]
+```
+
+**Electricity with Guarantees of Origin (kWh)**: Purchased electricity covered by guarantees of origin under a supplier contract (rows with a contract). KEEPFILTERS means another filter on contract_id gives blank. Format: `#,0`.
+
+```dax
+CALCULATE ( SUM ( fact_scope2_market[activity_amount] ), KEEPFILTERS ( NOT ISBLANK ( fact_scope2_market[contract_id] ) ) )
+```
+
+**Electricity with Guarantees of Origin (%)**: Share of purchased electricity covered by guarantees of origin. Blank where no contract covers any kWh. Format: `0.0%`.
+
+```dax
+DIVIDE ( [Electricity with Guarantees of Origin (kWh)], [Electricity Purchased (kWh)] )
+```
+
+### Value chain
+
+**Purchased Goods and Services Emissions (tCO2e)**: Scope 3 category 1, spend-based: each month's purchase ledger spend times an illustrative factor per euro for its spend category. Format: `#,0.0`.
+
+```dax
+SUM ( fact_purchases[tco2e] )
+```
+
+**Fuel and Energy Related Emissions (tCO2e)**: Scope 3 category 3, parts (a) upstream of purchased fuels and (c) transmission and distribution losses, worked out from the fuel and kWh the sites report. Format: `#,0.0`.
+
+```dax
+SUM ( fact_energy_upstream[tco2e] )
+```
+
+**Upstream Transport Emissions (tCO2e)**: Scope 3 category 4: inbound freight and the outbound freight Fjordvik pays for (source S12), distance-based. KEEPFILTERS means a filter on another source gives blank. Format: `#,0.0`.
+
+```dax
+CALCULATE ( SUM ( fact_freight[tco2e] ), KEEPFILTERS ( dim_source[source_id] = "S12" ) )
+```
+
+**Downstream Transport Emissions (tCO2e)**: Scope 3 category 9: outbound freight that customers pay for (source S13), distance-based. KEEPFILTERS means a filter on another source gives blank. Format: `#,0.0`.
+
+```dax
+CALCULATE ( SUM ( fact_freight[tco2e] ), KEEPFILTERS ( dim_source[source_id] = "S13" ) )
+```
+
+**Purchased Spend (EUR)**: Spend in the purchase ledger, in euros. A flow: it adds up over months. Format: `#,0`.
+
+```dax
+SUM ( fact_purchases[activity_amount] )
+```
+
+**Freight Transport (tonne-km)**: Freight moved, in tonne-kilometres: tonnes times distance for each lane. Format: `#,0`.
+
+```dax
+SUM ( fact_freight[activity_amount] )
+```
+
+**Purchased Goods Emissions per Thousand EUR (tCO2e)**: Category 1 emissions per thousand euros spent. Dividing spend by 1,000 turns euros into thousands of euros; the result equals kilograms of CO2 equivalent per euro. Format: `#,0.000`.
+
+```dax
+DIVIDE ( [Purchased Goods and Services Emissions (tCO2e)], DIVIDE ( [Purchased Spend (EUR)], 1000 ) )
+```
+
 ## Tables
+
+### dim_contract
+
+Electricity contracts backed by guarantees of origin, from the supplier contracts and cancellation statements. Supplier names are synthetic.
+
+| Column | Type | Format | Hidden | Description |
+| --- | --- | --- | --- | --- |
+| contract_id | string |  |  |  |
+| site_id | string |  |  |  |
+| source_id | string |  |  |  |
+| supplier_name | string |  |  |  |
+| instrument | string |  |  |  |
+| start_date_key | int64 | 0 |  |  |
+| end_date_key | int64 | 0 |  |  |
+| covered_share | double | 0% |  | Share of the site's monthly kWh covered by the contract's guarantees of origin. |
 
 ### dim_date
 
@@ -195,6 +286,17 @@ One row per month, January 2023 to December 2025. Monthly grain, so it is not ma
 | month | int64 | 0 |  |  |
 | month_name | string |  |  |  |
 
+### dim_scope3_category
+
+The 15 Greenhouse Gas Protocol scope 3 categories, with Fjordvik's status for each and the reason for any not calculated.
+
+| Column | Type | Format | Hidden | Description |
+| --- | --- | --- | --- | --- |
+| scope3_category | int64 | 0 |  |  |
+| category_name | string |  |  |  |
+| status | string |  |  | Calculated, Calculated in part, Not yet calculated or Not relevant. |
+| reason | string |  |  | What the figure covers, or why the category is not calculated (the Scope 3 Standard requires a reason for every exclusion). |
+
 ### dim_site
 
 The six sites. Row-level security filters this table by country.
@@ -208,7 +310,7 @@ The six sites. Row-level security filters this table by country.
 
 ### dim_source
 
-The eight emission sources, with their Greenhouse Gas Protocol scope.
+The 13 emission sources, with their Greenhouse Gas Protocol scope, scope 3 category and calculation method.
 
 | Column | Type | Format | Hidden | Description |
 | --- | --- | --- | --- | --- |
@@ -216,6 +318,19 @@ The eight emission sources, with their Greenhouse Gas Protocol scope.
 | source_name | string |  |  |  |
 | scope | int64 | 0 |  |  |
 | category | string |  |  |  |
+| scope3_category | int64 | 0 |  | Greenhouse Gas Protocol scope 3 category, 1 to 15. Blank for scopes 1 and 2. |
+| method | string |  |  |  |
+
+### dim_supplier
+
+Suppliers in the purchase ledger, each with its spend category. Names are synthetic.
+
+| Column | Type | Format | Hidden | Description |
+| --- | --- | --- | --- | --- |
+| supplier_id | string |  |  |  |
+| supplier_name | string |  |  |  |
+| country | string |  |  |  |
+| spend_category | string |  |  |  |
 
 ### fact_emissions
 
@@ -227,6 +342,73 @@ One row per month, site and source. tco2e = activity_amount * emission_factor / 
 | site_id | string |  | yes |  |
 | source_id | string |  | yes |  |
 | activity_amount | double | #,0.00 |  | Amount of activity in the row's unit (kWh, litre, kg, passenger-km or tonne). |
+| unit | string |  |  |  |
+| emission_factor | double | #,0.000 |  | Illustrative factor in kilograms of CO2 equivalent per unit. Not for real reporting. |
+| tco2e | double | #,0.000000 |  | Tonnes of CO2 equivalent, as stored in the source data. |
+
+### fact_energy_upstream
+
+Scope 3 category 3, parts (a) and (c): upstream emissions of purchased fuels and transmission and distribution losses, derived from the fuel and kWh in fact_emissions. Factors are illustrative.
+
+| Column | Type | Format | Hidden | Description |
+| --- | --- | --- | --- | --- |
+| date_key | int64 | 0 | yes |  |
+| site_id | string |  | yes |  |
+| source_id | string |  | yes |  |
+| based_on_source_id | string |  |  | The fact_emissions source this row is worked out from. |
+| activity_amount | double | #,0.00 |  |  |
+| unit | string |  |  |  |
+| emission_factor | double | #,0.000 |  | Illustrative factor in kilograms of CO2 equivalent per unit. Not for real reporting. |
+| tco2e | double | #,0.000000 |  | Tonnes of CO2 equivalent, as stored in the source data. |
+
+### fact_freight
+
+Scope 3 categories 4 and 9, distance-based: one row per month, site, direction, mode and payer, in tonne-kilometres. Outbound freight paid by customers is category 9. Factors are illustrative.
+
+| Column | Type | Format | Hidden | Description |
+| --- | --- | --- | --- | --- |
+| date_key | int64 | 0 | yes |  |
+| site_id | string |  | yes |  |
+| source_id | string |  | yes |  |
+| direction | string |  |  |  |
+| mode | string |  |  |  |
+| paid_by | string |  |  |  |
+| tonnes | double | #,0.00 |  |  |
+| distance_km | int64 | #,0 |  |  |
+| activity_amount | double | #,0.00 |  |  |
+| unit | string |  |  |  |
+| emission_factor | double | #,0.000 |  | Illustrative factor in kilograms of CO2 equivalent per unit. Not for real reporting. |
+| tco2e | double | #,0.000000 |  | Tonnes of CO2 equivalent, as stored in the source data. |
+
+### fact_purchases
+
+Scope 3 category 1, spend-based: one row per month, site and supplier from the purchase ledger, in euros. Factors (kg CO2e per euro) are illustrative.
+
+| Column | Type | Format | Hidden | Description |
+| --- | --- | --- | --- | --- |
+| date_key | int64 | 0 | yes |  |
+| site_id | string |  | yes |  |
+| source_id | string |  | yes |  |
+| supplier_id | string |  | yes |  |
+| spend_category | string |  |  |  |
+| method | string |  |  |  |
+| activity_amount | double | #,0.00 |  |  |
+| unit | string |  |  |  |
+| emission_factor | double | #,0.000 |  | Illustrative factor in kilograms of CO2 equivalent per unit. Not for real reporting. |
+| tco2e | double | #,0.000000 |  | Tonnes of CO2 equivalent, as stored in the source data. |
+
+### fact_scope2_market
+
+Market-based scope 2: the same kWh as location-based, split by instrument (guarantee of origin, residual mix, network declared value). Never added to Total Emissions. Factors are illustrative.
+
+| Column | Type | Format | Hidden | Description |
+| --- | --- | --- | --- | --- |
+| date_key | int64 | 0 | yes |  |
+| site_id | string |  | yes |  |
+| source_id | string |  | yes |  |
+| contract_id | string |  | yes | Blank for residual mix and heat network rows. |
+| instrument | string |  |  |  |
+| activity_amount | double | #,0.00 |  |  |
 | unit | string |  |  |  |
 | emission_factor | double | #,0.000 |  | Illustrative factor in kilograms of CO2 equivalent per unit. Not for real reporting. |
 | tco2e | double | #,0.000000 |  | Tonnes of CO2 equivalent, as stored in the source data. |
@@ -253,6 +435,21 @@ All many-to-one, filtering from the dimension to the fact.
 | fact_emissions.source_id | dim_source.source_id |
 | fact_site_metrics.date_key | dim_date.date_key |
 | fact_site_metrics.site_id | dim_site.site_id |
+| fact_scope2_market.date_key | dim_date.date_key |
+| fact_scope2_market.site_id | dim_site.site_id |
+| fact_scope2_market.source_id | dim_source.source_id |
+| fact_energy_upstream.date_key | dim_date.date_key |
+| fact_energy_upstream.site_id | dim_site.site_id |
+| fact_energy_upstream.source_id | dim_source.source_id |
+| fact_purchases.date_key | dim_date.date_key |
+| fact_purchases.site_id | dim_site.site_id |
+| fact_purchases.source_id | dim_source.source_id |
+| fact_freight.date_key | dim_date.date_key |
+| fact_freight.site_id | dim_site.site_id |
+| fact_freight.source_id | dim_source.source_id |
+| fact_purchases.supplier_id | dim_supplier.supplier_id |
+| fact_scope2_market.contract_id | dim_contract.contract_id |
+| dim_source.scope3_category | dim_scope3_category.scope3_category |
 
 ## Row-level security roles
 

@@ -18,3 +18,62 @@ relationship fact_site_metrics_site_id
 	fromColumn: fact_site_metrics.site_id
 	toColumn: dim_site.site_id
 
+relationship fact_scope2_market_date_key
+	fromColumn: fact_scope2_market.date_key
+	toColumn: dim_date.date_key
+
+relationship fact_scope2_market_site_id
+	fromColumn: fact_scope2_market.site_id
+	toColumn: dim_site.site_id
+
+relationship fact_scope2_market_source_id
+	fromColumn: fact_scope2_market.source_id
+	toColumn: dim_source.source_id
+
+relationship fact_energy_upstream_date_key
+	fromColumn: fact_energy_upstream.date_key
+	toColumn: dim_date.date_key
+
+relationship fact_energy_upstream_site_id
+	fromColumn: fact_energy_upstream.site_id
+	toColumn: dim_site.site_id
+
+relationship fact_energy_upstream_source_id
+	fromColumn: fact_energy_upstream.source_id
+	toColumn: dim_source.source_id
+
+relationship fact_purchases_date_key
+	fromColumn: fact_purchases.date_key
+	toColumn: dim_date.date_key
+
+relationship fact_purchases_site_id
+	fromColumn: fact_purchases.site_id
+	toColumn: dim_site.site_id
+
+relationship fact_purchases_source_id
+	fromColumn: fact_purchases.source_id
+	toColumn: dim_source.source_id
+
+relationship fact_freight_date_key
+	fromColumn: fact_freight.date_key
+	toColumn: dim_date.date_key
+
+relationship fact_freight_site_id
+	fromColumn: fact_freight.site_id
+	toColumn: dim_site.site_id
+
+relationship fact_freight_source_id
+	fromColumn: fact_freight.source_id
+	toColumn: dim_source.source_id
+
+relationship fact_purchases_supplier_id
+	fromColumn: fact_purchases.supplier_id
+	toColumn: dim_supplier.supplier_id
+
+relationship fact_scope2_market_contract_id
+	fromColumn: fact_scope2_market.contract_id
+	toColumn: dim_contract.contract_id
+
+relationship dim_source_scope3_category
+	fromColumn: dim_source.scope3_category
+	toColumn: dim_scope3_category.scope3_category

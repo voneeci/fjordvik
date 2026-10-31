@@ -3,9 +3,9 @@
   "name": "reading_guide",
   "position": {
     "x": 640,
-    "y": 415,
+    "y": 435,
     "z": 600,
-    "height": 290,
+    "height": 270,
     "width": 620,
     "tabOrder": 600
   },
@@ -30,7 +30,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Scope 1: direct emissions from fuel burned on site and refrigerant leaks. Scope 2: electricity and heat bought, using each country's average factor (location-based). Scope 3: business flights and waste to landfill.",
+                    "value": "Scope 1: fuel burned on site and refrigerant leaks. Scope 2: electricity and heat bought, at each country's average factor (location-based); market-based is shown beside it. Scope 3: purchases, upstream fuel and grid losses, freight, flights and landfill waste. Totals are location-based.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }

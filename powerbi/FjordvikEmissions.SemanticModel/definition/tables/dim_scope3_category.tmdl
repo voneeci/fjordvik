@@ -1,0 +1,43 @@
+/// The 15 Greenhouse Gas Protocol scope 3 categories, with Fjordvik's status for each and the reason for any not calculated.
+table dim_scope3_category
+	lineageTag: 339e3167-fd9f-418e-a04e-0de1d52d04fb
+
+	column scope3_category
+		dataType: int64
+		formatString: 0
+		lineageTag: fe69a232-fc0b-4b04-bfb1-ee6dbac310ca
+		summarizeBy: none
+		sourceColumn: scope3_category
+
+	column category_name
+		dataType: string
+		lineageTag: 2b198327-352d-407a-b3bb-6a3b942e9951
+		summarizeBy: none
+		sourceColumn: category_name
+
+	/// Calculated, Calculated in part, Not yet calculated or Not relevant.
+	column status
+		dataType: string
+		lineageTag: 91bda9ea-9ea3-41ab-a7c5-dd16dfd659b9
+		summarizeBy: none
+		sourceColumn: status
+
+	/// What the figure covers, or why the category is not calculated (the Scope 3 Standard requires a reason for every exclusion).
+	column reason
+		dataType: string
+		lineageTag: 19c20212-0cfc-42db-b096-77755815d0c2
+		summarizeBy: none
+		sourceColumn: reason
+
+	partition dim_scope3_category = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(DataFolder & "\dim_scope3_category.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					// "en-US" so "0.200" is read with a full stop as the decimal mark on any Windows locale
+					Typed = Table.TransformColumnTypes(Promoted, {{"scope3_category", Int64.Type}, {"category_name", type text}, {"status", type text}, {"reason", type text}}, "en-US")
+				in
+					Typed
+
+	annotation PBI_ResultType = Table

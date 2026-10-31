@@ -30,7 +30,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Fjordvik Manufacturing Oy is a manufacturer with three plants, two warehouses and a head office in Finland, Sweden and Estonia.",
+                    "value": "Fjordvik Manufacturing Oy makes electric pumps and pump systems for water utilities, industry and buildings: process pumps in Tampere, water and wastewater pumps in Gothenburg, pump packages and controls in Tallinn, with warehouses in Oulu and Tartu and a head office in Helsinki.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }
@@ -40,7 +40,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Each month every site reports the energy, fuel, refrigerant, business flights and waste it used. This report turns those figures into the company's greenhouse gas emissions, from January 2023 to December 2025.",
+                    "value": "Each month the sites report the energy, fuel, refrigerant, flights and waste they used; purchasing, logistics and energy contracts add the value chain. This report turns them into greenhouse gas emissions, January 2023 to December 2025.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }

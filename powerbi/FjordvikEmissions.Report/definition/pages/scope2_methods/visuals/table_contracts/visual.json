@@ -1,0 +1,136 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "table_contracts",
+  "position": {
+    "x": 20,
+    "y": 475,
+    "z": 600,
+    "height": 235,
+    "width": 620,
+    "tabOrder": 600
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_contract"
+                    }
+                  },
+                  "Property": "site_id"
+                }
+              },
+              "queryRef": "dim_contract.site_id",
+              "nativeQueryRef": "site_id",
+              "displayName": "Site"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_contract"
+                    }
+                  },
+                  "Property": "supplier_name"
+                }
+              },
+              "queryRef": "dim_contract.supplier_name",
+              "nativeQueryRef": "supplier_name",
+              "displayName": "Supplier"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_contract"
+                    }
+                  },
+                  "Property": "instrument"
+                }
+              },
+              "queryRef": "dim_contract.instrument",
+              "nativeQueryRef": "instrument",
+              "displayName": "Instrument"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_contract"
+                    }
+                  },
+                  "Property": "covered_share"
+                }
+              },
+              "queryRef": "dim_contract.covered_share",
+              "nativeQueryRef": "covered_share",
+              "displayName": "Share of kWh covered"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_contract"
+                    }
+                  },
+                  "Property": "start_date_key"
+                }
+              },
+              "queryRef": "dim_contract.start_date_key",
+              "nativeQueryRef": "start_date_key",
+              "displayName": "From"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_contract"
+                    }
+                  },
+                  "Property": "end_date_key"
+                }
+              },
+              "queryRef": "dim_contract.end_date_key",
+              "nativeQueryRef": "end_date_key",
+              "displayName": "To"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Electricity contracts with guarantees of origin'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

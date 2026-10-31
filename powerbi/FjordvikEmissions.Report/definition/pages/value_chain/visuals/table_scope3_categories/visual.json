@@ -1,0 +1,106 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "table_scope3_categories",
+  "position": {
+    "x": 20,
+    "y": 475,
+    "z": 700,
+    "height": 235,
+    "width": 1240,
+    "tabOrder": 700
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_scope3_category"
+                    }
+                  },
+                  "Property": "scope3_category"
+                }
+              },
+              "queryRef": "dim_scope3_category.scope3_category",
+              "nativeQueryRef": "scope3_category",
+              "displayName": "No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_scope3_category"
+                    }
+                  },
+                  "Property": "category_name"
+                }
+              },
+              "queryRef": "dim_scope3_category.category_name",
+              "nativeQueryRef": "category_name",
+              "displayName": "Scope 3 category"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_scope3_category"
+                    }
+                  },
+                  "Property": "status"
+                }
+              },
+              "queryRef": "dim_scope3_category.status",
+              "nativeQueryRef": "status",
+              "displayName": "Status"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_scope3_category"
+                    }
+                  },
+                  "Property": "reason"
+                }
+              },
+              "queryRef": "dim_scope3_category.reason",
+              "nativeQueryRef": "reason",
+              "displayName": "What it covers, or why not"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'All 15 scope 3 categories (the Greenhouse Gas Protocol requires a reason for each one left out)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

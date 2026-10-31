@@ -1,0 +1,4 @@
+Refresh before the live tests, 31 October 2026 (36 measures, 10 report pages, value-chain tables)
+Command: scriptsun_dax_table.ps1 -QueryFile <exercise query list> -Port 51854 -Refresh
+Output:
+refreshed database 53dd365f-207a-430e-a302-ae4818dbf780

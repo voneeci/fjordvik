@@ -1,0 +1,83 @@
+/// Market-based scope 2: the same kWh as location-based, split by instrument (guarantee of origin, residual mix, network declared value). Never added to Total Emissions. Factors are illustrative.
+table fact_scope2_market
+	lineageTag: 69b2e28c-a520-446c-84a2-5c7d8027d550
+
+	column date_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 7d841cd3-d61f-4b3a-8541-a20698d93adc
+		summarizeBy: none
+		sourceColumn: date_key
+
+	column site_id
+		dataType: string
+		isHidden
+		lineageTag: bf87cff2-fa54-4163-bedd-97d8e4c30fd0
+		summarizeBy: none
+		sourceColumn: site_id
+
+	column source_id
+		dataType: string
+		isHidden
+		lineageTag: b4596633-fe3d-4c8a-849b-b13c0a407d98
+		summarizeBy: none
+		sourceColumn: source_id
+
+	/// Blank for residual mix and heat network rows.
+	column contract_id
+		dataType: string
+		isHidden
+		lineageTag: b7ed74fc-b96e-4833-acbf-3c771cc3d046
+		summarizeBy: none
+		sourceColumn: contract_id
+
+	column instrument
+		dataType: string
+		lineageTag: 8d6174f0-ae5b-423c-a453-c2491ca70b89
+		summarizeBy: none
+		sourceColumn: instrument
+
+	column activity_amount
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 23fc109e-cf55-43f6-9399-092acc3bc886
+		summarizeBy: none
+		sourceColumn: activity_amount
+
+	column unit
+		dataType: string
+		lineageTag: bc8069d5-17d1-4d63-a845-2427af3d7a5d
+		summarizeBy: none
+		sourceColumn: unit
+
+	/// Illustrative factor in kilograms of CO2 equivalent per unit. Not for real reporting.
+	column emission_factor
+		dataType: double
+		formatString: #,0.000
+		lineageTag: 066877b8-c67c-4dd9-b01c-141b9602f04f
+		summarizeBy: none
+		sourceColumn: emission_factor
+
+	/// Tonnes of CO2 equivalent, as stored in the source data.
+	column tco2e
+		dataType: double
+		formatString: #,0.000000
+		lineageTag: 2b0b77ef-7ba5-4078-9459-a11feb5e46b9
+		summarizeBy: none
+		sourceColumn: tco2e
+
+	partition fact_scope2_market = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(DataFolder & "\fact_scope2_market.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					// An empty field is a blank, not empty text, so it types cleanly and joins to nothing
+					Blanks = Table.ReplaceValue(Promoted, "", null, Replacer.ReplaceValue, {"contract_id"}),
+					// "en-US" so "0.200" is read with a full stop as the decimal mark on any Windows locale
+					Typed = Table.TransformColumnTypes(Blanks, {{"date_key", Int64.Type}, {"site_id", type text}, {"source_id", type text}, {"contract_id", type text}, {"instrument", type text}, {"activity_amount", type number}, {"unit", type text}, {"emission_factor", type number}, {"tco2e", type number}}, "en-US")
+				in
+					Typed
+
+	annotation PBI_ResultType = Table

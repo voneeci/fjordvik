@@ -2,8 +2,8 @@
 table _Measures
 	lineageTag: fab0b0d6-ec8d-4b05-93d5-cdc75cc9aa13
 
-	/// Tonnes of CO2 equivalent across all scopes, from the stored tco2e column.
-	measure 'Total Emissions (tCO2e)' = SUM ( fact_emissions[tco2e] )
+	/// Tonnes of CO2 equivalent, location-based: scope 1, scope 2 location-based and the scope 3 categories held (1; 3 parts a and c; 4; 5 landfill only; 6 flights only; 9), from the stored tco2e columns of the four emission tables. Market-based scope 2 is a separate measure and is never added in.
+	measure 'Total Emissions (tCO2e)' = SUM ( fact_emissions[tco2e] ) + SUM ( fact_energy_upstream[tco2e] ) + SUM ( fact_purchases[tco2e] ) + SUM ( fact_freight[tco2e] )
 		formatString: #,0.0
 		displayFolder: Emissions
 		lineageTag: e64cec5c-9db7-4ede-8586-6a5be079c405
@@ -14,13 +14,13 @@ table _Measures
 		displayFolder: Emissions
 		lineageTag: 8a4116c5-5b0f-4dd4-92bc-bf1cfd594c89
 
-	/// Scope 2. Purchased electricity and heat, location-based. KEEPFILTERS means a slicer on another scope gives blank, not this scope's total.
+	/// Scope 2, location-based: purchased electricity and heat at each country's grid or network average factor. KEEPFILTERS means a slicer on another scope gives blank, not this scope's total.
 	measure 'Scope 2 Emissions (tCO2e)' = CALCULATE ( [Total Emissions (tCO2e)], KEEPFILTERS ( dim_source[scope] = 2 ) )
 		formatString: #,0.0
 		displayFolder: Emissions
 		lineageTag: 1c8d9247-e126-4faa-9351-f5858f4ed090
 
-	/// Scope 3. Business flights and waste to landfill. KEEPFILTERS means a slicer on another scope gives blank, not this scope's total.
+	/// Scope 3: the categories held (purchased goods and services, upstream fuels and transmission losses, freight, waste to landfill, business flights). Category 11, use of sold products, is not yet calculated. KEEPFILTERS means a slicer on another scope gives blank, not this scope's total.
 	measure 'Scope 3 Emissions (tCO2e)' = CALCULATE ( [Total Emissions (tCO2e)], KEEPFILTERS ( dim_source[scope] = 3 ) )
 		formatString: #,0.0
 		displayFolder: Emissions
@@ -76,13 +76,13 @@ table _Measures
 		displayFolder: Time comparison
 		lineageTag: 0d7e4e56-0804-407e-804d-412c0704ec00
 
-	/// Emissions worked out again row by row: activity times factor, divided by 1,000 to turn kilograms into tonnes.
-	measure 'Recalculated Emissions (tCO2e)' = SUMX ( fact_emissions, fact_emissions[activity_amount] * fact_emissions[emission_factor] / 1000 )
+	/// Emissions worked out again row by row in all four emission tables: activity times factor, divided by 1,000 to turn kilograms into tonnes.
+	measure 'Recalculated Emissions (tCO2e)' = SUMX ( fact_emissions, fact_emissions[activity_amount] * fact_emissions[emission_factor] / 1000 ) + SUMX ( fact_energy_upstream, fact_energy_upstream[activity_amount] * fact_energy_upstream[emission_factor] / 1000 ) + SUMX ( fact_purchases, fact_purchases[activity_amount] * fact_purchases[emission_factor] / 1000 ) + SUMX ( fact_freight, fact_freight[activity_amount] * fact_freight[emission_factor] / 1000 )
 		formatString: #,0.0
 		displayFolder: Data quality
 		lineageTag: 3bfe465a-607d-4148-b2e7-642163a23ccc
 
-	/// Stored minus recalculated emissions, rounded to 0.001 t (1 kg): the stored values carry 6 decimals, so adding 1,422 of them leaves a few grams of rounding. Anything that survives the rounding means a row's tco2e doesn't match its activity and factor.
+	/// Stored minus recalculated emissions, rounded to 0.001 t (1 kg): the stored values carry 6 decimals, so adding thousands of them leaves a few grams of rounding. Anything that survives the rounding means a row's tco2e doesn't match its activity and factor.
 	measure 'Reconciliation Difference (tCO2e)' = ROUND ( [Total Emissions (tCO2e)] - [Recalculated Emissions (tCO2e)], 3 )
 		formatString: #,0.000
 		displayFolder: Data quality
@@ -167,6 +167,78 @@ table _Measures
 		formatString: 0.0%
 		displayFolder: Time comparison
 		lineageTag: 040fc8ac-85e4-4fdc-8a56-b24dafdc4b4b
+
+	/// Scope 2, market-based (GHG Protocol Scope 2 Guidance): kWh covered by guarantees of origin carry the certificate's factor, the rest the country's residual mix; heat uses the network's declared value. The same kWh as location-based. Factors are illustrative.
+	measure 'Scope 2 Market-based Emissions (tCO2e)' = SUM ( fact_scope2_market[tco2e] )
+		formatString: #,0.0
+		displayFolder: Market-based scope 2
+		lineageTag: 152fbbb1-dc5e-41f4-8c83-b50735152b05
+
+	/// Total Emissions with market-based scope 2 in place of location-based scope 2. Scopes 1 and 3 are the same in both totals.
+	measure 'Total Emissions Market-based (tCO2e)' = [Total Emissions (tCO2e)] - [Scope 2 Emissions (tCO2e)] + [Scope 2 Market-based Emissions (tCO2e)]
+		formatString: #,0.0
+		displayFolder: Market-based scope 2
+		lineageTag: 33a4b6b5-0b6b-46ae-9d95-ebd1d71ac9bb
+
+	/// Purchased electricity covered by guarantees of origin under a supplier contract (rows with a contract). KEEPFILTERS means another filter on contract_id gives blank.
+	measure 'Electricity with Guarantees of Origin (kWh)' = CALCULATE ( SUM ( fact_scope2_market[activity_amount] ), KEEPFILTERS ( NOT ISBLANK ( fact_scope2_market[contract_id] ) ) )
+		formatString: #,0
+		displayFolder: Market-based scope 2
+		lineageTag: 2d5093ab-6747-4a5b-975d-ed9fe7cee936
+
+	/// Share of purchased electricity covered by guarantees of origin. Blank where no contract covers any kWh.
+	measure 'Electricity with Guarantees of Origin (%)' = DIVIDE ( [Electricity with Guarantees of Origin (kWh)], [Electricity Purchased (kWh)] )
+		formatString: 0.0%
+		displayFolder: Market-based scope 2
+		lineageTag: 092b17f3-dc43-43a4-ab41-d2282398c926
+
+	/// Scope 3 category 1, spend-based: each month's purchase ledger spend times an illustrative factor per euro for its spend category.
+	measure 'Purchased Goods and Services Emissions (tCO2e)' = SUM ( fact_purchases[tco2e] )
+		formatString: #,0.0
+		displayFolder: Value chain
+		lineageTag: 2882bf9a-27c2-4267-ad48-2f227f322d35
+
+	/// Scope 3 category 3, parts (a) upstream of purchased fuels and (c) transmission and distribution losses, worked out from the fuel and kWh the sites report.
+	measure 'Fuel and Energy Related Emissions (tCO2e)' = SUM ( fact_energy_upstream[tco2e] )
+		formatString: #,0.0
+		displayFolder: Value chain
+		lineageTag: 43ac37c0-54ce-45e4-93bc-c19d32dae465
+
+	/// Scope 3 category 4: inbound freight and the outbound freight Fjordvik pays for (source S12), distance-based. KEEPFILTERS means a filter on another source gives blank.
+	measure 'Upstream Transport Emissions (tCO2e)' = CALCULATE ( SUM ( fact_freight[tco2e] ), KEEPFILTERS ( dim_source[source_id] = "S12" ) )
+		formatString: #,0.0
+		displayFolder: Value chain
+		lineageTag: 4acb8c4e-95ec-4c47-9c35-313e3a02be95
+
+	/// Scope 3 category 9: outbound freight that customers pay for (source S13), distance-based. KEEPFILTERS means a filter on another source gives blank.
+	measure 'Downstream Transport Emissions (tCO2e)' = CALCULATE ( SUM ( fact_freight[tco2e] ), KEEPFILTERS ( dim_source[source_id] = "S13" ) )
+		formatString: #,0.0
+		displayFolder: Value chain
+		lineageTag: b7ef48e0-6c6f-4ef8-8ee9-2deef0a0d0ba
+
+	/// Spend in the purchase ledger, in euros. A flow: it adds up over months.
+	measure 'Purchased Spend (EUR)' = SUM ( fact_purchases[activity_amount] )
+		formatString: #,0
+		displayFolder: Value chain
+		lineageTag: d0b217f1-3dee-434c-8ded-85d8af6213d9
+
+	/// Freight moved, in tonne-kilometres: tonnes times distance for each lane.
+	measure 'Freight Transport (tonne-km)' = SUM ( fact_freight[activity_amount] )
+		formatString: #,0
+		displayFolder: Value chain
+		lineageTag: 9c5d7617-38bb-4cbf-999e-025a8d18f5be
+
+	/// Category 1 emissions per thousand euros spent. Dividing spend by 1,000 turns euros into thousands of euros; the result equals kilograms of CO2 equivalent per euro.
+	measure 'Purchased Goods Emissions per Thousand EUR (tCO2e)' = DIVIDE ( [Purchased Goods and Services Emissions (tCO2e)], DIVIDE ( [Purchased Spend (EUR)], 1000 ) )
+		formatString: #,0.000
+		displayFolder: Value chain
+		lineageTag: c0173780-8e59-4e55-862f-e4d4e25b72b3
+
+	/// Stored minus recalculated market-based scope 2, rounded to 0.001 t (1 kg). Anything that survives the rounding means a row's tco2e doesn't match its activity and factor.
+	measure 'Market-based Reconciliation Difference (tCO2e)' = ROUND ( [Scope 2 Market-based Emissions (tCO2e)] - SUMX ( fact_scope2_market, fact_scope2_market[activity_amount] * fact_scope2_market[emission_factor] / 1000 ), 3 )
+		formatString: #,0.000
+		displayFolder: Data quality
+		lineageTag: b3ef54f9-9aef-4752-8c47-db55febe7560
 
 	column Placeholder
 		dataType: string

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "card_1",
+  "position": {
+    "x": 270,
+    "y": 95,
+    "z": 301,
+    "height": 100,
+    "width": 240,
+    "tabOrder": 301
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Purchased Goods and Services Emissions (tCO2e)"
+                }
+              },
+              "queryRef": "_Measures.Purchased Goods and Services Emissions (tCO2e)",
+              "nativeQueryRef": "Purchased Goods and Services Emissions (tCO2e)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

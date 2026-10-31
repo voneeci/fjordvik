@@ -10,7 +10,7 @@ would require and where the evidence for each item is.
 | --- | --- | --- | --- |
 | 1 | A named business owner and a named technical owner | README, "Ownership" | Fictional owners named |
 | 2 | Source data is identified and pinned to a version | The shared `data/tables` folder of the repository, at a known git commit; SHA-256 checksums in `data/tables/manifest.json`, checked by `tests/test_data.py` | Done |
-| 3 | Every measure reconciles with an independent calculation | `tests/test_measures_live.py`: 44 cases against plain Python sums | Run before each release |
+| 3 | Every measure reconciles with an independent calculation | `tests/test_measures_live.py`: 68 cases against plain Python sums | Run before each release |
 | 4 | Totals reconcile across routes inside the model | `Reconciliation Difference (tCO2e)` measure: stored tCO2e against activity times factor | Shown on the Data quality page |
 | 5 | Naming conventions followed | `docs/naming-conventions.md`, checked by `tests/test_model_files.py` | Done |
 | 6 | Every measure has a description, format string and display folder | `tests/test_model_files.py` | Done |

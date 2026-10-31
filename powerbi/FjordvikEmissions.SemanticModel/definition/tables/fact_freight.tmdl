@@ -1,0 +1,99 @@
+/// Scope 3 categories 4 and 9, distance-based: one row per month, site, direction, mode and payer, in tonne-kilometres. Outbound freight paid by customers is category 9. Factors are illustrative.
+table fact_freight
+	lineageTag: 72c9fdc1-811a-43e5-8505-f6945ffa1114
+
+	column date_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 095caa9b-bf3e-40d5-bbdb-4de5cada9f7e
+		summarizeBy: none
+		sourceColumn: date_key
+
+	column site_id
+		dataType: string
+		isHidden
+		lineageTag: 74445a01-67df-4a84-9ecf-f7a071bf6439
+		summarizeBy: none
+		sourceColumn: site_id
+
+	column source_id
+		dataType: string
+		isHidden
+		lineageTag: 92b44297-19f8-4528-82c2-e3548f3b046f
+		summarizeBy: none
+		sourceColumn: source_id
+
+	column direction
+		dataType: string
+		lineageTag: 9ce8f0bf-634b-4cde-a8b5-c4f83ce31dd7
+		summarizeBy: none
+		sourceColumn: direction
+
+	column mode
+		dataType: string
+		lineageTag: 1c2405a3-b2cb-4cda-b347-ab2ad8c72c60
+		summarizeBy: none
+		sourceColumn: mode
+
+	column paid_by
+		dataType: string
+		lineageTag: 129bf858-abbf-4d20-a957-64dcd09d3907
+		summarizeBy: none
+		sourceColumn: paid_by
+
+	column tonnes
+		dataType: double
+		formatString: #,0.00
+		lineageTag: ff424f3d-b22f-49d3-a1c8-fe90d6e72668
+		summarizeBy: none
+		sourceColumn: tonnes
+
+	column distance_km
+		dataType: int64
+		formatString: #,0
+		lineageTag: 67f9a49c-568c-4ed6-9285-7fe6ecf961f4
+		summarizeBy: none
+		sourceColumn: distance_km
+
+	column activity_amount
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 27f32aaf-014f-4be3-b556-91e2754f7779
+		summarizeBy: none
+		sourceColumn: activity_amount
+
+	column unit
+		dataType: string
+		lineageTag: b335a5c5-a9e3-426c-9e11-6a228d78e5a9
+		summarizeBy: none
+		sourceColumn: unit
+
+	/// Illustrative factor in kilograms of CO2 equivalent per unit. Not for real reporting.
+	column emission_factor
+		dataType: double
+		formatString: #,0.000
+		lineageTag: 3f921d17-3614-4083-a501-3a5b1b1551d2
+		summarizeBy: none
+		sourceColumn: emission_factor
+
+	/// Tonnes of CO2 equivalent, as stored in the source data.
+	column tco2e
+		dataType: double
+		formatString: #,0.000000
+		lineageTag: 24de1504-2692-4318-94a2-173ef1ae842c
+		summarizeBy: none
+		sourceColumn: tco2e
+
+	partition fact_freight = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(DataFolder & "\fact_freight.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					// "en-US" so "0.200" is read with a full stop as the decimal mark on any Windows locale
+					Typed = Table.TransformColumnTypes(Promoted, {{"date_key", Int64.Type}, {"site_id", type text}, {"source_id", type text}, {"direction", type text}, {"mode", type text}, {"paid_by", type text}, {"tonnes", type number}, {"distance_km", Int64.Type}, {"activity_amount", type number}, {"unit", type text}, {"emission_factor", type number}, {"tco2e", type number}}, "en-US")
+				in
+					Typed
+
+	annotation PBI_ResultType = Table

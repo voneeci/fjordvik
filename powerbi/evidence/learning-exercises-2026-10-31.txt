@@ -1,0 +1,51 @@
+Learning document exercises, run live against the refreshed model, 31 October 2026
+Command: scripts\run_dax_table.ps1 -QueryFile exercise_queries.json -Port 51854
+Queries:
+[
+  {"id": "ex1_scope2_methods_by_year", "query": "EVALUATE SUMMARIZECOLUMNS ( dim_date[year], \"Location\", [Scope 2 Emissions (tCO2e)], \"Market\", [Scope 2 Market-based Emissions (tCO2e)] )"},
+  {"id": "ex2_total_by_scope3_category", "query": "EVALUATE SUMMARIZECOLUMNS ( dim_scope3_category[scope3_category], dim_scope3_category[status], \"tCO2e\", [Total Emissions (tCO2e)] )"},
+  {"id": "ex2b_scope3_by_scope3_category", "query": "EVALUATE SUMMARIZECOLUMNS ( dim_scope3_category[scope3_category], \"tCO2e\", [Scope 3 Emissions (tCO2e)] )"},
+  {"id": "ex3_per_thousand_by_spend_category_2025", "query": "EVALUATE SUMMARIZECOLUMNS ( fact_purchases[spend_category], TREATAS ( {2025}, dim_date[year] ), \"Spend\", [Purchased Spend (EUR)], \"tCO2e\", [Purchased Goods and Services Emissions (tCO2e)], \"Per thousand EUR\", [Purchased Goods Emissions per Thousand EUR (tCO2e)] )"},
+  {"id": "ex4_category3_against_scopes_2025", "query": "EVALUATE SUMMARIZECOLUMNS ( TREATAS ( {2025}, dim_date[year] ), \"Category 3\", [Fuel and Energy Related Emissions (tCO2e)], \"Scope 1\", [Scope 1 Emissions (tCO2e)], \"Scope 2\", [Scope 2 Emissions (tCO2e)] )"},
+  {"id": "ex5_freight_by_direction_and_payer_2025", "query": "EVALUATE SUMMARIZECOLUMNS ( fact_freight[direction], fact_freight[paid_by], TREATAS ( {2025}, dim_date[year] ), \"tonne-km\", [Freight Transport (tonne-km)], \"Cat 4\", [Upstream Transport Emissions (tCO2e)], \"Cat 9\", [Downstream Transport Emissions (tCO2e)] )"}
+]
+Output:
+=== ex1_scope2_methods_by_year
+dim_date[year]=2023 | [Location]=5294.020404 | [Market]=8003.243024
+dim_date[year]=2024 | [Location]=5718.13302 | [Market]=8437.582267
+dim_date[year]=2025 | [Location]=6243.608828 | [Market]=7383.457519
+rows: 3
+=== ex2_total_by_scope3_category
+dim_scope3_category[scope3_category]=BLANK | dim_scope3_category[status]=BLANK | [tCO2e]=28432.352651
+dim_scope3_category[scope3_category]=5 | dim_scope3_category[status]=Calculated in part | [tCO2e]=890.185
+dim_scope3_category[scope3_category]=6 | dim_scope3_category[status]=Calculated in part | [tCO2e]=1211.440364
+dim_scope3_category[scope3_category]=3 | dim_scope3_category[status]=Calculated in part | [tCO2e]=2798.13755
+dim_scope3_category[scope3_category]=1 | dim_scope3_category[status]=Calculated | [tCO2e]=149294.536017
+dim_scope3_category[scope3_category]=4 | dim_scope3_category[status]=Calculated | [tCO2e]=7381.732265
+dim_scope3_category[scope3_category]=9 | dim_scope3_category[status]=Calculated | [tCO2e]=1815.69525
+rows: 7
+=== ex2b_scope3_by_scope3_category
+dim_scope3_category[scope3_category]=5 | [tCO2e]=890.185
+dim_scope3_category[scope3_category]=6 | [tCO2e]=1211.440364
+dim_scope3_category[scope3_category]=3 | [tCO2e]=2798.13755
+dim_scope3_category[scope3_category]=1 | [tCO2e]=149294.536017
+dim_scope3_category[scope3_category]=4 | [tCO2e]=7381.732265
+dim_scope3_category[scope3_category]=9 | [tCO2e]=1815.69525
+rows: 6
+=== ex3_per_thousand_by_spend_category_2025
+fact_purchases[spend_category]=Castings and steel | [Spend]=21908051.35 | [tCO2e]=26289.66162 | [Per thousand EUR]=1.2
+fact_purchases[spend_category]=Machined parts | [Spend]=14882806.93 | [tCO2e]=10417.964851 | [Per thousand EUR]=0.7
+fact_purchases[spend_category]=Motors and electronics | [Spend]=21682982.35 | [tCO2e]=9757.342059 | [Per thousand EUR]=0.450000000069179
+fact_purchases[spend_category]=Packaging | [Spend]=4010976.54 | [tCO2e]=2406.585924 | [Per thousand EUR]=0.6
+fact_purchases[spend_category]=Maintenance and facility services | [Spend]=6334699.91 | [tCO2e]=1583.674978 | [Per thousand EUR]=0.25000000007893
+fact_purchases[spend_category]=Professional services | [Spend]=8429353.56 | [tCO2e]=1011.52243 | [Per thousand EUR]=0.120000000332173
+rows: 6
+=== ex4_category3_against_scopes_2025
+[Category 3]=1013.295472 | [Scope 1]=3948.607213 | [Scope 2]=6243.608828
+rows: 1
+=== ex5_freight_by_direction_and_payer_2025
+fact_freight[direction]=Inbound | fact_freight[paid_by]=Fjordvik | [tonne-km]=13675023.5 | [Cat 4]=1367.50235 | [Cat 9]=BLANK
+fact_freight[direction]=Outbound | fact_freight[paid_by]=Fjordvik | [tonne-km]=11792608 | [Cat 4]=1025.3584 | [Cat 9]=BLANK
+fact_freight[direction]=Inbound | fact_freight[paid_by]=Supplier | [tonne-km]=12883679 | [Cat 4]=193.255185 | [Cat 9]=BLANK
+fact_freight[direction]=Outbound | fact_freight[paid_by]=Customer | [tonne-km]=17650638 | [Cat 4]=BLANK | [Cat 9]=634.563035
+rows: 4
