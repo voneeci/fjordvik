@@ -3,7 +3,7 @@
 After loading, the database can no longer touch the file system or the network
 (`enable_external_access = false`), and that setting is locked so SQL cannot
 switch it back on. Combined with the SELECT-only check in queries.py, the
-run_sql tool can read the five tables and nothing else.
+run_sql tool can read the twelve tables and the all_emissions view, and nothing else.
 """
 
 import os
@@ -22,13 +22,46 @@ SCHEMA = {
     "dim_site": {"site_id": "VARCHAR", "site_name": "VARCHAR", "country": "VARCHAR",
                  "site_type": "VARCHAR"},
     "dim_source": {"source_id": "VARCHAR", "source_name": "VARCHAR", "scope": "INTEGER",
-                   "category": "VARCHAR"},
+                   "category": "VARCHAR", "scope3_category": "INTEGER", "method": "VARCHAR"},
     "fact_emissions": {"date_key": "INTEGER", "site_id": "VARCHAR", "source_id": "VARCHAR",
                        "activity_amount": "DECIMAL(18,2)", "unit": "VARCHAR",
                        "emission_factor": "DECIMAL(12,3)", "tco2e": "DECIMAL(18,6)"},
     "fact_site_metrics": {"date_key": "INTEGER", "site_id": "VARCHAR",
                           "revenue_eur": "DECIMAL(18,2)", "fte": "DECIMAL(10,1)"},
+    "dim_scope3_category": {"scope3_category": "INTEGER", "category_name": "VARCHAR",
+                            "status": "VARCHAR", "reason": "VARCHAR"},
+    "dim_contract": {"contract_id": "VARCHAR", "site_id": "VARCHAR", "source_id": "VARCHAR",
+                     "supplier_name": "VARCHAR", "instrument": "VARCHAR",
+                     "start_date_key": "INTEGER", "end_date_key": "INTEGER",
+                     "covered_share": "DECIMAL(5,2)"},
+    "fact_scope2_market": {"date_key": "INTEGER", "site_id": "VARCHAR", "source_id": "VARCHAR",
+                           "contract_id": "VARCHAR", "instrument": "VARCHAR",
+                           "activity_amount": "DECIMAL(18,2)", "unit": "VARCHAR",
+                           "emission_factor": "DECIMAL(12,3)", "tco2e": "DECIMAL(18,6)"},
+    "fact_energy_upstream": {"date_key": "INTEGER", "site_id": "VARCHAR",
+                             "source_id": "VARCHAR", "based_on_source_id": "VARCHAR",
+                             "activity_amount": "DECIMAL(18,2)", "unit": "VARCHAR",
+                             "emission_factor": "DECIMAL(12,3)", "tco2e": "DECIMAL(18,6)"},
+    "dim_supplier": {"supplier_id": "VARCHAR", "supplier_name": "VARCHAR",
+                     "country": "VARCHAR", "spend_category": "VARCHAR"},
+    "fact_purchases": {"date_key": "INTEGER", "site_id": "VARCHAR", "source_id": "VARCHAR",
+                       "supplier_id": "VARCHAR", "spend_category": "VARCHAR",
+                       "method": "VARCHAR", "activity_amount": "DECIMAL(18,2)",
+                       "unit": "VARCHAR", "emission_factor": "DECIMAL(12,3)",
+                       "tco2e": "DECIMAL(18,6)"},
+    "fact_freight": {"date_key": "INTEGER", "site_id": "VARCHAR", "source_id": "VARCHAR",
+                     "direction": "VARCHAR", "mode": "VARCHAR", "paid_by": "VARCHAR",
+                     "tonnes": "DECIMAL(18,2)", "distance_km": "INTEGER",
+                     "activity_amount": "DECIMAL(18,2)", "unit": "VARCHAR",
+                     "emission_factor": "DECIMAL(12,3)", "tco2e": "DECIMAL(18,6)"},
 }
+
+# The four tables that make up the location-based inventory. Market-based scope 2
+# (fact_scope2_market) is a second view of scope 2, never added to these.
+EMISSION_TABLES = ["fact_emissions", "fact_energy_upstream", "fact_purchases", "fact_freight"]
+ALL_EMISSIONS = "CREATE VIEW all_emissions AS " + " UNION ALL ".join(
+    f"SELECT '{t}' AS from_table, date_key, site_id, source_id, activity_amount, unit, "
+    f"emission_factor, tco2e FROM {t}" for t in EMISSION_TABLES)
 
 
 def data_dir() -> Path:
@@ -45,6 +78,7 @@ def connect(folder: Path | None = None) -> duckdb.DuckDBPyConnection:
             f"CREATE TABLE {table} AS SELECT * FROM read_csv(?, header = true, columns = ?)",
             [path, columns],
         )
+    con.execute(ALL_EMISSIONS)
     con.execute("SET enable_external_access = false")
     con.execute("SET lock_configuration = true")
     return con

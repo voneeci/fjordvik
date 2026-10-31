@@ -26,5 +26,8 @@ def csv_rows():
     def read(name):
         with (DATA / f"{name}.csv").open(encoding="utf-8", newline="") as f:
             return list(csv.DictReader(f))
-    return {n: read(n) for n in ["dim_date", "dim_site", "dim_source",
-                                 "fact_emissions", "fact_site_metrics"]}
+    rows = {n: read(n) for n in db.SCHEMA}
+    # The location-based inventory: the four emission tables stacked, as the
+    # all_emissions view does in DuckDB.
+    rows["all_emissions"] = [r for t in db.EMISSION_TABLES for r in rows[t]]
+    return rows

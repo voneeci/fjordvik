@@ -15,7 +15,7 @@ from fjordvik_mcp.server import build_server
 
 REPO = Path(__file__).resolve().parents[1]
 TOOLS = {"describe_dataset", "emissions_total", "emissions_intensity",
-         "data_quality_report", "run_sql"}
+         "scope3_inventory", "data_quality_report", "run_sql"}
 
 
 def run(coro):
@@ -40,7 +40,8 @@ def test_group_by_choices_are_in_the_tool_schema(wh):
         async with Client(build_server(wh)) as c:
             return {t.name: t for t in (await c.list_tools()).tools}
     schema = json.dumps(run(go())["emissions_total"].input_schema)
-    for value in ["year", "month", "site", "country", "scope", "source", "category"]:
+    for value in ["year", "month", "site", "country", "scope", "source", "category",
+                  "scope3_category", "location", "market"]:
         assert f'"{value}"' in schema
 
 

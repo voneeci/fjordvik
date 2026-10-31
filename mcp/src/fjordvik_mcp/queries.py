@@ -13,8 +13,11 @@ from typing import Any, Literal
 
 import duckdb
 
+from fjordvik_mcp import db
+
 GroupBy = Literal["year", "quarter", "month", "site", "country", "site_type",
-                  "scope", "source", "category"]
+                  "scope", "source", "category", "scope3_category"]
+Scope2Method = Literal["location", "market"]
 IntensityGroupBy = Literal["year", "site", "country", "site_type"]
 
 # group name -> list of (SQL expression, output column)
@@ -28,6 +31,17 @@ GROUPS: dict[str, list[tuple[str, str]]] = {
     "scope": [("src.scope", "scope")],
     "source": [("src.source_id", "source_id"), ("src.source_name", "source_name")],
     "category": [("src.category", "category")],
+    "scope3_category": [("src.scope3_category", "scope3_category"),
+                        ("c3.category_name", "scope3_category_name")],
+}
+
+# Location-based inventory, or the same with scope 2 swapped for market-based rows.
+EMISSION_ROWS = {
+    "location": "all_emissions",
+    "market": """(SELECT date_key, site_id, source_id, tco2e FROM all_emissions
+                 WHERE source_id NOT IN (SELECT source_id FROM dim_source WHERE scope = 2)
+                 UNION ALL
+                 SELECT date_key, site_id, source_id, tco2e FROM fact_scope2_market)""",
 }
 
 MONTH = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
@@ -111,14 +125,15 @@ class Warehouse:
             JOIN dim_date d USING (date_key)
             GROUP BY ALL ORDER BY s.site_id"""))
         sources = rows_as_dicts(cur.execute("""
-            SELECT src.*, any_value(f.unit) AS unit
-            FROM dim_source src JOIN fact_emissions f USING (source_id)
+            SELECT src.*, string_agg(DISTINCT f.unit, ' or ' ORDER BY f.unit) AS unit,
+                   any_value(f.from_table) AS from_table
+            FROM dim_source src JOIN all_emissions f USING (source_id)
             GROUP BY ALL ORDER BY src.source_id"""))
         counts = {t: cur.execute(f"SELECT count(*) FROM {t}").fetchone()[0]
-                  for t in ("dim_date", "dim_site", "dim_source",
-                            "fact_emissions", "fact_site_metrics")}
+                  for t in db.SCHEMA}
         return {
-            "company": "Fjordvik Manufacturing Oy (fictional; all data is synthetic)",
+            "company": "Fjordvik Manufacturing Oy (fictional; all data is synthetic), "
+                       "a maker of electric pumps and pump systems",
             "period": {"first_month": period[0].isoformat()[:7],
                        "last_month": period[1].isoformat()[:7], "grain": "monthly"},
             "sites": sites,
@@ -128,14 +143,23 @@ class Warehouse:
                       "revenue_eur": "euros", "fte": "full-time equivalent employees"},
             "caveats": [
                 "Emission factors are illustrative, not cited. Not for real reporting.",
-                "Scope 2 is location-based only.",
+                "Totals are location-based: scope 1, scope 2 location-based and scope 3 "
+                "categories 1, 3 (parts a and c), 4, 5 (landfill only), 6 (flights only) "
+                "and 9. Market-based scope 2 is a second figure (scope2_method='market'), "
+                "never added to the location-based total.",
+                "Scope 3 categories not calculated, with reasons: see scope3_inventory. "
+                "Category 11 (use of sold products) is likely the largest and is not yet "
+                "calculated.",
                 "Tartu Warehouse (EE02) opened in July 2024; it has no data before then.",
                 "Helsinki Head Office (FI02) books no revenue, so emissions per euro "
                 "is blank (null) for it.",
             ],
         }
 
-    def emissions_total(self, group_by: list[GroupBy] | None = None, **filters) -> dict:
+    def emissions_total(self, group_by: list[GroupBy] | None = None,
+                        scope2_method: Scope2Method = "location", **filters) -> dict:
+        if scope2_method not in EMISSION_ROWS:
+            raise ValueError("scope2_method must be 'location' or 'market'")
         group_by = list(dict.fromkeys(group_by or []))
         unknown = [g for g in group_by if g not in GROUPS]
         if unknown:
@@ -145,14 +169,15 @@ class Warehouse:
         where, params = self._filters(**filters)
         sql = f"""
             SELECT {select}round(sum(f.tco2e), 3) AS tco2e, count(*) AS fact_rows
-            FROM fact_emissions f
+            FROM {EMISSION_ROWS[scope2_method]} f
             JOIN dim_date d USING (date_key)
             JOIN dim_site s USING (site_id)
             JOIN dim_source src USING (source_id)
+            LEFT JOIN dim_scope3_category c3 USING (scope3_category)
             {where}
             GROUP BY ALL ORDER BY ALL"""
         rows = rows_as_dicts(self.cursor().execute(sql, params))
-        return {"unit": "tCO2e", "group_by": group_by,
+        return {"unit": "tCO2e", "scope2_method": scope2_method, "group_by": group_by,
                 "filters": {k: v for k, v in filters.items() if v is not None},
                 "rows": rows}
 
@@ -180,7 +205,7 @@ class Warehouse:
                 SELECT m.date_key, m.site_id, m.revenue_eur, m.fte,
                        coalesce(sum(f.tco2e), 0) AS tco2e
                 FROM fact_site_metrics m
-                LEFT JOIN fact_emissions f USING (date_key, site_id)
+                LEFT JOIN all_emissions f USING (date_key, site_id)
                 GROUP BY ALL
             ),
             group_month AS (
@@ -216,6 +241,23 @@ class Warehouse:
             "group_by": group_by,
             "rows": rows,
         }
+
+    def scope3_inventory(self, year: int | None = None) -> dict:
+        """The 15 scope 3 categories: status, reason and tCO2e (null where none)."""
+        where, params = "", []
+        if year is not None:
+            self._check(year, self.years, "year")
+            where, params = "AND f.date_key // 10000 = ?", [year]
+        rows = rows_as_dicts(self.cursor().execute(f"""
+            SELECT c3.scope3_category, c3.category_name, c3.status, c3.reason,
+                   round(sum(f.tco2e), 3) AS tco2e
+            FROM dim_scope3_category c3
+            LEFT JOIN dim_source src USING (scope3_category)
+            LEFT JOIN all_emissions f ON f.source_id = src.source_id {where}
+            GROUP BY ALL ORDER BY c3.scope3_category""", params))
+        return {"unit": "tCO2e", "year": year, "categories": rows,
+                "note": "The GHG Protocol Scope 3 Standard requires every category not "
+                        "calculated to be listed with a reason."}
 
     def data_quality_report(self) -> dict:
         cur = self.cursor()
@@ -271,6 +313,62 @@ class Warehouse:
                  FROM (SELECT DISTINCT date_key, site_id FROM fact_emissions) e
                  FULL OUTER JOIN fact_site_metrics m USING (date_key, site_id)
                  WHERE e.site_id IS NULL OR m.site_id IS NULL""")
+
+        keys = {"fact_scope2_market": "date_key, site_id, source_id, instrument",
+                "fact_energy_upstream": "date_key, site_id, source_id, based_on_source_id",
+                "fact_purchases": "date_key, site_id, supplier_id",
+                "fact_freight": "date_key, site_id, direction, mode, paid_by"}
+        check("unique_value_chain_keys", "One row per key in each value-chain table",
+              " UNION ALL ".join(
+                  f"SELECT '{t}' AS tbl, count(*) AS n FROM {t} GROUP BY {k} HAVING n > 1"
+                  for t, k in keys.items()))
+        check("value_chain_rows_join_dimensions",
+              "Every value-chain row matches a date, site, source and (where given) supplier "
+              "or contract",
+              " UNION ALL ".join(
+                  f"""SELECT '{t}' AS tbl, f.date_key, f.site_id, f.source_id FROM {t} f
+                      LEFT JOIN dim_date d USING (date_key) LEFT JOIN dim_site s USING (site_id)
+                      LEFT JOIN dim_source src USING (source_id)
+                      WHERE d.date_key IS NULL OR s.site_id IS NULL OR src.source_id IS NULL"""
+                  for t in keys)
+              + """ UNION ALL SELECT 'fact_purchases', p.date_key, p.site_id, p.supplier_id
+                    FROM fact_purchases p LEFT JOIN dim_supplier USING (supplier_id)
+                    WHERE dim_supplier.supplier_id IS NULL
+                    UNION ALL SELECT 'fact_scope2_market', m.date_key, m.site_id, m.contract_id
+                    FROM fact_scope2_market m LEFT JOIN dim_contract k USING (contract_id)
+                    WHERE m.contract_id IS NOT NULL AND k.contract_id IS NULL""")
+        check("value_chain_tco2e_matches_formula",
+              "tco2e = activity_amount * emission_factor / 1000 in every value-chain table",
+              " UNION ALL ".join(
+                  f"""SELECT '{t}' AS tbl, date_key, site_id, source_id, tco2e FROM {t}
+                      WHERE abs(tco2e - activity_amount * emission_factor / 1000) > 0.000001
+                         OR activity_amount < 0"""
+                  for t in keys))
+        check("market_kwh_matches_location_kwh",
+              "Market-based scope 2 covers exactly the kWh of location-based scope 2",
+              """WITH loc AS (SELECT date_key, site_id, source_id, activity_amount AS kwh
+                              FROM fact_emissions f JOIN dim_source USING (source_id)
+                              WHERE scope = 2),
+                      mkt AS (SELECT date_key, site_id, source_id, sum(activity_amount) AS kwh
+                              FROM fact_scope2_market GROUP BY ALL)
+                 SELECT coalesce(loc.date_key, mkt.date_key) AS date_key,
+                        coalesce(loc.site_id, mkt.site_id) AS site_id,
+                        coalesce(loc.source_id, mkt.source_id) AS source_id,
+                        loc.kwh AS location_kwh, mkt.kwh AS market_kwh
+                 FROM loc FULL OUTER JOIN mkt USING (date_key, site_id, source_id)
+                 WHERE loc.kwh IS DISTINCT FROM mkt.kwh""")
+        check("freight_split_by_payer",
+              "Outbound freight paid by customers is category 9 (S13); all other freight "
+              "is category 4 (S12)",
+              """SELECT date_key, site_id, direction, mode, paid_by, source_id FROM fact_freight
+                 WHERE source_id <> CASE WHEN direction = 'Outbound' AND paid_by = 'Customer'
+                                         THEN 'S13' ELSE 'S12' END""")
+        check("scope3_categories_have_reasons",
+              "All 15 scope 3 categories are listed, each with a status and a reason",
+              """SELECT n.i AS scope3_category, c3.status, c3.reason
+                 FROM range(1, 16) n(i)
+                 LEFT JOIN dim_scope3_category c3 ON c3.scope3_category = n.i
+                 WHERE c3.status IS NULL OR coalesce(c3.reason, '') = ''""")
 
         passed = sum(c["passed"] for c in checks)
         return {"passed": passed, "failed": len(checks) - passed, "checks": checks}

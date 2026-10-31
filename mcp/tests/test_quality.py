@@ -15,14 +15,15 @@ def result(report, name):
 
 def test_clean_data_passes_every_check(wh):
     report = wh.data_quality_report()
-    assert report["failed"] == 0 and report["passed"] == 8
+    # 8 original checks plus 6 for the value-chain tables (31 October 2026)
+    assert report["failed"] == 0 and report["passed"] == 14
 
 
-def corrupt(tmp_path, data_dir, change):
-    """Copy the data, apply one change to fact_emissions, and load the copy."""
+def corrupt(tmp_path, data_dir, change, table="fact_emissions"):
+    """Copy the data, apply one change to one table, and load the copy."""
     for f in data_dir.glob("*.csv"):
         shutil.copyfile(f, tmp_path / f.name)
-    path = tmp_path / "fact_emissions.csv"
+    path = tmp_path / f"{table}.csv"
     with path.open(encoding="utf-8", newline="") as f:
         rows = list(csv.DictReader(f))
     rows = change(rows)
@@ -76,3 +77,38 @@ def test_negative_activity_is_caught(tmp_path, data_dir, value):
     report = corrupt(tmp_path, data_dir, negative)
     assert not result(report, "no_negative_values")["passed"]
     assert result(report, "tco2e_matches_formula")["passed"]
+
+
+def test_customer_paid_freight_in_category_4_is_caught(tmp_path, data_dir):
+    def wrong_category(rows):
+        r = next(r for r in rows if r["paid_by"] == "Customer")
+        r["source_id"] = "S12"
+        return rows
+    report = corrupt(tmp_path, data_dir, wrong_category, "fact_freight")
+    assert not result(report, "freight_split_by_payer")["passed"]
+
+
+def test_market_kwh_that_differs_from_location_kwh_is_caught(tmp_path, data_dir):
+    def drop_residual(rows):
+        return [r for r in rows if not (r["site_id"] == "FI01" and r["date_key"] == "20250301"
+                                        and r["instrument"] == "Residual mix")]
+    report = corrupt(tmp_path, data_dir, drop_residual, "fact_scope2_market")
+    gaps = result(report, "market_kwh_matches_location_kwh")
+    assert not gaps["passed"]
+    assert gaps["examples"][0]["site_id"] == "FI01"
+
+
+def test_scope3_category_without_a_reason_is_caught(tmp_path, data_dir):
+    def blank(rows):
+        rows[10]["reason"] = ""
+        return rows
+    report = corrupt(tmp_path, data_dir, blank, "dim_scope3_category")
+    assert not result(report, "scope3_categories_have_reasons")["passed"]
+
+
+def test_purchase_from_unknown_supplier_is_caught(tmp_path, data_dir):
+    def orphan(rows):
+        rows[0]["supplier_id"] = "SUP99"
+        return rows
+    report = corrupt(tmp_path, data_dir, orphan, "fact_purchases")
+    assert not result(report, "value_chain_rows_join_dimensions")["passed"]

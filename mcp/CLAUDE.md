@@ -25,6 +25,6 @@ powerbi, power-automate. Permanent rules in
 
 ```bash
 .venv\Scripts\python -m pip install -e ".[dev]"
-.venv\Scripts\python -m pytest -q        # 48 tests
+.venv\Scripts\python -m pytest -q        # 56 tests
 .venv\Scripts\python -m fjordvik_mcp     # run over stdio (Claude Desktop does this)
 ```

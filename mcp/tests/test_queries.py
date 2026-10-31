@@ -1,4 +1,7 @@
-"""Reconcile every tool's numbers against an independent calculation from the CSVs."""
+"""Reconcile every tool's numbers against an independent calculation from the CSVs.
+
+Since 31 October 2026 totals cover the four location-based emission tables
+(fact_emissions plus the value-chain tables), so the expected values sum all four."""
 
 from collections import defaultdict
 
@@ -11,7 +14,7 @@ def by(rows, key):
 
 def test_total_by_year_reconciles(wh, csv_rows):
     expected = defaultdict(float)
-    for r in csv_rows["fact_emissions"]:
+    for r in csv_rows["all_emissions"]:
         expected[int(r["date_key"][:4])] += float(r["tco2e"])
     got = by(wh.emissions_total(["year"])["rows"], "year")
     assert set(got) == {2023, 2024, 2025}
@@ -23,7 +26,7 @@ def test_total_by_scope_and_country_reconciles(wh, csv_rows):
     scope = {r["source_id"]: int(r["scope"]) for r in csv_rows["dim_source"]}
     country = {r["site_id"]: r["country"] for r in csv_rows["dim_site"]}
     expected = defaultdict(float)
-    for r in csv_rows["fact_emissions"]:
+    for r in csv_rows["all_emissions"]:
         if r["date_key"].startswith("2025"):
             expected[(country[r["site_id"]], scope[r["source_id"]])] += float(r["tco2e"])
     rows = wh.emissions_total(["country", "scope"], year=2025)["rows"]
@@ -33,16 +36,16 @@ def test_total_by_scope_and_country_reconciles(wh, csv_rows):
 
 
 def test_company_total_without_grouping(wh, csv_rows):
-    total = sum(float(r["tco2e"]) for r in csv_rows["fact_emissions"])
+    total = sum(float(r["tco2e"]) for r in csv_rows["all_emissions"])
     rows = wh.emissions_total()["rows"]
     assert len(rows) == 1
     assert rows[0]["tco2e"] == pytest.approx(total, abs=0.001)
-    assert rows[0]["fact_rows"] == len(csv_rows["fact_emissions"])
+    assert rows[0]["fact_rows"] == len(csv_rows["all_emissions"])
 
 
 def test_month_range_is_inclusive(wh, csv_rows):
     keys = {"20240601", "20240701", "20240801"}
-    expected = sum(float(r["tco2e"]) for r in csv_rows["fact_emissions"]
+    expected = sum(float(r["tco2e"]) for r in csv_rows["all_emissions"]
                    if r["date_key"] in keys and r["site_id"] == "FI01")
     rows = wh.emissions_total(site_id="FI01", start_month="2024-06", end_month="2024-08")["rows"]
     assert rows[0]["tco2e"] == pytest.approx(expected, abs=0.001)
@@ -57,7 +60,7 @@ def test_monthly_trend_for_new_site_starts_at_opening(wh):
 def test_intensity_per_fte_averages_fte_over_months(wh, csv_rows):
     """FTE is a level: sum across sites within a month, then average the months.
     Summing FTE over twelve months would make the divisor twelve times too big."""
-    em = sum(float(r["tco2e"]) for r in csv_rows["fact_emissions"] if r["date_key"].startswith("2024"))
+    em = sum(float(r["tco2e"]) for r in csv_rows["all_emissions"] if r["date_key"].startswith("2024"))
     fte_by_month = defaultdict(float)
     for r in csv_rows["fact_site_metrics"]:
         if r["date_key"].startswith("2024"):
@@ -76,7 +79,7 @@ def test_intensity_per_revenue_is_null_for_head_office(wh):
 
 
 def test_intensity_per_revenue_reconciles(wh, csv_rows):
-    em = sum(float(r["tco2e"]) for r in csv_rows["fact_emissions"] if r["site_id"] == "SE01")
+    em = sum(float(r["tco2e"]) for r in csv_rows["all_emissions"] if r["site_id"] == "SE01")
     rev = sum(float(r["revenue_eur"]) for r in csv_rows["fact_site_metrics"] if r["site_id"] == "SE01")
     row = wh.emissions_intensity("million_eur_revenue", site_id="SE01")["rows"][0]
     assert row["intensity"] == pytest.approx(em / (rev / 1e6), abs=0.001)
@@ -106,4 +109,45 @@ def test_describe_lists_sites_with_first_month(wh):
     assert sites["EE02"]["first_month"] == "2024-07"
     assert sites["FI01"]["first_month"] == "2023-01"
     assert d["row_counts"]["fact_emissions"] == 1422
+    assert len(d["row_counts"]) == 12
     assert any("illustrative" in c for c in d["caveats"])
+
+
+def test_market_based_total_swaps_only_scope_2(wh, csv_rows):
+    scope = {r["source_id"]: int(r["scope"]) for r in csv_rows["dim_source"]}
+    in_2025 = [r for r in csv_rows["all_emissions"] if r["date_key"].startswith("2025")]
+    other = sum(float(r["tco2e"]) for r in in_2025 if scope[r["source_id"]] != 2)
+    market = sum(float(r["tco2e"]) for r in csv_rows["fact_scope2_market"]
+                 if r["date_key"].startswith("2025"))
+    rows = wh.emissions_total(["scope"], year=2025, scope2_method="market")["rows"]
+    got = by(rows, "scope")
+    assert got[2]["tco2e"] == pytest.approx(market, abs=0.001)
+    assert got[1]["tco2e"] + got[3]["tco2e"] == pytest.approx(other, abs=0.001)
+
+
+def test_total_by_scope3_category_reconciles(wh, csv_rows):
+    category = {r["source_id"]: r["scope3_category"] for r in csv_rows["dim_source"]}
+    expected = defaultdict(float)
+    for r in csv_rows["all_emissions"]:
+        if category[r["source_id"]] and r["date_key"].startswith("2024"):
+            expected[int(category[r["source_id"]])] += float(r["tco2e"])
+    rows = [r for r in wh.emissions_total(["scope3_category"], year=2024, scope=3)["rows"]]
+    assert {r["scope3_category"] for r in rows} == set(expected) == {1, 3, 4, 5, 6, 9}
+    for r in rows:
+        assert r["tco2e"] == pytest.approx(expected[r["scope3_category"]], abs=0.001)
+
+
+def test_bad_scope2_method_is_refused(wh):
+    with pytest.raises(ValueError, match="scope2_method"):
+        wh.emissions_total(scope2_method="hourly")
+
+
+def test_scope3_inventory_lists_all_15_with_reasons(wh, csv_rows):
+    inv = wh.scope3_inventory(2025)["categories"]
+    assert [c["scope3_category"] for c in inv] == list(range(1, 16))
+    cat = by(inv, "scope3_category")
+    assert cat[11]["status"] == "Not yet calculated" and cat[11]["tco2e"] is None
+    assert cat[8]["status"] == "Not relevant" and cat[8]["reason"]
+    spend = sum(float(r["tco2e"]) for r in csv_rows["fact_purchases"]
+                if r["date_key"].startswith("2025"))
+    assert cat[1]["tco2e"] == pytest.approx(spend, abs=0.001)
