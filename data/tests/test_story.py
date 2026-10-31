@@ -66,13 +66,16 @@ def test_tampere_wind_guarantees_from_2025_cut_its_market_based_figure(tables):
     assert market_electricity(tables, "FI01", 2025) < 0.5 * market_electricity(tables, "FI01", 2024)
 
 
-def test_purchased_goods_is_the_largest_category_counted(tables):
-    """As Jasila's note expects for a manufacturer (category 11 not yet calculated)."""
+def test_use_of_sold_products_is_the_largest_category_then_purchases(tables):
+    """As Jasila's note expects for energy-using machinery. Changed for phase 2
+    (31 October 2026): before category 11 was calculated, purchases (S11) came first."""
     by_source = defaultdict(float)
-    for name in ("fact_emissions", "fact_energy_upstream", "fact_purchases", "fact_freight"):
+    for name in ("fact_emissions", "fact_energy_upstream", "fact_purchases", "fact_freight",
+                 "fact_use_phase"):
         for r in tables[name]:
             by_source[r["source_id"]] += float(r["tco2e"])
-    assert max(by_source, key=by_source.get) == "S11"
+    ranked = sorted(by_source, key=by_source.get, reverse=True)
+    assert ranked[:2] == ["S14", "S11"]
 
 
 def test_revenue_grows_year_on_year_for_sites_open_all_period(tables):

@@ -3,15 +3,29 @@
 import hashlib
 import json
 
-from fjordvik_data.generate import COLUMNS, write_all
+import shutil
+from pathlib import Path
+
+from fjordvik_data.generate import COLUMNS, REFERENCE_COLUMNS, write_all
 
 FILES = [f"{name}.csv" for name in COLUMNS] + ["manifest.json"]
 
 
 def test_regenerating_gives_byte_identical_files(tmp_path, data_dir):
-    write_all(tmp_path)
+    """Tables, the simulated ERP extract and the reference lists it writes."""
+    shutil.copytree(data_dir.parent / "reference", tmp_path / "reference")
+    write_all(tmp_path / "tables")
     for name in FILES:
-        assert (tmp_path / name).read_bytes() == (data_dir / name).read_bytes(), name
+        assert (tmp_path / "tables" / name).read_bytes() == (data_dir / name).read_bytes(), name
+    for name in REFERENCE_COLUMNS:
+        path = Path("reference") / f"{name}.csv"
+        assert (tmp_path / path).read_bytes() == (data_dir.parent / path).read_bytes(), name
+    made = sorted(p.relative_to(tmp_path) for p in (tmp_path / "erp-extract").rglob("*") if p.is_file())
+    committed = sorted(p.relative_to(data_dir.parent) for p in (data_dir.parent / "erp-extract").rglob("*")
+                       if p.is_file())
+    assert made == committed
+    for rel in made:
+        assert (tmp_path / rel).read_bytes() == (data_dir.parent / rel).read_bytes(), rel
 
 
 def test_manifest_checksums_and_counts_match_files(data_dir, tables):

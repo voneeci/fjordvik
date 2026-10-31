@@ -18,8 +18,9 @@ from datetime import date
 from pathlib import Path
 
 from fjordvik_data import config as c
+from fjordvik_data import portfolio
 
-GENERATOR_VERSION = "1.1.0"
+GENERATOR_VERSION = "1.2.0"
 
 COLUMNS = {
     "dim_date": ["date_key", "date", "year", "quarter", "month", "month_name"],
@@ -42,6 +43,28 @@ COLUMNS = {
     "fact_freight": ["date_key", "site_id", "source_id", "direction", "mode", "paid_by",
                      "tonnes", "distance_km", "activity_amount", "unit", "emission_factor",
                      "tco2e"],
+    "dim_product_group": ["product_group", "product_family"],
+    "dim_product": ["product_id", "product_name", "product_group", "product_family",
+                    "made_at_site_id", "rated_kw", "kwh_per_year", "lifetime_years",
+                    "list_price_eur", "standard_cost_eur"],
+    "dim_region": ["region_id", "region_name"],
+    "dim_score_criterion": ["criterion_id", "criterion_name", "weight", "source"],
+    "fact_product_rating": ["date_key", "product_group", "criterion_id", "rating"],
+    "dim_product_code": ["business_unit", "local_item_number", "product_id"],
+    "fact_sales": ["date_key", "site_id", "product_id", "region_id", "units", "net_sales_eur",
+                   "cost_of_sales_eur", "margin_eur"],
+    "fact_data_issue": ["issue_id", "date_key", "site_id", "business_unit", "issue_type",
+                        "detail", "line_count", "amount_eur", "status", "action"],
+    "fact_use_phase": ["date_key", "site_id", "source_id", "product_id", "region_id", "units",
+                       "net_sales_eur", "activity_amount", "unit", "emission_factor", "tco2e"],
+}
+
+# Reference lists the pipeline reads (data/reference). The ECB rates there are
+# fetched from the ECB, never generated.
+REFERENCE_COLUMNS = {
+    "product_code_map": ["business_unit", "local_item_number", "product_id"],
+    "region_codes": ["erp_region_code", "region_id"],
+    "business_units": ["business_unit", "site_id", "ledger_currency"],
 }
 
 
@@ -343,6 +366,11 @@ def build_all() -> dict[str, list[dict]]:
         "dim_supplier": build_dim_supplier(),
         "fact_purchases": build_fact_purchases(),
         "fact_freight": build_fact_freight(),
+        "dim_product_group": portfolio.build_dim_product_group(),
+        "dim_product": portfolio.build_dim_product(),
+        "dim_region": portfolio.build_dim_region(),
+        "dim_score_criterion": portfolio.build_dim_score_criterion(),
+        "fact_product_rating": portfolio.build_fact_product_rating(months, rng_for),
     }
 
 
@@ -358,6 +386,10 @@ FORMATS = {
     "fte": "{:.1f}",
     "tonnes": "{:.2f}",
     "covered_share": "{:.2f}",
+    "net_sales_eur": "{:.2f}",
+    "cost_of_sales_eur": "{:.2f}",
+    "margin_eur": "{:.2f}",
+    "amount_eur": "{:.2f}",
 }
 
 
@@ -376,8 +408,28 @@ def sha256(path: Path) -> str:
 
 
 def write_all(out_dir: Path) -> dict:
+    """Write the tables to out_dir, and the simulated ERP extract and the reference
+    lists beside it (out_dir/../erp-extract, out_dir/../reference). The sales
+    tables come out of the SQL pipeline run on that extract."""
     out_dir.mkdir(parents=True, exist_ok=True)
+    root = out_dir.parent
     tables = build_all()
+    for name, rows in tables.items():
+        write_csv(out_dir / f"{name}.csv", COLUMNS[name], rows)
+
+    reference = root / "reference"
+    reference.mkdir(exist_ok=True)
+    for name, rows in (("product_code_map", portfolio.build_product_code_map()),
+                       ("region_codes", portfolio.build_region_codes()),
+                       ("business_units", portfolio.build_business_units())):
+        write_csv(reference / f"{name}.csv", REFERENCE_COLUMNS[name], rows)
+    lines = portfolio.build_sales_lines(tables["fact_site_metrics"], months, months_between, rng_for)
+    extract = root / "erp-extract"
+    portfolio.write_extract(extract, portfolio.extract_rows(lines, portfolio.read_rates()))
+    published = portfolio.run_sql(extract, reference, out_dir)
+    for name in ("dim_product_code", "fact_sales", "fact_data_issue"):
+        tables[name] = published[name]
+    tables["fact_use_phase"] = portfolio.build_fact_use_phase(published["fact_sales"])
     manifest = {
         "dataset": "Fjordvik Manufacturing Oy (synthetic)",
         "generator_version": GENERATOR_VERSION,
@@ -386,10 +438,10 @@ def write_all(out_dir: Path) -> dict:
         "emission_factors": "illustrative, not for real reporting",
         "tables": {},
     }
-    for name, rows in tables.items():
+    for name in COLUMNS:
         path = out_dir / f"{name}.csv"
-        write_csv(path, COLUMNS[name], rows)
-        manifest["tables"][name] = {"file": path.name, "rows": len(rows),
+        write_csv(path, COLUMNS[name], tables[name])
+        manifest["tables"][name] = {"file": path.name, "rows": len(tables[name]),
                                     "sha256": sha256(path)}
     (out_dir / "manifest.json").write_text(
         json.dumps(manifest, indent=2) + "\n", encoding="utf-8", newline="\n")

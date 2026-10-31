@@ -9,7 +9,7 @@ scope3_category,category_name,status,reason
 8,Upstream leased assets,Not relevant,"Fjordvik leases no assets beyond its six sites, which are already in scopes 1 and 2."
 9,Downstream transportation and distribution,Calculated,"Distance-based (tonne-km) for outbound freight that customers pay for, identified from the Incoterms on sales orders."
 10,Processing of sold products,Not relevant,"Fjordvik sells finished pumps and pump systems, which customers install rather than process further."
-11,Use of sold products,Not yet calculated,"Relevant and likely the largest category: Fjordvik's pumps use electricity for many years. Needs units sold by model and each model's yearly energy use and lifetime, which the planned product and sales data will provide."
+11,Use of sold products,Calculated in part,"The largest category: units sold times each model's lifetime and yearly electricity, at the grid factor of the region of use. Sales to Rest of world are not calculated: no grid factor source for that region has been identified."
 12,End-of-life treatment of sold products,Not yet calculated,"Relevant but usually small: needs the mass and materials of products and packaging sold, from the bill of materials."
 13,Downstream leased assets,Not relevant,Fjordvik does not lease out assets.
 14,Franchises,Not relevant,Fjordvik has no franchises.

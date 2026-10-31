@@ -147,6 +147,7 @@ VALUE_CHAIN_SOURCES = [
      "Upstream transportation and distribution", "tonne-km"),
     ("S13", "Outbound freight paid by customers", 3,
      "Downstream transportation and distribution", "tonne-km"),
+    ("S14", "Use of sold products", 3, "Use of sold products", "kWh"),
 ]
 
 # GHG Protocol scope 3 category (None for scopes 1 and 2) and calculation
@@ -166,6 +167,7 @@ SOURCE_METHOD = {
     "S11": (1, "Spend-based"),
     "S12": (4, "Distance-based"),
     "S13": (9, "Distance-based"),
+    "S14": (11, "Direct use-phase: lifetime electricity"),
 }
 
 # The 15 scope 3 categories with Fjordvik's status for each. The GHG Protocol
@@ -202,10 +204,10 @@ SCOPE3_CATEGORIES = [
     (10, "Processing of sold products", "Not relevant",
      "Fjordvik sells finished pumps and pump systems, which customers install rather "
      "than process further."),
-    (11, "Use of sold products", "Not yet calculated",
-     "Relevant and likely the largest category: Fjordvik's pumps use electricity for many "
-     "years. Needs units sold by model and each model's yearly energy use and lifetime, "
-     "which the planned product and sales data will provide."),
+    (11, "Use of sold products", "Calculated in part",
+     "The largest category: units sold times each model's lifetime and yearly electricity, "
+     "at the grid factor of the region of use. Sales to Rest of world are not calculated: no "
+     "grid factor source for that region has been identified."),
     (12, "End-of-life treatment of sold products", "Not yet calculated",
      "Relevant but usually small: needs the mass and materials of products and packaging "
      "sold, from the bill of materials."),
@@ -314,3 +316,123 @@ FREIGHT_LANES = {
     "EE02": [("Inbound", "Road", "Fjordvik", 60, 200), ("Outbound", "Road", "Fjordvik", 55, 400),
              ("Outbound", "Road", "Customer", 15, 600)],
 }
+
+# ===========================================================================
+# Product portfolio and sales (phase 2). All synthetic. Sales split each
+# site-month's revenue_eur exactly, so sales and finance agree to the cent.
+# Product specifications (rated kW, yearly kWh, lifetime) are Fjordvik's own
+# engineering data: client input, not published figures.
+# ===========================================================================
+
+# (product_group, product_family)
+PRODUCT_GROUPS = [
+    ("End-suction pumps", "Industrial process pumps"),
+    ("Split-case pumps", "Industrial process pumps"),
+    ("Multistage pumps", "Industrial process pumps"),
+    ("Submersible pumps", "Water and wastewater pumps"),
+    ("Dry-installed pumps", "Water and wastewater pumps"),
+    ("Booster sets", "Pump packages and controls"),
+    ("Control panels", "Pump packages and controls"),
+    ("Drive packages", "Pump packages and controls"),
+    ("Spare parts", "Spare parts and service"),
+    ("Service kits", "Spare parts and service"),
+]
+
+# (product_id, product_name, product_group, made_at, rated_kw, kwh_per_year,
+#  lifetime_years, list_price_eur, standard_cost_eur, mix_weight, mix_trend)
+# mix_weight: share of the shipping site's sales value; mix_trend: change in
+# that weight per year, which gives the price/volume/mix bridge a mix to find.
+PRODUCTS = [
+    ("IPP-ES-015", "End-suction pump 15 kW", "End-suction pumps", "FI01", 15, 54_000, 15, 6_800, 4_350, 0.16, 0.00),
+    ("IPP-ES-030", "End-suction pump 30 kW", "End-suction pumps", "FI01", 30, 108_000, 15, 9_400, 6_000, 0.14, 0.00),
+    ("IPP-ES-055", "End-suction pump 55 kW", "End-suction pumps", "FI01", 55, 198_000, 15, 13_900, 8_800, 0.10, -0.01),
+    ("IPP-SC-075", "Split-case pump 75 kW", "Split-case pumps", "FI01", 75, 300_000, 20, 21_500, 13_100, 0.12, 0.00),
+    ("IPP-SC-160", "Split-case pump 160 kW", "Split-case pumps", "FI01", 160, 640_000, 20, 38_000, 22_400, 0.08, 0.00),
+    ("IPP-MS-011", "Multistage pump 11 kW", "Multistage pumps", "FI01", 11, 39_600, 15, 5_200, 3_050, 0.14, 0.02),
+    ("IPP-MS-022", "Multistage pump 22 kW", "Multistage pumps", "FI01", 22, 79_200, 15, 7_900, 4_600, 0.16, 0.02),
+    ("IPP-MS-045", "Multistage pump 45 kW", "Multistage pumps", "FI01", 45, 162_000, 15, 12_600, 7_250, 0.10, -0.03),
+    ("WWP-SB-004", "Submersible pump 4 kW", "Submersible pumps", "SE01", 4, 10_000, 12, 2_300, 1_480, 0.14, 0.00),
+    ("WWP-SB-011", "Submersible pump 11 kW", "Submersible pumps", "SE01", 11, 27_500, 12, 4_600, 2_900, 0.18, 0.02),
+    ("WWP-SB-022", "Submersible pump 22 kW", "Submersible pumps", "SE01", 22, 55_000, 12, 7_800, 4_850, 0.16, 0.01),
+    ("WWP-SB-045", "Submersible pump 45 kW", "Submersible pumps", "SE01", 45, 112_500, 12, 13_200, 8_100, 0.12, 0.00),
+    ("WWP-DI-015", "Dry-installed pump 15 kW", "Dry-installed pumps", "SE01", 15, 52_500, 20, 6_400, 4_050, 0.14, -0.01),
+    ("WWP-DI-037", "Dry-installed pump 37 kW", "Dry-installed pumps", "SE01", 37, 129_500, 20, 11_800, 7_300, 0.14, -0.01),
+    ("WWP-DI-075", "Dry-installed pump 75 kW", "Dry-installed pumps", "SE01", 75, 262_500, 20, 19_900, 12_100, 0.12, -0.01),
+    ("PPC-BS-022", "Booster set 2 x 11 kW", "Booster sets", "EE01", 22, 44_000, 15, 9_800, 6_500, 0.20, 0.02),
+    ("PPC-BS-045", "Booster set 3 x 15 kW", "Booster sets", "EE01", 45, 90_000, 15, 16_500, 10_800, 0.16, 0.01),
+    ("PPC-BS-090", "Booster set 3 x 30 kW", "Booster sets", "EE01", 90, 180_000, 15, 27_000, 17_400, 0.10, 0.00),
+    ("PPC-CP-001", "Pump control panel, single", "Control panels", "EE01", 0, 0, 15, 1_900, 1_150, 0.14, -0.01),
+    ("PPC-CP-002", "Pump control panel, duty and standby", "Control panels", "EE01", 0, 0, 15, 3_400, 2_050, 0.12, -0.01),
+    ("PPC-VD-030", "Variable-speed drive package 30 kW", "Drive packages", "EE01", 0, 0, 15, 5_600, 3_700, 0.16, 0.00),
+    ("PPC-VD-075", "Variable-speed drive package 75 kW", "Drive packages", "EE01", 0, 0, 15, 9_900, 6_400, 0.12, -0.01),
+    ("SPS-SP-100", "Spare parts (mixed)", "Spare parts", "FI01", 0, 0, 0, 140, 70, 0.70, 0.00),
+    ("SPS-SK-200", "Service kit", "Service kits", "FI01", 0, 0, 0, 620, 330, 0.30, 0.00),
+]
+# The family each site ships: plants ship what they make; the warehouses ship
+# spare parts and service kits.
+SITE_FAMILY = {"FI01": "Industrial process pumps", "SE01": "Water and wastewater pumps",
+               "EE01": "Pump packages and controls", "FI03": "Spare parts and service",
+               "EE02": "Spare parts and service"}
+ANNUAL_PRICE_CHANGE = {"Industrial process pumps": 0.035, "Water and wastewater pumps": 0.02,
+                       "Pump packages and controls": 0.045, "Spare parts and service": 0.03}
+ANNUAL_COST_CHANGE = 0.025
+PRICE_NOISE = 0.02
+
+# (region_id, region_name, customer region code in the ERP)
+REGIONS = [("NOR", "Nordics", "NORDIC"), ("BAL", "Baltics", "BALTIC"),
+           ("WEU", "Western Europe", "WEST-EU"), ("ROW", "Rest of world", "OTHER")]
+REGION_SPLIT = {
+    "FI01": {"NOR": 0.40, "BAL": 0.10, "WEU": 0.35, "ROW": 0.15},
+    "SE01": {"NOR": 0.50, "BAL": 0.05, "WEU": 0.30, "ROW": 0.15},
+    "EE01": {"NOR": 0.30, "BAL": 0.30, "WEU": 0.30, "ROW": 0.10},
+    "FI03": {"NOR": 0.90, "BAL": 0.10},
+    "EE02": {"NOR": 0.20, "BAL": 0.80},
+}
+
+# ---------------------------------------------------------------------------
+# The simulated Oracle Fusion Cloud ERP extract: business units, their ledger
+# currency, and the local item numbers each uses. Gothenburg's business unit
+# still uses its legacy item numbers, mapped to the global classification.
+# ---------------------------------------------------------------------------
+# (business_unit, site_id, ledger_currency)
+BUSINESS_UNITS = [("FJV FI Tampere", "FI01", "EUR"), ("FJV SE Gothenburg", "SE01", "SEK"),
+                  ("FJV EE Tallinn", "EE01", "EUR"), ("FJV FI Oulu", "FI03", "EUR"),
+                  ("FJV EE Tartu", "EE02", "EUR")]
+LEGACY_ITEM_NUMBERS = {  # SE01 local item numbers
+    "WWP-SB-004": "GBG-40411", "WWP-SB-011": "GBG-41111", "WWP-SB-022": "GBG-42211",
+    "WWP-SB-045": "GBG-44511", "WWP-DI-015": "GBG-51522", "WWP-DI-037": "GBG-53722",
+    "WWP-DI-075": "GBG-57522",
+}
+# Planted extract problems, realistic artefacts the SQL must catch and log:
+# new local codes not yet in the map (month, business unit, code, the product it
+# is, the region whose lines carry it); one extract re-sent (arrives in, business
+# unit, period it repeats); one month with no currency code.
+UNMAPPED_CODES = [(date(2025, 6, 1), "FJV EE Tallinn", "EE-BS-NEW1", "PPC-BS-045", "BAL"),
+                  (date(2025, 11, 1), "FJV EE Tallinn", "EE-VD-NEW2", "PPC-VD-030", "BAL")]
+RESENT_EXTRACT = (date(2024, 9, 1), "FJV FI Tampere", date(2024, 8, 1))
+MISSING_CURRENCY = (date(2025, 3, 1), "FJV SE Gothenburg")
+
+# ---------------------------------------------------------------------------
+# Category 11, use of sold products: units x lifetime years x yearly kWh x the
+# grid factor of the region of use (GHG Protocol direct use-phase method).
+# ILLUSTRATIVE factors, kg CO2e per kWh. Source a company would cite: the
+# European Environment Agency (EEA) greenhouse gas emission intensity of
+# electricity indicator (published 10 July 2026). Rest of world has no factor
+# source identified, so it is not calculated: no row, never an estimate.
+# ---------------------------------------------------------------------------
+USE_PHASE_GRID_FACTOR = {"NOR": 0.060, "BAL": 0.400, "WEU": 0.250}
+
+# ---------------------------------------------------------------------------
+# Quarterly portfolio scorecard. Criteria from Cooper and Edgett (Stage-Gate
+# International, 2022). No source publishes weights, so these are Fjordvik's
+# own stated choice (client input). Ratings 1 to 10 come from each quarter's
+# portfolio review (synthetic).
+# ---------------------------------------------------------------------------
+SCORE_CRITERIA = [("C1", "Strategic alignment", 25), ("C2", "Product advantage", 20),
+                  ("C3", "Market attractiveness", 20),
+                  ("C4", "Ability to leverage core competencies", 10),
+                  ("C5", "Technical feasibility", 10), ("C6", "Reward against risk", 15)]
+# Typical rating of each product group before quarter-to-quarter movement.
+BASE_RATING = {"End-suction pumps": 6, "Split-case pumps": 7, "Multistage pumps": 8,
+               "Submersible pumps": 7, "Dry-installed pumps": 5, "Booster sets": 8,
+               "Control panels": 5, "Drive packages": 6, "Spare parts": 7, "Service kits": 6}

@@ -1,0 +1,5 @@
+issue_id,date_key,site_id,business_unit,issue_type,detail,line_count,amount_eur,status,action
+1,20240801,FI01,FJV FI Tampere,Duplicate lines,File 2024-09__SalesOrderLines_Tampere_202408_resent.csv repeats lines already received,32,4421291.84,Removed by rule,Ask the ERP team why the extract was sent twice
+2,20250301,SE01,FJV SE Gothenburg,Missing currency code,Lines had no currency code; the ledger currency SEK was applied,28,4159839.14,Corrected by rule,Ask the business unit to fix the currency code at source
+3,20250601,EE01,FJV EE Tallinn,Unmapped item number,Local item number EE-BS-NEW1 is not in the global product classification,1,163812.40,Quarantined,Portfolio governance to map EE-BS-NEW1 to a global product
+4,20251101,EE01,FJV EE Tallinn,Unmapped item number,Local item number EE-VD-NEW2 is not in the global product classification,1,160221.52,Quarantined,Portfolio governance to map EE-VD-NEW2 to a global product

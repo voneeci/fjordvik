@@ -4,12 +4,14 @@ from collections import Counter, defaultdict
 
 from fjordvik_data import config as c
 
-VALUE_FACTS = ["fact_scope2_market", "fact_energy_upstream", "fact_purchases", "fact_freight"]
+VALUE_FACTS = ["fact_scope2_market", "fact_energy_upstream", "fact_purchases", "fact_freight",
+               "fact_use_phase"]
 GRAIN = {
     "fact_scope2_market": ("date_key", "site_id", "source_id", "instrument"),
     "fact_energy_upstream": ("date_key", "site_id", "source_id", "based_on_source_id"),
     "fact_purchases": ("date_key", "site_id", "supplier_id"),
     "fact_freight": ("date_key", "site_id", "direction", "mode", "paid_by"),
+    "fact_use_phase": ("date_key", "site_id", "product_id", "region_id"),
 }
 STATUSES = {"Calculated", "Calculated in part", "Not yet calculated", "Not relevant"}
 

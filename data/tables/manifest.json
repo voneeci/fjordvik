@@ -1,6 +1,6 @@
 {
   "dataset": "Fjordvik Manufacturing Oy (synthetic)",
-  "generator_version": "1.1.0",
+  "generator_version": "1.2.0",
   "seed": 20230101,
   "period": "2023-01-01 to 2025-12-01",
   "emission_factors": "illustrative, not for real reporting",
@@ -17,8 +17,8 @@
     },
     "dim_source": {
       "file": "dim_source.csv",
-      "rows": 13,
-      "sha256": "9f5ed22140237d6b4891fcb4b66d0d967d02971b45c4fcaa61bdc024ff774bc8"
+      "rows": 14,
+      "sha256": "7ee85a96cfb60aad62c3e2488a4f28d67e18be3f3a15e46f33e34ea57786c8ac"
     },
     "fact_emissions": {
       "file": "fact_emissions.csv",
@@ -33,7 +33,7 @@
     "dim_scope3_category": {
       "file": "dim_scope3_category.csv",
       "rows": 15,
-      "sha256": "4c31d762152e55118a8cf2ffbe19430ce676d3b8a2535dd9d6c64ee9c15802ce"
+      "sha256": "c42df42cd1f5593d1907526ad305b0b6abbdc0b5d2508ada792e76b1ef0fb1f9"
     },
     "dim_contract": {
       "file": "dim_contract.csv",
@@ -64,6 +64,51 @@
       "file": "fact_freight.csv",
       "rows": 666,
       "sha256": "2c0acc987a859eb10033005e7529863103fbde4d980f9471991c78027e64c837"
+    },
+    "dim_product_group": {
+      "file": "dim_product_group.csv",
+      "rows": 10,
+      "sha256": "9a4c133e8f125103fdb9a93044840b2b2663e7187d3bbce7117d8bc38fa618b1"
+    },
+    "dim_product": {
+      "file": "dim_product.csv",
+      "rows": 24,
+      "sha256": "88dfcabfd8bac1f3f0317cb484948e51eb59f396e061b44761fc5f15d5f21771"
+    },
+    "dim_region": {
+      "file": "dim_region.csv",
+      "rows": 4,
+      "sha256": "8110ca8d1580bd0fcabc7ab41a416dccc67f2a19e1d514337c41904fe2d7769f"
+    },
+    "dim_score_criterion": {
+      "file": "dim_score_criterion.csv",
+      "rows": 6,
+      "sha256": "24fb0ffcc06f89f0a655faa824e105dabe9efa57045cf2cadef08b53c0c9c125"
+    },
+    "fact_product_rating": {
+      "file": "fact_product_rating.csv",
+      "rows": 720,
+      "sha256": "9d648cc2a21f0237cda71ca234a1407dbb47cfcb55aca9755757e459735698d3"
+    },
+    "dim_product_code": {
+      "file": "dim_product_code.csv",
+      "rows": 26,
+      "sha256": "6e89deff3fe61e651c00a3f2a6d314fd72234df954f1ff4b142f423b3ac264e9"
+    },
+    "fact_sales": {
+      "file": "fact_sales.csv",
+      "rows": 3379,
+      "sha256": "d85f65e829cf6706bbec0a1f8b85ae064babccb07fe5da45f5db329e74f545e2"
+    },
+    "fact_data_issue": {
+      "file": "fact_data_issue.csv",
+      "rows": 4,
+      "sha256": "091a10627bbbf821d507f10700881650531c674db65bfccfcc612fbbb657c4e2"
+    },
+    "fact_use_phase": {
+      "file": "fact_use_phase.csv",
+      "rows": 1940,
+      "sha256": "516cfc16327dec793ec6a4d67d8d9ae4770c8577c7de79f673db697c7bfe10f5"
     }
   }
 }

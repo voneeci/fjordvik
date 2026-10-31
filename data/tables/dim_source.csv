@@ -12,3 +12,4 @@ S10,Transmission and distribution losses,3,Fuel- and energy-related activities,3
 S11,Purchased goods and services,3,Purchased goods and services,1,Spend-based
 S12,Freight paid by Fjordvik,3,Upstream transportation and distribution,4,Distance-based
 S13,Outbound freight paid by customers,3,Downstream transportation and distribution,9,Distance-based
+S14,Use of sold products,3,Use of sold products,11,Direct use-phase: lifetime electricity

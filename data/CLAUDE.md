@@ -13,7 +13,11 @@ folders of the fjordvik repository: mcp, powerbi and power-automate. Permanent r
 - The shared schema is a contract. Never rename a table or column: the other three folders
   depend on the names in `tests/test_schema.py`.
 - The clean dataset has no planted errors. Planted errors belong in the intake files of
-  power-automate.
+  power-automate, and in the simulated ERP extract (`erp-extract/`), which is an intake file
+  too: the SQL in `sql/` removes, corrects or quarantines each one and lists it in
+  `fact_data_issue`, so `tables/` stays clean (Reece's approval of the phase 2 plan,
+  31 October 2026).
+- `reference/ecb_eur_sek_monthly.csv` is fetched from the ECB, never generated or typed.
 - No backfilling: a site's series starts at its first month.
 - Change the data only through `src/fjordvik_data/config.py` or `generate.py`, then
   regenerate (`python -m fjordvik_data --out tables`) and commit code and data together.
@@ -26,5 +30,5 @@ folders of the fjordvik repository: mcp, powerbi and power-automate. Permanent r
 
 ```bash
 python -m fjordvik_data --out tables   # regenerate (after pip install -e ".[dev]")
-python -m pytest -q                  # 38 tests
+python -m pytest -q                  # 58 tests
 ```
