@@ -1,0 +1,4 @@
+Refresh before the live tests, 31 October 2026 (pump yearly kWh lowered by 40%; Reece's open Desktop copy, refreshed with his yes)
+Command: scriptsun_dax_table.ps1 -QueryFile <empty query list> -Port 62921 -Refresh
+Output:
+refreshed database f698d603-8c1d-4e0e-b4b1-9eaed40c642c

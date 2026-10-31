@@ -1,5 +1,5 @@
-Portfolio analytics exercises, run live against the refreshed model, 31 October 2026
-Command: scripts\run_dax_table.ps1 -QueryFile portfolio_queries.json -Port 54638
+Portfolio analytics exercises, run live against the refreshed model, 31 October 2026 (rerun after pump yearly kWh was lowered by 40%)
+Command: scripts\run_dax_table.ps1 -QueryFile portfolio_queries.json -Port 62921
 Queries:
 [
   {"id": "p1_products_by_family", "query": "EVALUATE SUMMARIZECOLUMNS ( dim_product_group[product_family], \"Groups\", COUNTROWS ( dim_product_group ), \"Products\", COUNTROWS ( dim_product ) )"},
@@ -55,12 +55,12 @@ dim_product_group[product_group]=Control panels | [Score]=5.35
 dim_product_group[product_group]=Drive packages | [Score]=3.9
 rows: 10
 === p8_use_phase_by_family_2025
-dim_product_group[product_family]=Industrial process pumps | [Use-phase]=1337548.04 | [Per unit]=271.033037487335 | [Per thousand EUR]=29.0961723328923
-dim_product_group[product_family]=Water and wastewater pumps | [Use-phase]=640917.7 | [Per unit]=101.459189488681 | [Per thousand EUR]=16.93965541416
-dim_product_group[product_family]=Pump packages and controls | [Use-phase]=283598.4 | [Per unit]=241.978156996587 | [Per thousand EUR]=16.4119337216012
+dim_product_group[product_family]=Industrial process pumps | [Use-phase]=802634.37 | [Per unit]=162.641209726444 | [Per thousand EUR]=17.459999380525
+dim_product_group[product_family]=Water and wastewater pumps | [Use-phase]=384550.62 | [Per unit]=60.8755136932088 | [Per thousand EUR]=10.163793248496
+dim_product_group[product_family]=Pump packages and controls | [Use-phase]=170159.04 | [Per unit]=145.186894197952 | [Per thousand EUR]=9.84716023296071
 rows: 3
 === p9_scope3_share_2025
-[Total]=2328686.63703 | [Use-phase]=2262064.14 | [Scope 1]=3948.607213 | [Scope 2]=6243.608828
+[Total]=1423966.52703 | [Use-phase]=1357344.03 | [Scope 1]=3948.607213 | [Scope 2]=6243.608828
 rows: 1
 === p10_issues
 [Month]=20240801 | [Issue]=Duplicate lines | [Lines]=32 | [Amount]=4421291.84 | [Status]=Removed by rule
