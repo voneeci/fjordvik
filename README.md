@@ -26,7 +26,9 @@ December 2025.
 Each folder has its own README with the problem, approach, architecture, test evidence
 and limitations. [docs/learning-guide.md](docs/learning-guide.md) sets out the business
 need and the data, then explains how each part was built and why each main decision was
-made.
+made. [docs/process-map.html](docs/process-map.html) maps the whole monthly process, from
+energy being used to the Power BI report, with the owner, tool, data and checks for each
+step ([published page](https://claude.ai/artifact/N4pKe8vgcofYXPDwhB9mom)).
 
 ## How the parts fit
 

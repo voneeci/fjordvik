@@ -1,0 +1,504 @@
+<title>Fjordvik Reporting Process Map</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;600;700&display=swap">
+<style>
+/* Layout: a wide swimlane map (lanes = job titles, columns = phases of the month) in its own
+   scroller, then one card per step in reading order. Cool fjord-blue neutrals; status colours
+   (built, designed, outside) carry the meaning. */
+:root {
+  --bg: #f2f5f7; --surface: #ffffff; --ink: #16232b; --muted: #5a6a74; --line: #c8d3da;
+  --lane: #e7edf1; --lane-alt: #eef3f6; --accent: #1d5a73; --accent-soft: #dcebf2;
+  --built: #2c7a4d; --built-bg: #e2f1e7; --designed: #9a620c; --designed-bg: #fbf0dc;
+  --outside: #66737c; --outside-bg: #f0f3f5; --flash: #fff4c2;
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e161b; --surface: #15212a; --ink: #e2e9ee; --muted: #93a3ad; --line: #2b3a44;
+  --lane: #131f27; --lane-alt: #172530; --accent: #74b6d2; --accent-soft: #1b3442;
+  --built: #6bc88f; --built-bg: #16301f; --designed: #e3a94b; --designed-bg: #33270f;
+  --outside: #9ba7af; --outside-bg: #1b252c; --flash: #3b3414; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0e161b; --surface: #15212a; --ink: #e2e9ee; --muted: #93a3ad; --line: #2b3a44;
+  --lane: #131f27; --lane-alt: #172530; --accent: #74b6d2; --accent-soft: #1b3442;
+  --built: #6bc88f; --built-bg: #16301f; --designed: #e3a94b; --designed-bg: #33270f;
+  --outside: #9ba7af; --outside-bg: #1b252c; --flash: #3b3414; color-scheme: dark }
+
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 56px; }
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 700; letter-spacing: .01em; text-wrap: balance; margin: 0; line-height: 1.1; }
+h1 { font-size: clamp(30px, 5vw, 44px); }
+h2 { font-size: 26px; }
+h3 { font-size: 21px; }
+p { margin: 0; max-width: 68ch; }
+code, .mono { font-family: var(--mono); font-size: .86em; }
+a { color: var(--accent); }
+.eyebrow { font-family: var(--display); text-transform: uppercase; letter-spacing: .12em; font-size: 14px; color: var(--accent); font-weight: 600; }
+header { display: grid; gap: 12px; }
+.notice { border-left: 3px solid var(--designed); background: var(--surface); padding: 10px 14px; font-size: 14px; color: var(--muted); max-width: 80ch; }
+
+.summary { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.chip { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 5px 12px; font-size: 13px; font-weight: 600;
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; font-family: var(--body); }
+.chip .dot { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+.chip[aria-pressed="true"] { outline: 2px solid var(--accent); outline-offset: 1px; }
+.chip .n { font-family: var(--mono); font-weight: 500; color: var(--muted); }
+.dot.built { background: var(--built-bg); border: 2px solid var(--built); }
+.dot.designed { background: var(--designed-bg); border: 2px solid var(--designed); }
+.dot.outside { background: var(--outside-bg); border: 2px dashed var(--outside); }
+.hint { font-size: 13px; color: var(--muted); }
+
+/* Map */
+.map-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); -webkit-overflow-scrolling: touch; }
+.map { position: relative; }
+.lane { position: absolute; left: 0; right: 0; border-top: 1px solid var(--line); }
+.lane:nth-child(odd) { background: var(--lane); }
+.lane:nth-child(even) { background: var(--lane-alt); }
+.lane-label { position: sticky; left: 0; width: 150px; height: 100%; padding: 10px 12px; box-sizing: border-box; background: inherit;
+  border-right: 1px solid var(--line); display: flex; flex-direction: column; justify-content: center; gap: 3px; z-index: 3; }
+.lane-label b { font-family: var(--display); font-size: 17px; line-height: 1.1; }
+.lane-label span { font-size: 11.5px; color: var(--muted); line-height: 1.3; }
+.phase { position: absolute; top: 0; height: 56px; box-sizing: border-box; padding: 8px 10px; border-left: 1px solid var(--line);
+  font-size: 12px; color: var(--muted); line-height: 1.3; }
+.phase b { display: block; font-family: var(--display); font-size: 16px; color: var(--ink); letter-spacing: .02em; }
+svg.edges { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+svg.edges path { fill: none; stroke: var(--muted); stroke-width: 1.6; }
+svg.edges path.dashed { stroke-dasharray: 5 4; }
+svg.edges text { font-family: var(--body); font-size: 11px; fill: var(--muted); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
+.step { position: absolute; width: 150px; height: 72px; box-sizing: border-box; border-radius: 6px; padding: 7px 9px; z-index: 2;
+  text-align: left; cursor: pointer; font-family: var(--body); color: var(--ink); display: flex; flex-direction: column; gap: 2px;
+  transition: opacity .15s, box-shadow .15s; }
+.step:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.step:hover { box-shadow: 0 2px 10px rgba(0,0,0,.18); }
+.step.built { background: var(--built-bg); border: 2px solid var(--built); }
+.step.designed { background: var(--designed-bg); border: 2px solid var(--designed); }
+.step.outside { background: var(--outside-bg); border: 2px dashed var(--outside); }
+.step .num { font-family: var(--mono); font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
+.step .auto { font-family: var(--body); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); }
+.step .nm { font-weight: 600; font-size: 12.5px; line-height: 1.25; }
+.map.filtering .step:not(.match) { opacity: .25; }
+
+/* Owners */
+.owners { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.owner { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; display: grid; gap: 4px; min-width: 0; }
+.owner b { font-family: var(--display); font-size: 18px; }
+.owner span { font-size: 13.5px; color: var(--muted); }
+
+/* Step cards */
+.phase-block { display: grid; gap: 12px; }
+.phase-block > p { color: var(--muted); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px 18px; display: grid; gap: 12px; min-width: 0; scroll-margin-top: 16px; transition: background .6s; }
+.card.flash { background: var(--flash); }
+.card-head { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline; }
+.card-head .n { font-family: var(--mono); color: var(--muted); font-size: 14px; }
+.badge { font-size: 12px; font-weight: 700; border-radius: 4px; padding: 2px 8px; }
+.badge.built { color: var(--built); background: var(--built-bg); }
+.badge.designed { color: var(--designed); background: var(--designed-bg); }
+.badge.outside { color: var(--outside); background: var(--outside-bg); border: 1px dashed var(--outside); }
+.badge.auto { color: var(--accent); background: var(--accent-soft); }
+.kv { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 8px 16px; margin: 0; }
+.kv dt { font-family: var(--display); font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding-top: 1px; }
+.kv dd { margin: 0; min-width: 0; }
+.kv dd ul { margin: 0; padding-left: 18px; }
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; font-size: 13.5px; min-width: 100%; }
+th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--display); font-size: 14px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.to-map { font-size: 13px; background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; text-decoration: underline; font-family: var(--body); justify-self: start; }
+footer { font-size: 13px; color: var(--muted); display: grid; gap: 6px; }
+@media (max-width: 640px) {
+  .kv { grid-template-columns: 1fr; gap: 2px; }
+  .kv dd { margin-bottom: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { .card, .step { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Fjordvik Manufacturing Oy · monthly emissions reporting</div>
+    <h1>Fjordvik Reporting Process Map</h1>
+    <p>How one month's emissions travel from a site's boilers, meters and invoices to the Power BI report:
+      every step, the job title that owns it, the tool it uses and the data it needs. The map shows the
+      process as Fjordvik would run it, and marks what this project has built, what is designed and tested
+      offline, and what sits outside the project.</p>
+    <p class="notice">Fjordvik Manufacturing Oy is a fictional company and this is a portfolio project on
+      synthetic data. Job titles are roles, not people. Emission factors are illustrative, not cited, and
+      must not be used for real reporting.</p>
+  </header>
+
+  <section class="summary" aria-label="Status key">
+    <button class="chip" id="f-built" data-status="built" aria-pressed="false"><span class="dot built"></span>Built and tested <span class="n" data-count="built"></span></button>
+    <button class="chip" id="f-designed" data-status="designed" aria-pressed="false"><span class="dot designed"></span>Designed, tested offline <span class="n" data-count="designed"></span></button>
+    <button class="chip" id="f-outside" data-status="outside" aria-pressed="false"><span class="dot outside"></span>Outside the project <span class="n" data-count="outside"></span></button>
+    <span class="hint">Tap a status to highlight its steps. Tap a step for its tool, owner and data.</span>
+  </section>
+
+  <section aria-label="Process map">
+    <div class="map-scroll" id="mapScroll"><div class="map" id="map"></div></div>
+  </section>
+
+  <section class="phase-block" aria-labelledby="owners-h">
+    <h2 id="owners-h">Who owns what</h2>
+    <div class="owners" id="owners"></div>
+  </section>
+
+  <div id="steps" class="wrap" style="gap:32px"></div>
+
+  <footer>
+    <span>Sources: the project's own documents, read 31 October 2026: <code>power-automate/docs/flow-design.md</code>,
+      <code>sharepoint-lists.md</code>, <code>intake-rules.md</code>, <code>run-statuses.md</code>, the Power BI model in
+      <code>powerbi/</code>, the MCP server in <code>mcp/</code> and the dataset in <code>data/data</code>.</span>
+    <span>Typical source evidence (step 2) and revenue and headcount feeds (step 16) describe common practice; the project does not model them.</span>
+  </footer>
+</div>
+
+<script>
+const LANES = [
+  { id: "ops", name: "Site Manager", note: "Runs each site's operations", h: 110 },
+  { id: "sec", name: "Site Energy Coordinator", note: "One per site; the site contact", h: 110 },
+  { id: "das", name: "Data and AI Specialist", note: "Technical owner: flows, model, connector", h: 200 },
+  { id: "gsm", name: "Group Sustainability Manager", note: "Business and data owner", h: 110 },
+  { id: "fin", name: "Group Financial Controller, HR Manager", note: "Revenue and headcount", h: 110 },
+  { id: "mgr", name: "Country Managers", note: "Finland, Sweden, Estonia; and group management", h: 110 }
+];
+const PHASES = [
+  { from: 0, to: 0, name: "Month M", note: "Activity happens" },
+  { from: 1, to: 3, name: "Early month M+1", note: "Site prepares and uploads its file" },
+  { from: 4, to: 8, name: "On upload", note: "Automated intake and exceptions" },
+  { from: 9, to: 11, name: "Reporting", note: "Model refresh, review, dashboard" },
+  { from: 12, to: 12, name: "Year end", note: "Sign-off" }
+];
+const OWNERS = [
+  ["Site Manager", "Runs the site. Owns the activity itself: fuel burnt, energy bought, equipment serviced, waste sent."],
+  ["Site Energy Coordinator", "Collects the month's evidence, fills the submission workbook, uploads it, and fixes rejected files. Named as the site contact in the Sites list."],
+  ["Data and AI Specialist", "Technical owner. Builds and runs the two flows, the Power BI model and report, row-level security and the Claude connector. Owns every automated step."],
+  ["Group Sustainability Manager", "Business and data owner. Owns the reference lists and factors, the central Emissions list and the rules, handles failed runs and corrections, reviews data quality, signs off the year."],
+  ["Group Financial Controller and HR Manager", "Supply each site's monthly revenue and full-time equivalent (FTE) headcount for the intensity measures."],
+  ["Country Managers", "Read the report for their own country's sites only, and ask follow-up questions through Claude."]
+];
+
+const ul = items => "<ul>" + items.map(i => `<li>${i}</li>`).join("") + "</ul>";
+const table = (head, rows, numCols = []) => `<div class="tbl"><table><thead><tr>${head.map((h, i) => `<th${numCols.includes(i) ? ' class="num"' : ""}>${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map((c, i) => `<td${numCols.includes(i) ? ' class="num"' : ""}>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+
+const STEPS = [
+  { n: 1, name: "Energy and materials are used", lane: "ops", col: 0, status: "outside", phase: 0,
+    owner: "Site Manager", tool: "Site operations: boilers, vehicles and forklifts, cooling equipment, electricity and heat supplies, business travel, waste collection",
+    dataIn: "None. This is where emissions happen.",
+    dataOut: "Activity across eight emission sources, measured later in their own units (step 2).",
+    checks: "None at this stage.", timing: "Throughout the month (month M).",
+    project: "Not modelled. The dataset's monthly amounts stand for this activity." },
+  { n: 2, name: "Collect the source evidence", lane: "sec", col: 1, status: "outside", phase: 1,
+    owner: "Site Energy Coordinator", tool: "Supplier invoices and portals, meter readings, fuel card statements, refrigerant service log, travel booking report, waste contractor reports",
+    dataIn: "The month's invoices, readings and reports for each source the site uses.",
+    dataOut: "One monthly amount per source, in that source's unit.",
+    checks: ul(["The amount covers the calendar month, not a billing period that straddles two months.", "Convert to the source's unit before entry, for example MWh on an invoice to kWh."]),
+    timing: "First days of month M+1, as evidence arrives.",
+    project: "Not modelled. Typical evidence per source is shown below.",
+    extra: table(["Source", "Scope", "Unit", "Typical evidence"], [
+      ["S01 Natural gas", "1", "kWh", "Gas supplier invoice or meter reading"],
+      ["S02 Diesel", "1", "litre", "Fuel card statements, fuel delivery notes"],
+      ["S03 Liquefied petroleum gas (LPG)", "1", "litre", "LPG delivery notes"],
+      ["S04 Refrigerant leakage", "1", "kg", "Service technician's log of refrigerant topped up"],
+      ["S05 Purchased electricity", "2", "kWh", "Electricity invoice or meter readings"],
+      ["S06 District heating", "2", "kWh", "Heat supplier invoice"],
+      ["S07 Business flights", "3", "passenger-km", "Travel booking report"],
+      ["S08 Waste to landfill", "3", "tonne", "Waste contractor collection report"]
+    ]) },
+  { n: 3, name: "Fill the monthly submission workbook", lane: "sec", col: 2, status: "designed", phase: 1,
+    owner: "Site Energy Coordinator", tool: "Excel: one workbook per site per month, holding one table named <code>Submission</code>",
+    dataIn: "The monthly amounts from step 2.",
+    dataOut: "File <code>&lt;site_id&gt;_&lt;yyyy-mm&gt;.xlsx</code>, for example <code>FI01_2025-12.xlsx</code>, with one row per source the site reported last month (at most 8 rows).",
+    checks: "The site checks its own amounts against the evidence. The flow repeats every structural check in step 9.",
+    timing: "Early month M+1.",
+    project: "Six clean December 2025 files in <code>power-automate/intake/clean/</code> and five with planted problems in <code>intake/problems/</code>, built by <code>scripts/build_intake_files.py</code>.",
+    extra: table(["Column", "Type", "Example", "Rule"], [
+      ["<code>site_id</code>", "text", "FI01", "Must match the file name (R2)"],
+      ["<code>month</code>", "text, yyyy-mm", "2025-12", "Must be the reporting month (R3)"],
+      ["<code>source_id</code>", "text", "S05", "A source the site reported last month (R4)"],
+      ["<code>activity_amount</code>", "number", "822,234.53 (Tampere's electricity, December 2025)", "A number, zero or more (R6)"],
+      ["<code>unit</code>", "text", "kWh", "The unit for that source (R5)"]
+    ]) },
+  { n: 4, name: "Upload to SharePoint", lane: "sec", col: 3, status: "designed", phase: 1,
+    owner: "Site Energy Coordinator", tool: "SharePoint site <em>Fjordvik Sustainability</em>, library <em>Site submissions</em>, folder <code>Incoming</code>",
+    dataIn: "The workbook from step 3, or a corrected one from step 13.",
+    dataOut: "A new file in <code>Incoming</code>, which starts the intake flow.",
+    checks: "Upload the file. A file moved into the folder keeps its created time and does not start the flow.",
+    timing: "Before day 5 of month M+1, when the reminder runs.",
+    project: "Folder design in <code>power-automate/docs/sharepoint-lists.md</code>. Not yet created in a tenant." },
+  { n: 5, name: "Day 5: chase missing files", lane: "das", row: 1, col: 3, status: "designed", auto: true, phase: 1,
+    owner: "Data and AI Specialist (flow owner)", tool: "Power Automate flow <em>Fjordvik - Monthly submission reminder</em>: Recurrence (monthly, day 5, 09:00, FLE Standard Time), SharePoint Get items, Office 365 Outlook Send an email (V2)",
+    dataIn: ul(["Sites list: <code>site_id</code>, <code>contact_email</code>", "IntakeLog rows for the previous month with status Accepted"]),
+    dataOut: ul(["An email to each site with no accepted file, naming the month and the upload folder", "One summary email to the Group Sustainability Manager: which sites are missing, or that all six are in"]),
+    checks: "A site counts as done only with an Accepted log row. A rejected or failed file still gets chased.",
+    timing: "Day 5 of month M+1, 09:00 Helsinki time.",
+    project: "Designed in <code>flow-design.md</code>. Expected result for the December 2025 test with the problem files: Tartu (sent nothing), Tampere, Oulu and Gothenburg (rejected) are chased." },
+  { n: 6, name: "Intake flow starts and reads the file", lane: "das", row: 0, col: 4, status: "designed", auto: true, phase: 2,
+    owner: "Data and AI Specialist (flow owner)", tool: "Power Automate flow <em>Fjordvik - Site file intake</em>: SharePoint trigger <em>When a file is created (properties only)</em>; Excel Online (Business) <em>List rows present in a table</em>",
+    dataIn: "The new file in <code>Incoming</code>.",
+    dataOut: ul(["The rows of the <code>Submission</code> table", "<code>site_id</code> and <code>month</code> from the file name", "Month keys for this month, last month and the same month last year"]),
+    checks: "Everything after this runs inside a Try scope, so a technical failure is caught (step 12).",
+    timing: "When the file is uploaded.",
+    project: "Designed action by action in <code>flow-design.md</code>." },
+  { n: 7, name: "Maintain reference lists and factors", lane: "gsm", col: 4, status: "designed", phase: 2,
+    owner: "Group Sustainability Manager (data owner)", tool: "SharePoint lists <em>Sites</em>, <em>Sources</em>, <em>EmissionFactors</em>",
+    dataIn: "Changes to sites, contacts, sources or emission factors.",
+    dataOut: table(["List", "Columns", "Rows"], [
+      ["Sites", "<code>site_id</code>, <code>site_name</code>, <code>country</code>, <code>site_type</code>, <code>contact_email</code>", "6"],
+      ["Sources", "<code>source_id</code>, <code>source_name</code>, <code>scope</code>, <code>category</code>, <code>unit</code>", "8"],
+      ["EmissionFactors", "<code>source_id</code>, <code>country</code>, <code>emission_factor</code> (kg CO2e per unit, illustrative)", "24"]
+    ], [2]),
+    checks: "Only the data owner changes these lists; the flows only read them.",
+    timing: "When a site, contact, source or factor changes.",
+    project: "Seed workbooks in <code>power-automate/sharepoint/seed/</code>. Factors are illustrative, see <code>data/docs/emission-factors.md</code>." },
+  { n: 8, name: "Look up reference data", lane: "das", row: 0, col: 5, status: "designed", auto: true, phase: 2,
+    owner: "Data and AI Specialist (flow owner)", tool: "SharePoint <em>Get items</em> on four lists",
+    dataIn: ul(["Sites (filter on <code>site_id</code>): country and contact email", "Sources: the unit for each source", "EmissionFactors (filter on the site's <code>country</code>): <code>emission_factor</code>", "Emissions for this site-month, last month and the same month last year"]),
+    dataOut: "Everything the ten rules need, held in the flow run.",
+    checks: "An unknown site fails rule R2.", timing: "In the same flow run.",
+    project: "Designed in <code>flow-design.md</code>, steps 3.2 to 3.7." },
+  { n: 9, name: "Check the ten rules", lane: "das", row: 0, col: 6, status: "designed", auto: true, phase: 2,
+    owner: "Data and AI Specialist builds it; the Group Sustainability Manager owns the rules", tool: "Power Automate conditions, Apply to each (sequential), Filter array",
+    dataIn: "The file's rows and the reference data from step 8.",
+    dataOut: "A list of failed rules, each with its detail. Empty means the file passes.",
+    checks: table(["Rule", "Check", "Why"], [
+      ["R1", "The five columns are present", "Nothing else can be read if the layout changed"],
+      ["R2", "Every row is for the site in the file name", "Stops one site's numbers landing under another"],
+      ["R3", "Every row is for the reporting month", "Stops last month's file loading again"],
+      ["R4", "Every source is one the site reported last month", "A new source needs a decision first"],
+      ["R5", "Every unit is the unit for that source", "kWh entered as MWh is 1,000 times out"],
+      ["R6", "Every amount is a number, zero or more", "Text and negatives cannot be summed"],
+      ["R7", "No source appears twice", "A duplicate counts emissions twice"],
+      ["R8", "Every source reported last month is present", "A missing row looks like zero"],
+      ["R9", "Each amount is half to double the same month last year (refrigerant exempt)", "Catches slips the other rules miss; a business rule, not a published figure"],
+      ["R10", "This site-month is not already loaded", "Makes the flow safe to rerun"]
+    ]),
+    timing: "In the same flow run.",
+    project: "<strong>Built and tested in Python</strong> as the reference: <code>power-automate/intake_rules.py</code>, 21 tests in <code>tests/test_intake.py</code>. The flow version is designed, not built." },
+  { n: 10, name: "Load the accepted file", lane: "das", row: 0, col: 7, status: "designed", auto: true, phase: 2,
+    owner: "Data and AI Specialist (flow owner)", tool: "SharePoint <em>Create item</em> (Emissions, IntakeLog); <em>Move file</em> to <code>Processed</code>",
+    dataIn: "The passing rows and the factor for each source.",
+    dataOut: table(["List", "Columns written"], [
+      ["Emissions", "<code>date_key</code> (e.g. 20251201), <code>site_id</code>, <code>source_id</code>, <code>activity_amount</code>, <code>unit</code>, <code>emission_factor</code>, <code>tco2e</code>, <code>submitted_file</code>, <code>run_id</code>"],
+      ["IntakeLog", "<code>run_id</code>, <code>file_name</code>, <code>site_id</code>, <code>month</code>, status <strong>Accepted</strong>, <code>rows_loaded</code>, <code>tco2e_loaded</code>, <code>processed_at</code>"]
+    ]),
+    checks: ul(["<code>tco2e</code> = <code>activity_amount</code> × <code>emission_factor</code> ÷ 1,000, rounded to 6 decimals", "Whole file or nothing: no row is written until every rule passes"]),
+    timing: "In the same flow run.",
+    project: "Designed. The intake tests prove the result: the six clean December files loaded onto the seeded list rebuild all 1,422 rows of the dataset exactly." },
+  { n: 11, name: "Reject the file and tell the site", lane: "das", row: 1, col: 7, status: "designed", auto: true, phase: 2,
+    owner: "Data and AI Specialist (flow owner)", tool: "SharePoint <em>Create item</em> (IntakeLog); Office 365 Outlook <em>Send an email (V2)</em>; <em>Move file</em> to <code>Rejected</code>",
+    dataIn: "The list of failed rules from step 9.",
+    dataOut: ul(["IntakeLog row, status <strong>Rejected</strong>, <code>errors</code> one per line", "Email to the site contact with the same list", "Nothing written to the Emissions list"]),
+    checks: "The email and the log use the same words, so the site and the data owner see the same reasons.",
+    timing: "In the same flow run as the upload.",
+    project: "Designed. Expected results for the planted problems: Tampere fails R5 and R9 (electricity in MWh), Oulu fails R8 (district heating left out), Gothenburg fails R7 (diesel twice)." },
+  { n: 12, name: "Failed run: undo and alert", lane: "das", row: 1, col: 6, status: "designed", auto: true, phase: 2,
+    owner: "Data and AI Specialist (flow owner)", tool: "Power Automate Catch scope (runs after Try has failed or timed out)",
+    dataIn: "A technical failure, for example a file with no <code>Submission</code> table, or SharePoint unavailable.",
+    dataOut: ul(["Deletes any Emissions rows this run created (by <code>run_id</code>)", "IntakeLog row, status <strong>Failed</strong>", "Email to the Group Sustainability Manager", "The file stays in <code>Incoming</code>"]),
+    checks: "Nothing is ever half loaded: a site-month is complete or absent.", timing: "In the same flow run.",
+    project: "Designed in <code>flow-design.md</code> and <code>run-statuses.md</code>." },
+  { n: 13, name: "Fix the file and upload again", lane: "sec", col: 8, status: "designed", phase: 2,
+    owner: "Site Energy Coordinator", tool: "Excel, then SharePoint <code>Incoming</code>",
+    dataIn: "The rejection email listing each failed rule.",
+    dataOut: "A corrected workbook, uploaded again (back to step 4). The flow checks it from the start and writes a new log row.",
+    checks: "Change the file, not the log: setting a status to Accepted by hand loads nothing.",
+    timing: "As soon as the email arrives.", project: "Designed in <code>run-statuses.md</code>." },
+  { n: 14, name: "Handle failures and corrections", lane: "gsm", col: 7, status: "designed", phase: 2,
+    owner: "Group Sustainability Manager (data owner)", tool: "SharePoint lists (IntakeLog, Emissions); Power Automate run history",
+    dataIn: ul(["Failed-run emails and IntakeLog rows (<code>status</code>, <code>errors</code>, <code>run_id</code>)", "Requests to correct a month already accepted"]),
+    dataOut: ul(["Failed run: fix the cause, then the file is uploaded again", "Correction: delete that site-month's rows from Emissions, then the corrected file is uploaded"]),
+    checks: "Rule R10 refuses a site-month that is already loaded, so a month cannot be loaded twice by accident.",
+    timing: "As needed.", project: "Designed in <code>run-statuses.md</code>." },
+  { n: 15, name: "Central Emissions list", lane: "gsm", col: 8, status: "built", phase: 2,
+    owner: "Group Sustainability Manager (data owner)", tool: "SharePoint list <em>Emissions</em>. In this project the shared dataset <code>data/data</code> stands in for it.",
+    dataIn: "Rows from step 10; corrections from step 14.",
+    dataOut: "The system of record for emissions: one row per month, site and source.",
+    checks: ul(["Every row joins to a site and a source; one unit per source; <code>tco2e</code> equals the formula (data tests)", "Checksums in <code>manifest.json</code>, checked by every part's tests"]),
+    timing: "Grows by 43 rows a month.",
+    project: "<strong>Built</strong> as the dataset: 1,422 rows, January 2023 to December 2025 (the list would start at 1,379 seeded rows, January 2023 to November 2025). The SharePoint list itself is designed, not created." },
+  { n: 16, name: "Revenue and headcount", lane: "fin", col: 8, status: "outside", phase: 2,
+    owner: "Group Financial Controller (revenue), HR Manager (FTE)", tool: "Finance and HR systems. The feed into the model is not designed in this project.",
+    dataIn: "Each site's monthly revenue and full-time equivalent (FTE) headcount.",
+    dataOut: "<code>fact_site_metrics</code>: <code>date_key</code>, <code>site_id</code>, <code>revenue_eur</code>, <code>fte</code>. 198 rows.",
+    checks: "The head office books no revenue, so its emissions per euro must be blank, not an error.",
+    timing: "Monthly, after the finance close.",
+    project: "<strong>A gap.</strong> In this version the figures come from the generated dataset. A real build would add an export from the finance and HR systems." },
+  { n: 17, name: "Refresh the Power BI model", lane: "das", row: 0, col: 9, status: "built", auto: true, phase: 3,
+    owner: "Data and AI Specialist", tool: "Power BI semantic model (Power BI Project, TMDL), Power Query. Today: Power BI Desktop reading the CSV files through the <code>DataFolder</code> parameter. Target: a published model reading the central list, refreshed after each accepted run.",
+    dataIn: "The central data (step 15) and revenue and headcount (step 16).",
+    dataOut: table(["Table", "Grain", "Rows"], [
+      ["<code>dim_date</code>", "One row per month", "36"], ["<code>dim_site</code>", "One row per site", "6"],
+      ["<code>dim_source</code>", "One row per emission source", "8"], ["<code>fact_emissions</code>", "Month, site and source", "1,422"],
+      ["<code>fact_site_metrics</code>", "Month and site", "198"]
+    ], [2]),
+    checks: "Each part's tests check the data files against their SHA-256 checksums before relying on them.",
+    timing: "Today on demand; target after each accepted file.",
+    project: "<strong>Built</strong> in Power BI Desktop. <code>scripts/run_dax_table.ps1 -Refresh</code> refreshes with no clicks. Publishing and scheduled refresh are next steps." },
+  { n: 18, name: "Calculate the measures", lane: "das", row: 0, col: 10, status: "built", auto: true, phase: 3,
+    owner: "Data and AI Specialist", tool: "14 Data Analysis Expressions (DAX) measures in the <code>_Measures</code> table",
+    dataIn: "The refreshed model.",
+    dataOut: ul(["Emissions: Total, Scope 1, Scope 2, Scope 3 (tCO2e)", "Intensity: Revenue (EUR), Average FTE, Emissions per FTE, Emissions per Million EUR", "Time comparison: Emissions Prior Year, Emissions Change vs Prior Year (%), like for like", "Data quality: Recalculated Emissions, Reconciliation Difference, Emission Rows, Sites Reporting"]),
+    checks: ul(["31 live tests compare every measure with an independent Python calculation", "No typed-in rates; every division uses <code>DIVIDE()</code>"]),
+    timing: "When a report page is opened.",
+    project: "<strong>Built and tested.</strong> 31 of 31 live tests passed on 31 October 2026 (<code>powerbi/evidence/live-measures-2026-10-31.txt</code>)." },
+  { n: 19, name: "Apply row-level security", lane: "das", row: 1, col: 11, status: "built", auto: true, phase: 3,
+    owner: "Data and AI Specialist; the Group Sustainability Manager decides who sees what", tool: "Power BI roles <em>Finland</em>, <em>Sweden</em>, <em>Estonia</em>",
+    dataIn: "The viewer's role.",
+    dataOut: "Each role filters <code>dim_site[country]</code>, and the filter flows to both fact tables.",
+    checks: "Tested live: the Finland totals and sites, Estonia's sites in 2023, and that the Sweden role sees nothing when filtered to Finland.",
+    timing: "Every query.",
+    project: "<strong>Roles built and tested.</strong> Assigning people to roles needs the Power BI Service, a next step." },
+  { n: 20, name: "Review the Data quality page", lane: "gsm", col: 10, status: "built", phase: 3,
+    owner: "Group Sustainability Manager", tool: "Power BI report, Data quality page",
+    dataIn: "Reconciliation Difference (tCO2e), Emission Rows and Sites Reporting, by year.",
+    dataOut: "Confirmation that the month's figures can be used, or a correction (step 14).",
+    checks: "The reconciliation difference (stored tCO2e against activity × factor) should be zero, and every open site should be reporting.",
+    timing: "After each month's files are in.",
+    project: "<strong>Page built.</strong> The monthly review itself is a business routine, not software." },
+  { n: 21, name: "Ask Claude about the figures", lane: "mgr", col: 10, status: "built", phase: 3,
+    owner: "Country Managers and group management; connector run by the Data and AI Specialist", tool: "Claude Desktop with the Fjordvik Model Context Protocol (MCP) connector",
+    dataIn: "A plain-language question, for example \"which site had the highest emissions per million euros of revenue in 2025?\"",
+    dataOut: "An answer from five read-only tools: <code>describe_dataset</code>, <code>emissions_total</code>, <code>emissions_intensity</code>, <code>data_quality_report</code>, <code>run_sql</code>.",
+    checks: ul(["Read-only; one <code>SELECT</code> only; file and network access locked off; 1,000-row cap", "FTE averaged over months, never summed"]),
+    timing: "Any time.",
+    project: "<strong>Built</strong> (48 tests) and registered in Claude Desktop on 31 October 2026. It reads the same <code>data/data</code> files. Next steps: a remote server with sign-in, and a tool that queries the published model's DAX measures." },
+  { n: 22, name: "The dashboard shows the figures", lane: "mgr", col: 11, status: "built", phase: 3,
+    owner: "Country Managers (own sites) and the Group Sustainability Manager (all sites)", tool: "Power BI report: three pages, 19 visuals",
+    dataIn: "The measures (step 18), filtered by the viewer's role (step 19).",
+    dataOut: table(["Page", "Shows"], [
+      ["Overview", "Total and scope 1, 2 and 3 emissions, emissions per FTE, monthly trend, emissions by site; year and country slicers"],
+      ["Sites", "Per site: emissions, per FTE, per million euros, like-for-like change; scope 2 by month and site"],
+      ["Data quality", "Reconciliation difference, row count and sites reporting, by year"]
+    ]),
+    checks: "Like-for-like change: for 2025 the company shows +2.9%, where a plain comparison of totals would show +7.5%.",
+    timing: "Whenever opened, after each refresh.",
+    project: "<strong>Built</strong> in Power BI Desktop. Publishing the report to a workspace is a next step." },
+  { n: 23, name: "Year-end sign-off", lane: "gsm", col: 12, status: "outside", phase: 4,
+    owner: "Group Sustainability Manager; approved by group management", tool: "Power BI report (full-year figures); the annual sustainability report",
+    dataIn: "Twelve months of figures by site, country and scope, intensities and like-for-like change, and a clean Data quality page.",
+    dataOut: "Signed-off annual figures for the sustainability report.",
+    checks: "All 12 months accepted for every open site; reconciliation difference zero; corrections closed.",
+    timing: "After December's files are in.",
+    project: "Outside the project. The report and checks it relies on are built." }
+];
+
+const EDGES = [
+  [1, 2], [2, 3], [3, 4], [4, 6], [5, 4, "chase missing sites"], [6, 8], [7, 8], [8, 9],
+  [9, 10, "all rules pass"], [9, 11, "any rule fails", -8], [9, 12, "technical failure", 0, true],
+  [11, 13, "email lists fixes", -26], [13, 4, "corrected file"], [12, 14, "", -28, true],
+  [10, 15, "", -10], [14, 15, "", 0, true], [15, 17, "", -14], [16, 17], [17, 18], [17, 19, "", -8],
+  [18, 20], [18, 22, "", -10], [19, 22], [15, 21, "same data", -2, true], [20, 23], [22, 23]
+];
+
+// Geometry
+const LABEL_W = 150, PAD = 22, PITCH = 190, CW = 150, CH = 72, HEAD = 56;
+let y = HEAD; const laneTop = {};
+LANES.forEach(l => { laneTop[l.id] = y; y += l.h; });
+const MAP_H = y, MAP_W = LABEL_W + PAD + 13 * PITCH;
+const pos = s => {
+  const l = LANES.find(x => x.id === s.lane);
+  const top = l.h > 150 ? laneTop[s.lane] + (s.row ? 112 : 18) : laneTop[s.lane] + (l.h - CH) / 2;
+  return { x: LABEL_W + PAD + s.col * PITCH, y: top };
+};
+
+const map = document.getElementById("map");
+map.style.width = MAP_W + "px"; map.style.height = MAP_H + "px";
+let html = "";
+LANES.forEach(l => { html += `<div class="lane" style="top:${laneTop[l.id]}px;height:${l.h}px"><div class="lane-label"><b>${l.name}</b><span>${l.note}</span></div></div>`; });
+PHASES.forEach(p => {
+  const x = LABEL_W + PAD + p.from * PITCH - 12, w = (p.to - p.from + 1) * PITCH;
+  html += `<div class="phase" style="left:${x}px;width:${w}px"><b>${p.name}</b>${p.note}</div>`;
+});
+const S = Object.fromEntries(STEPS.map(s => [s.n, s]));
+let svg = `<svg class="edges" width="${MAP_W}" height="${MAP_H}" viewBox="0 0 ${MAP_W} ${MAP_H}" aria-hidden="true"><defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--muted);stroke:none"></path></marker></defs>`;
+EDGES.forEach(([a, b, label = "", dx = 0, dashed = false]) => {
+  const A = pos(S[a]), B = pos(S[b]);
+  let d, lx, ly;
+  if (S[a].col === S[b].col) {
+    const x = A.x + CW / 2;
+    if (A.y > B.y) { d = `M${x},${A.y} V${B.y + CH}`; ly = (A.y + B.y + CH) / 2; }
+    else { d = `M${x},${A.y + CH} V${B.y}`; ly = (A.y + CH + B.y) / 2; }
+    lx = x + 6;
+  } else if (B.x > A.x) {
+    const ay = A.y + CH / 2, by = B.y + CH / 2;
+    if (Math.abs(ay - by) < 1) { d = `M${A.x + CW},${ay} H${B.x}`; lx = A.x + CW + 4; ly = ay - 6; }
+    else { const mx = B.x - 20 + dx; d = `M${A.x + CW},${ay} H${mx} V${by} H${B.x}`; lx = mx + 5; ly = (ay + by) / 2; }
+  } else {
+    const ry = Math.min(A.y, B.y) - 12, ax = A.x + CW / 2, bx = B.x + CW / 2;
+    d = `M${ax},${A.y} V${ry} H${bx} V${B.y}`; lx = (ax + bx) / 2 - 30; ly = ry - 4;
+  }
+  svg += `<path d="${d}" marker-end="url(#arr)"${dashed ? ' class="dashed"' : ""}></path>`;
+  if (label) svg += `<text x="${lx}" y="${ly}">${label}</text>`;
+});
+svg += "</svg>";
+html += svg;
+STEPS.forEach(s => {
+  const p = pos(s);
+  html += `<button class="step ${s.status}" id="m${s.n}" data-n="${s.n}" style="left:${p.x}px;top:${p.y}px" aria-label="Step ${s.n}: ${s.name}"><span class="num"><span>${s.n}</span>${s.auto ? '<span class="auto">Automated</span>' : ""}</span><span class="nm">${s.name}</span></button>`;
+});
+map.innerHTML = html;
+
+// Owners
+document.getElementById("owners").innerHTML = OWNERS.map(([n, t]) => `<div class="owner"><b>${n}</b><span>${t}</span></div>`).join("");
+
+// Counts
+["built", "designed", "outside"].forEach(k => {
+  document.querySelector(`[data-count="${k}"]`).textContent = STEPS.filter(s => s.status === k).length;
+});
+
+// Step cards, grouped by phase
+const STATUS_LABEL = { built: "Built and tested", designed: "Designed, tested offline", outside: "Outside the project" };
+const PHASE_NOTE = [
+  "Emissions happen at the sites. Nothing is recorded yet.",
+  "Each site turns its evidence into one workbook and uploads it; a day-5 reminder chases late sites.",
+  "The intake flow checks every file against ten rules as soon as it is uploaded. Exceptions loop back to the site or to the data owner.",
+  "The model refreshes from the central data, the measures calculate, security applies and the report shows the figures.",
+  "The year's figures are signed off for the annual sustainability report."
+];
+document.getElementById("steps").innerHTML = PHASES.map((p, i) => {
+  const steps = STEPS.filter(s => s.phase === i);
+  return `<section class="phase-block"><div class="eyebrow">${p.name}</div><h2>${p.note}</h2><p>${PHASE_NOTE[i]}</p>` +
+    steps.map(s => `<article class="card" id="step-${s.n}">
+      <div class="card-head"><span class="n">Step ${s.n}</span><h3>${s.name}</h3><span class="badge ${s.status}">${STATUS_LABEL[s.status]}</span>${s.auto ? '<span class="badge auto">Automated</span>' : ""}</div>
+      <dl class="kv">
+        <dt>Owner</dt><dd>${s.owner}</dd>
+        <dt>Tool</dt><dd>${s.tool}</dd>
+        <dt>Data in</dt><dd>${s.dataIn}</dd>
+        <dt>Data out</dt><dd>${s.dataOut}</dd>
+        ${s.extra ? `<dt>Detail</dt><dd>${s.extra}</dd>` : ""}
+        <dt>Checks</dt><dd>${s.checks}</dd>
+        <dt>Timing</dt><dd>${s.timing}</dd>
+        <dt>In this project</dt><dd>${s.project}</dd>
+      </dl>
+      <button class="to-map" data-n="${s.n}">Show on the map</button>
+    </article>`).join("") + "</section>";
+}).join("");
+
+// Interaction
+const flash = el => { el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1400); };
+map.addEventListener("click", e => {
+  const b = e.target.closest(".step"); if (!b) return;
+  const card = document.getElementById("step-" + b.dataset.n);
+  card.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  flash(card);
+});
+document.getElementById("steps").addEventListener("click", e => {
+  const b = e.target.closest(".to-map"); if (!b) return;
+  const m = document.getElementById("m" + b.dataset.n), sc = document.getElementById("mapScroll");
+  sc.scrollTo({ left: Math.max(0, m.offsetLeft - sc.clientWidth / 2 + CW / 2), behavior: "smooth" });
+  sc.scrollIntoView({ behavior: "smooth", block: "center" });
+  m.focus({ preventScroll: true });
+});
+document.querySelectorAll(".chip[data-status]").forEach(c => c.addEventListener("click", () => {
+  const on = c.getAttribute("aria-pressed") !== "true";
+  document.querySelectorAll(".chip[data-status]").forEach(x => x.setAttribute("aria-pressed", "false"));
+  map.classList.toggle("filtering", on);
+  map.querySelectorAll(".step").forEach(s => s.classList.toggle("match", on && s.classList.contains(c.dataset.status)));
+  if (on) c.setAttribute("aria-pressed", "true");
+}));
+</script>
