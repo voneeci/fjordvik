@@ -36,6 +36,21 @@ SHARED_SCHEMA = {
     "fact_freight": ["date_key", "site_id", "source_id", "direction", "mode", "paid_by",
                      "tonnes", "distance_km", "activity_amount", "unit", "emission_factor",
                      "tco2e"],
+    # Product portfolio and sales, added for phase 2 (31 October 2026)
+    "dim_product_group": ["product_group", "product_family"],
+    "dim_product": ["product_id", "product_name", "product_group", "product_family",
+                    "made_at_site_id", "rated_kw", "kwh_per_year", "lifetime_years",
+                    "list_price_eur", "standard_cost_eur"],
+    "dim_region": ["region_id", "region_name"],
+    "dim_score_criterion": ["criterion_id", "criterion_name", "weight", "source"],
+    "fact_product_rating": ["date_key", "product_group", "criterion_id", "rating"],
+    "dim_product_code": ["business_unit", "local_item_number", "product_id"],
+    "fact_sales": ["date_key", "site_id", "product_id", "region_id", "units", "net_sales_eur",
+                   "cost_of_sales_eur", "margin_eur"],
+    "fact_data_issue": ["issue_id", "date_key", "site_id", "business_unit", "issue_type",
+                        "detail", "line_count", "amount_eur", "status", "action"],
+    "fact_use_phase": ["date_key", "site_id", "source_id", "product_id", "region_id", "units",
+                       "net_sales_eur", "activity_amount", "unit", "emission_factor", "tco2e"],
 }
 
 # Numbers allowed in DAX, each a unit conversion or a key, never a rate or factor.
@@ -46,7 +61,10 @@ ALLOWED_NUMBERS = {
     "10000",         # one year in a yyyymmdd date key (20250301 - 10000 = 20240301)
 }
 # Measures named for a count or headcount carry no unit in brackets.
-UNITLESS = {"Average FTE", "Emission Rows", "Sites Reporting"}
+# Units Sold, Units Sold Prior Year, Data Issues and Weighted Score added for phase 2
+# (31 October 2026): counts and a 1 to 10 score have no unit to bracket.
+UNITLESS = {"Average FTE", "Emission Rows", "Sites Reporting", "Units Sold",
+            "Units Sold Prior Year", "Data Issues", "Weighted Score"}
 
 
 def parse_tables():
@@ -133,16 +151,35 @@ def test_measures_divide_with_divide_not_slash(name):
     assert not re.search(r"\]\s*/\s*\[", dax), "use DIVIDE() between measures"
 
 
+COUNTRY_ROLES = {"Finland", "Sweden", "Estonia"}
+# Region roles added for phase 2 (31 October 2026). They filter dim_region and deny the
+# site emission and finance tables: the documented exception in naming-conventions.md.
+REGION_ROLES = {"Nordics": "NOR", "Baltics": "BAL", "Western Europe": "WEU", "Rest of world": "ROW"}
+DENIED_TO_REGIONS = {"fact_emissions", "fact_energy_upstream", "fact_purchases", "fact_freight",
+                     "fact_scope2_market", "fact_site_metrics", "fact_data_issue"}
+
+
 def test_three_country_roles_filter_dim_site():
-    countries = {"Finland", "Sweden", "Estonia"}
     found = {}
     for path in (MODEL / "roles").glob("*.tmdl"):
+        if path.stem in REGION_ROLES:
+            continue
         text = path.read_text(encoding="utf-8")
         m = re.search(r'tablePermission dim_site = dim_site\[country\] = "(\w+)"', text)
         assert m, path.name
         assert "modelPermission: read" in text
         found[path.stem] = m.group(1)
-    assert found == {c: c for c in countries}
+    assert found == {c: c for c in COUNTRY_ROLES}
+
+
+def test_four_region_roles_filter_dim_region_and_deny_site_figures():
+    found = {}
+    for name, region_id in REGION_ROLES.items():
+        text = (MODEL / "roles" / f"{name}.tmdl").read_text(encoding="utf-8")
+        assert "modelPermission: read" in text
+        assert f'tablePermission dim_region = dim_region[region_id] = "{region_id}"' in text
+        found[name] = set(re.findall(r"tablePermission (\w+) = FALSE\(\)", text))
+    assert all(denied == DENIED_TO_REGIONS for denied in found.values())
 
 
 def test_model_files_are_utf8_without_bom():

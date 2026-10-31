@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "card_2",
+  "position": {
+    "x": 860,
+    "y": 95,
+    "z": 302,
+    "height": 100,
+    "width": 400,
+    "tabOrder": 302
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Use-phase Emissions per Thousand EUR (tCO2e)"
+                }
+              },
+              "queryRef": "_Measures.Use-phase Emissions per Thousand EUR (tCO2e)",
+              "nativeQueryRef": "Use-phase Emissions per Thousand EUR (tCO2e)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

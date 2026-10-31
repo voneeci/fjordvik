@@ -30,7 +30,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Overview: how much does Fjordvik emit, and where?",
+                    "value": "Emissions: Overview, Emissions breakdown, Value chain (scope 3), Scope 2 methods, Intensity and growth, Energy and activity, What changed, Sites and Data quality: how much Fjordvik emits, where, why it moved, and whether the figures reconcile.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }
@@ -40,7 +40,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Emissions breakdown: what are the emissions made of, by scope, source and country?",
+                    "value": "Portfolio: Portfolio overview, Price, volume and mix, Portfolio balance, Product sustainability, Quarterly scorecard, and Classification and data quality: what sells, what earns, why margin moved, how products score, and what the ERP data got wrong.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }
@@ -50,67 +50,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Value chain (scope 3): which scope 3 categories are counted, and why the rest are not?",
-                    "textStyle": {
-                      "fontSize": "10pt"
-                    }
-                  }
-                ]
-              },
-              {
-                "textRuns": [
-                  {
-                    "value": "Scope 2 methods: how do location-based and market-based scope 2 compare?",
-                    "textStyle": {
-                      "fontSize": "10pt"
-                    }
-                  }
-                ]
-              },
-              {
-                "textRuns": [
-                  {
-                    "value": "Intensity and growth: is Fjordvik getting cleaner as it grows?",
-                    "textStyle": {
-                      "fontSize": "10pt"
-                    }
-                  }
-                ]
-              },
-              {
-                "textRuns": [
-                  {
-                    "value": "Energy and activity: how much energy, fuel and other activity did each site use?",
-                    "textStyle": {
-                      "fontSize": "10pt"
-                    }
-                  }
-                ]
-              },
-              {
-                "textRuns": [
-                  {
-                    "value": "What changed: why did emissions move on the prior year?",
-                    "textStyle": {
-                      "fontSize": "10pt"
-                    }
-                  }
-                ]
-              },
-              {
-                "textRuns": [
-                  {
-                    "value": "Sites: how do the six sites compare?",
-                    "textStyle": {
-                      "fontSize": "10pt"
-                    }
-                  }
-                ]
-              },
-              {
-                "textRuns": [
-                  {
-                    "value": "Data quality: do the figures reconcile, and is every site reporting?",
+                    "value": "Country managers see their own sites; sales region managers see their own region's sales and blank site figures.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }

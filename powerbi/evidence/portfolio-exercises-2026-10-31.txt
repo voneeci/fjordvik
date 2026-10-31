@@ -1,0 +1,70 @@
+Portfolio analytics exercises, run live against the refreshed model, 31 October 2026
+Command: scripts\run_dax_table.ps1 -QueryFile portfolio_queries.json -Port 54638
+Queries:
+[
+  {"id": "p1_products_by_family", "query": "EVALUATE SUMMARIZECOLUMNS ( dim_product_group[product_family], \"Groups\", COUNTROWS ( dim_product_group ), \"Products\", COUNTROWS ( dim_product ) )"},
+  {"id": "p2_reconciliation_2025", "query": "EVALUATE SUMMARIZECOLUMNS ( TREATAS ( {2025}, dim_date[year] ), \"Revenue\", [Revenue (EUR)], \"Sales\", [Net Sales (EUR)], \"Quarantined\", [Quarantined Sales (EUR)], \"Difference\", [Sales Reconciliation Difference (EUR)] )"},
+  {"id": "p3_sales_margin_by_family_2025", "query": "EVALUATE SUMMARIZECOLUMNS ( dim_product_group[product_family], TREATAS ( {2025}, dim_date[year] ), \"Units\", [Units Sold], \"Net sales\", [Net Sales (EUR)], \"Average price\", [Average Price (EUR)], \"Margin %\", [Margin (%)] )"},
+  {"id": "p4_bridge_by_family_2025", "query": "EVALUATE SUMMARIZECOLUMNS ( dim_product_group[product_family], TREATAS ( {2025}, dim_date[year] ), \"Price\", [Price Effect (EUR)], \"Mix\", [Mix Effect (EUR)], \"Quantity\", [Quantity Effect (EUR)], \"Cost\", [Cost Effect (EUR)], \"Change\", [Margin Change vs Prior Year (EUR)] )"},
+  {"id": "p5_bridge_company_2025", "query": "EVALUATE SUMMARIZECOLUMNS ( TREATAS ( {2025}, dim_date[year] ), \"Price\", [Price Effect (EUR)], \"Mix\", [Mix Effect (EUR)], \"Quantity\", [Quantity Effect (EUR)], \"Cost\", [Cost Effect (EUR)], \"Change\", [Margin Change vs Prior Year (EUR)] )"},
+  {"id": "p6_share_by_region_2025", "query": "EVALUATE SUMMARIZECOLUMNS ( dim_region[region_name], TREATAS ( {2025}, dim_date[year] ), \"Share of sales\", [Share of Net Sales (%)], \"Share of margin\", [Share of Margin (%)] )"},
+  {"id": "p7_score_q4_2025", "query": "EVALUATE SUMMARIZECOLUMNS ( dim_product_group[product_group], TREATAS ( {20251001}, dim_date[date_key] ), \"Score\", [Weighted Score] )"},
+  {"id": "p8_use_phase_by_family_2025", "query": "EVALUATE SUMMARIZECOLUMNS ( dim_product_group[product_family], TREATAS ( {2025}, dim_date[year] ), \"Use-phase\", [Use-phase Emissions (tCO2e)], \"Per unit\", [Use-phase Emissions per Unit (tCO2e)], \"Per thousand EUR\", [Use-phase Emissions per Thousand EUR (tCO2e)] )"},
+  {"id": "p9_scope3_share_2025", "query": "EVALUATE SUMMARIZECOLUMNS ( TREATAS ( {2025}, dim_date[year] ), \"Total\", [Total Emissions (tCO2e)], \"Use-phase\", [Use-phase Emissions (tCO2e)], \"Scope 1\", [Scope 1 Emissions (tCO2e)], \"Scope 2\", [Scope 2 Emissions (tCO2e)] )"},
+  {"id": "p10_issues", "query": "EVALUATE SELECTCOLUMNS ( fact_data_issue, \"Month\", fact_data_issue[date_key], \"Issue\", fact_data_issue[issue_type], \"Lines\", fact_data_issue[line_count], \"Amount\", fact_data_issue[amount_eur], \"Status\", fact_data_issue[status] )"}
+]
+Output:
+=== p1_products_by_family
+dim_product_group[product_family]=Industrial process pumps | [Groups]=3 | [Products]=8
+dim_product_group[product_family]=Water and wastewater pumps | [Groups]=2 | [Products]=7
+dim_product_group[product_family]=Pump packages and controls | [Groups]=3 | [Products]=7
+dim_product_group[product_family]=Spare parts and service | [Groups]=2 | [Products]=2
+rows: 4
+=== p2_reconciliation_2025
+[Revenue]=155006886.61 | [Sales]=154682852.69 | [Quarantined]=324033.92 | [Difference]=0
+rows: 1
+=== p3_sales_margin_by_family_2025
+dim_product_group[product_family]=Industrial process pumps | [Units]=5805 | [Net sales]=54013586.69 | [Average price]=9304.66609646856 | [Margin %]=0.406051538215301
+dim_product_group[product_family]=Water and wastewater pumps | [Units]=7432 | [Net sales]=44511352.01 | [Average price]=5989.14854817007 | [Margin %]=0.371232841147752
+dim_product_group[product_family]=Pump packages and controls | [Units]=5470 | [Net sales]=36114581.24 | [Average price]=6602.30004387569 | [Margin %]=0.381329516144211
+dim_product_group[product_family]=Spare parts and service | [Units]=101964 | [Net sales]=20043332.75 | [Average price]=196.57264083402 | [Margin %]=0.495624894517605
+rows: 4
+=== p4_bridge_by_family_2025
+dim_product_group[product_family]=Industrial process pumps | [Price]=1509235.10374371 | [Mix]=-685355.934146363 | [Quantity]=173550.191182496 | [Cost]=-792858.770779847 | [Change]=204570.59
+dim_product_group[product_family]=Water and wastewater pumps | [Price]=1082220.36967285 | [Mix]=-259091.923012906 | [Quantity]=733738.187272472 | [Cost]=-625825.85393241 | [Change]=931040.779999999
+dim_product_group[product_family]=Pump packages and controls | [Price]=1388654.48912469 | [Mix]=367950.917068326 | [Quantity]=-697721.096409146 | [Cost]=-580872.709783877 | [Change]=478011.6
+dim_product_group[product_family]=Spare parts and service | [Price]=404444.818627629 | [Mix]=-14152.6222323419 | [Quantity]=2435023.53550922 | [Cost]=-262966.531904513 | [Change]=2562349.2
+rows: 4
+=== p5_bridge_company_2025
+[Price]=4384554.78116888 | [Mix]=-13401711.7124868 | [Quantity]=15455652.9677185 | [Cost]=-2262523.86640065 | [Change]=4175972.17
+rows: 1
+=== p6_share_by_region_2025
+dim_region[region_name]=Nordics | [Share of sales]=0.436395204937696 | [Share of margin]=0.441107435571381
+dim_region[region_name]=Baltics | [Share of sales]=0.167324630881166 | [Share of margin]=0.174757121870174
+dim_region[region_name]=Western Europe | [Share of sales]=0.277526340854556 | [Share of margin]=0.269212255864207
+dim_region[region_name]=Rest of world | [Share of sales]=0.118753823326582 | [Share of margin]=0.114923186694238
+rows: 4
+=== p7_score_q4_2025
+dim_product_group[product_group]=End-suction pumps | [Score]=6.2
+dim_product_group[product_group]=Split-case pumps | [Score]=6.75
+dim_product_group[product_group]=Multistage pumps | [Score]=6.6
+dim_product_group[product_group]=Submersible pumps | [Score]=6.95
+dim_product_group[product_group]=Dry-installed pumps | [Score]=4.4
+dim_product_group[product_group]=Booster sets | [Score]=7.85
+dim_product_group[product_group]=Control panels | [Score]=5.35
+dim_product_group[product_group]=Drive packages | [Score]=3.9
+rows: 10
+=== p8_use_phase_by_family_2025
+dim_product_group[product_family]=Industrial process pumps | [Use-phase]=1337548.04 | [Per unit]=271.033037487335 | [Per thousand EUR]=29.0961723328923
+dim_product_group[product_family]=Water and wastewater pumps | [Use-phase]=640917.7 | [Per unit]=101.459189488681 | [Per thousand EUR]=16.93965541416
+dim_product_group[product_family]=Pump packages and controls | [Use-phase]=283598.4 | [Per unit]=241.978156996587 | [Per thousand EUR]=16.4119337216012
+rows: 3
+=== p9_scope3_share_2025
+[Total]=2328686.63703 | [Use-phase]=2262064.14 | [Scope 1]=3948.607213 | [Scope 2]=6243.608828
+rows: 1
+=== p10_issues
+[Month]=20240801 | [Issue]=Duplicate lines | [Lines]=32 | [Amount]=4421291.84 | [Status]=Removed by rule
+[Month]=20250301 | [Issue]=Missing currency code | [Lines]=28 | [Amount]=4159839.14 | [Status]=Corrected by rule
+[Month]=20250601 | [Issue]=Unmapped item number | [Lines]=1 | [Amount]=163812.4 | [Status]=Quarantined
+[Month]=20251101 | [Issue]=Unmapped item number | [Lines]=1 | [Amount]=160221.52 | [Status]=Quarantined
+rows: 4

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "card_margin",
+  "position": {
+    "x": 660,
+    "y": 95,
+    "z": 302,
+    "height": 100,
+    "width": 300,
+    "tabOrder": 302
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Margin (EUR)"
+                }
+              },
+              "queryRef": "_Measures.Margin (EUR)",
+              "nativeQueryRef": "Margin (EUR)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -2,8 +2,8 @@
 table _Measures
 	lineageTag: fab0b0d6-ec8d-4b05-93d5-cdc75cc9aa13
 
-	/// Tonnes of CO2 equivalent, location-based: scope 1, scope 2 location-based and the scope 3 categories held (1; 3 parts a and c; 4; 5 landfill only; 6 flights only; 9), from the stored tco2e columns of the four emission tables. Market-based scope 2 is a separate measure and is never added in.
-	measure 'Total Emissions (tCO2e)' = SUM ( fact_emissions[tco2e] ) + SUM ( fact_energy_upstream[tco2e] ) + SUM ( fact_purchases[tco2e] ) + SUM ( fact_freight[tco2e] )
+	/// Tonnes of CO2 equivalent, location-based: scope 1, scope 2 location-based and the scope 3 categories held (1; 3 parts a and c; 4; 5 landfill only; 6 flights only; 9; 11 outside Rest of world), from the stored tco2e columns of the five emission tables. Market-based scope 2 is a separate measure and is never added in.
+	measure 'Total Emissions (tCO2e)' = SUM ( fact_emissions[tco2e] ) + SUM ( fact_energy_upstream[tco2e] ) + SUM ( fact_purchases[tco2e] ) + SUM ( fact_freight[tco2e] ) + SUM ( fact_use_phase[tco2e] )
 		formatString: #,0.0
 		displayFolder: Emissions
 		lineageTag: e64cec5c-9db7-4ede-8586-6a5be079c405
@@ -20,7 +20,7 @@ table _Measures
 		displayFolder: Emissions
 		lineageTag: 1c8d9247-e126-4faa-9351-f5858f4ed090
 
-	/// Scope 3: the categories held (purchased goods and services, upstream fuels and transmission losses, freight, waste to landfill, business flights). Category 11, use of sold products, is not yet calculated. KEEPFILTERS means a slicer on another scope gives blank, not this scope's total.
+	/// Scope 3: the categories held (purchased goods and services, upstream fuels and transmission losses, freight, waste to landfill, business flights, use of sold products). KEEPFILTERS means a slicer on another scope gives blank, not this scope's total.
 	measure 'Scope 3 Emissions (tCO2e)' = CALCULATE ( [Total Emissions (tCO2e)], KEEPFILTERS ( dim_source[scope] = 3 ) )
 		formatString: #,0.0
 		displayFolder: Emissions
@@ -76,8 +76,8 @@ table _Measures
 		displayFolder: Time comparison
 		lineageTag: 0d7e4e56-0804-407e-804d-412c0704ec00
 
-	/// Emissions worked out again row by row in all four emission tables: activity times factor, divided by 1,000 to turn kilograms into tonnes.
-	measure 'Recalculated Emissions (tCO2e)' = SUMX ( fact_emissions, fact_emissions[activity_amount] * fact_emissions[emission_factor] / 1000 ) + SUMX ( fact_energy_upstream, fact_energy_upstream[activity_amount] * fact_energy_upstream[emission_factor] / 1000 ) + SUMX ( fact_purchases, fact_purchases[activity_amount] * fact_purchases[emission_factor] / 1000 ) + SUMX ( fact_freight, fact_freight[activity_amount] * fact_freight[emission_factor] / 1000 )
+	/// Emissions worked out again row by row in all five emission tables: activity times factor, divided by 1,000 to turn kilograms into tonnes.
+	measure 'Recalculated Emissions (tCO2e)' = SUMX ( fact_emissions, fact_emissions[activity_amount] * fact_emissions[emission_factor] / 1000 ) + SUMX ( fact_energy_upstream, fact_energy_upstream[activity_amount] * fact_energy_upstream[emission_factor] / 1000 ) + SUMX ( fact_purchases, fact_purchases[activity_amount] * fact_purchases[emission_factor] / 1000 ) + SUMX ( fact_freight, fact_freight[activity_amount] * fact_freight[emission_factor] / 1000 ) + SUMX ( fact_use_phase, fact_use_phase[activity_amount] * fact_use_phase[emission_factor] / 1000 )
 		formatString: #,0.0
 		displayFolder: Data quality
 		lineageTag: 3bfe465a-607d-4148-b2e7-642163a23ccc
@@ -239,6 +239,235 @@ table _Measures
 		formatString: #,0.000
 		displayFolder: Data quality
 		lineageTag: b3ef54f9-9aef-4752-8c47-db55febe7560
+
+	/// Units sold, from the cleaned sales. A flow: it adds up over months.
+	measure 'Units Sold' = SUM ( fact_sales[units] )
+		formatString: #,0
+		displayFolder: Sales
+		lineageTag: e74a239a-807a-4cb3-8715-29b1fe903728
+
+	/// Net sales in euros from the cleaned ERP extract. Swedish kronor are converted at the ECB monthly average rate in the SQL.
+	measure 'Net Sales (EUR)' = SUM ( fact_sales[net_sales_eur] )
+		formatString: #,0
+		displayFolder: Sales
+		lineageTag: 8e297627-a83a-4f08-baf1-c1a7c77daac9
+
+	/// Standard cost of the units sold, in euros.
+	measure 'Cost of Sales (EUR)' = SUM ( fact_sales[cost_of_sales_eur] )
+		formatString: #,0
+		displayFolder: Sales
+		lineageTag: 9455c9f8-ea74-4f07-8eeb-f9f5f0c9a2d5
+
+	/// Net sales minus cost of sales.
+	measure 'Margin (EUR)' = SUM ( fact_sales[margin_eur] )
+		formatString: #,0
+		displayFolder: Sales
+		lineageTag: e738ba0d-9557-4fbe-9e03-0c7647f173d2
+
+	/// Margin as a share of net sales.
+	measure 'Margin (%)' = DIVIDE ( [Margin (EUR)], [Net Sales (EUR)] )
+		formatString: 0.0%
+		displayFolder: Sales
+		lineageTag: 2d6bb9ce-3edc-4b7a-8a36-c5b9ee6fa62e
+
+	/// Net sales per unit. Mixes products of very different prices, so read it within one product group.
+	measure 'Average Price (EUR)' = DIVIDE ( [Net Sales (EUR)], [Units Sold] )
+		formatString: #,0
+		displayFolder: Sales
+		lineageTag: 4a090fbf-6ebd-422c-86eb-beb982bbc7a0
+
+	/// Units sold in the same months a year earlier (the month key shifted back one year). Blank where there is no prior year.
+	measure 'Units Sold Prior Year' =
+			VAR PriorKeys =
+				SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+			RETURN
+				CALCULATE ( [Units Sold], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+		formatString: #,0
+		displayFolder: Sales
+		lineageTag: 78b7b05f-ca9e-4de4-b454-ea7bae24b429
+
+	/// Net sales in the same months a year earlier.
+	measure 'Net Sales Prior Year (EUR)' =
+			VAR PriorKeys =
+				SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+			RETURN
+				CALCULATE ( [Net Sales (EUR)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+		formatString: #,0
+		displayFolder: Sales
+		lineageTag: 60e1c35f-d0a8-4d23-91f9-5ce21e4674f2
+
+	/// Cost of sales in the same months a year earlier.
+	measure 'Cost of Sales Prior Year (EUR)' =
+			VAR PriorKeys =
+				SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+			RETURN
+				CALCULATE ( [Cost of Sales (EUR)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+		formatString: #,0
+		displayFolder: Sales
+		lineageTag: 9ab5f49b-7b9c-4c06-b59c-2f44576550b8
+
+	/// Margin in the same months a year earlier.
+	measure 'Margin Prior Year (EUR)' =
+			VAR PriorKeys =
+				SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+			RETURN
+				CALCULATE ( [Margin (EUR)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+		formatString: #,0
+		displayFolder: Sales
+		lineageTag: 3773669f-5a99-4e07-b6b4-6585da5907e0
+
+	/// This period's margin minus the same months a year earlier. Equals the sum of the price, volume, cost and not-comparable effects. Blank with no prior year.
+	measure 'Margin Change vs Prior Year (EUR)' = IF ( NOT ISBLANK ( [Margin Prior Year (EUR)] ), [Margin (EUR)] - [Margin Prior Year (EUR)] )
+		formatString: #,0
+		displayFolder: Price, volume and mix
+		lineageTag: 4eb82a90-ceff-4ac1-80e6-dd36b7485117
+
+	/// ACCA F5 sales variances with the prior year as standard: actual = this period, standard = the same months a year earlier, compared product by product over products sold in both. Price effect = (actual price - prior-year price) x actual units. The joint price-times-volume piece sits here, as most textbooks place it (Sorochuk, Vinroot and Leemis, 2023).
+	measure 'Price Effect (EUR)' =
+			VAR Products =
+				ADDCOLUMNS (
+					VALUES ( dim_product[product_id] ),
+					"@AU", [Units Sold], "@PU", [Units Sold Prior Year],
+					"@S", [Net Sales (EUR)], "@PS", [Net Sales Prior Year (EUR)],
+					"@C", [Cost of Sales (EUR)], "@PC", [Cost of Sales Prior Year (EUR)]
+				)
+			VAR Comparable = FILTER ( Products, NOT ISBLANK ( [@AU] ) && NOT ISBLANK ( [@PU] ) )
+			RETURN
+				SUMX ( Comparable, [@S] - DIVIDE ( [@PS], [@PU] ) * [@AU] )
+		formatString: #,0
+		displayFolder: Price, volume and mix
+		lineageTag: 6057c02f-71ba-4847-bfc5-03f8fe1dcfb3
+
+	/// ACCA F5 sales variances with the prior year as standard: actual = this period, standard = the same months a year earlier, compared product by product over products sold in both. Mix effect = (actual units - actual total units in the prior-year mix) x prior-year margin per unit, measured on units (ACCA examiner's report, June 2020). Across very different products (pumps and spare parts) it is large and offset by quantity: read it within one family.
+	measure 'Mix Effect (EUR)' =
+			VAR Products =
+				ADDCOLUMNS (
+					VALUES ( dim_product[product_id] ),
+					"@AU", [Units Sold], "@PU", [Units Sold Prior Year],
+					"@S", [Net Sales (EUR)], "@PS", [Net Sales Prior Year (EUR)],
+					"@C", [Cost of Sales (EUR)], "@PC", [Cost of Sales Prior Year (EUR)]
+				)
+			VAR Comparable = FILTER ( Products, NOT ISBLANK ( [@AU] ) && NOT ISBLANK ( [@PU] ) )
+			VAR TotalAU = SUMX ( Comparable, [@AU] )
+			VAR TotalPU = SUMX ( Comparable, [@PU] )
+			RETURN
+				SUMX ( Comparable, ( [@AU] - TotalAU * DIVIDE ( [@PU], TotalPU ) ) * DIVIDE ( [@PS] - [@PC], [@PU] ) )
+		formatString: #,0
+		displayFolder: Price, volume and mix
+		lineageTag: 4bd0da78-6d29-4f4a-a420-f922e0e98ad3
+
+	/// ACCA F5 sales variances with the prior year as standard: actual = this period, standard = the same months a year earlier, compared product by product over products sold in both. Quantity effect = (actual total units in the prior-year mix - prior-year units) x prior-year margin per unit.
+	measure 'Quantity Effect (EUR)' =
+			VAR Products =
+				ADDCOLUMNS (
+					VALUES ( dim_product[product_id] ),
+					"@AU", [Units Sold], "@PU", [Units Sold Prior Year],
+					"@S", [Net Sales (EUR)], "@PS", [Net Sales Prior Year (EUR)],
+					"@C", [Cost of Sales (EUR)], "@PC", [Cost of Sales Prior Year (EUR)]
+				)
+			VAR Comparable = FILTER ( Products, NOT ISBLANK ( [@AU] ) && NOT ISBLANK ( [@PU] ) )
+			VAR TotalAU = SUMX ( Comparable, [@AU] )
+			VAR TotalPU = SUMX ( Comparable, [@PU] )
+			RETURN
+				SUMX ( Comparable, ( TotalAU * DIVIDE ( [@PU], TotalPU ) - [@PU] ) * DIVIDE ( [@PS] - [@PC], [@PU] ) )
+		formatString: #,0
+		displayFolder: Price, volume and mix
+		lineageTag: eb41ad01-a7db-4163-b0e9-7b47ce8d3ea0
+
+	/// ACCA F5 sales variances with the prior year as standard: actual = this period, standard = the same months a year earlier, compared product by product over products sold in both. Volume effect = mix effect + quantity effect = (actual units - prior-year units) x prior-year margin per unit.
+	measure 'Volume Effect (EUR)' = [Mix Effect (EUR)] + [Quantity Effect (EUR)]
+		formatString: #,0
+		displayFolder: Price, volume and mix
+		lineageTag: 6b8849cf-c237-4ae6-b68b-14879d5f93ff
+
+	/// Change in unit cost against the prior year: (prior-year cost per unit - actual cost per unit) x actual units, over products sold in both periods. Completes the margin bridge.
+	measure 'Cost Effect (EUR)' =
+			VAR Products =
+				ADDCOLUMNS (
+					VALUES ( dim_product[product_id] ),
+					"@AU", [Units Sold], "@PU", [Units Sold Prior Year],
+					"@S", [Net Sales (EUR)], "@PS", [Net Sales Prior Year (EUR)],
+					"@C", [Cost of Sales (EUR)], "@PC", [Cost of Sales Prior Year (EUR)]
+				)
+			VAR Comparable = FILTER ( Products, NOT ISBLANK ( [@AU] ) && NOT ISBLANK ( [@PU] ) )
+			RETURN
+				SUMX ( Comparable, DIVIDE ( [@PC], [@PU] ) * [@AU] - [@C] )
+		formatString: #,0
+		displayFolder: Price, volume and mix
+		lineageTag: 41d1db14-d0ae-4374-b972-d7eea54deb90
+
+	/// Margin change from products sold in only one of the two periods, kept apart so the ACCA effects compare like with like. Blank with no prior year.
+	measure 'Not Comparable Change (EUR)' =
+			VAR Products =
+				ADDCOLUMNS (
+					VALUES ( dim_product[product_id] ),
+					"@AU", [Units Sold], "@PU", [Units Sold Prior Year],
+					"@S", [Net Sales (EUR)], "@PS", [Net Sales Prior Year (EUR)],
+					"@C", [Cost of Sales (EUR)], "@PC", [Cost of Sales Prior Year (EUR)]
+				)
+			VAR Comparable = FILTER ( Products, NOT ISBLANK ( [@AU] ) && NOT ISBLANK ( [@PU] ) )
+			RETURN
+				IF (
+					NOT ISBLANK ( [Margin Prior Year (EUR)] ),
+					SUMX ( FILTER ( Products, ISBLANK ( [@AU] ) || ISBLANK ( [@PU] ) ), ( [@S] - [@C] ) - ( [@PS] - [@PC] ) )
+				)
+		formatString: #,0
+		displayFolder: Price, volume and mix
+		lineageTag: 84cea303-d9d3-4143-81bd-1be0a96c5fbb
+
+	/// Share of all net sales in the same months and sites, across every product and region: portfolio balance.
+	measure 'Share of Net Sales (%)' = DIVIDE ( [Net Sales (EUR)], CALCULATE ( [Net Sales (EUR)], REMOVEFILTERS ( dim_product ), REMOVEFILTERS ( dim_product_group ), REMOVEFILTERS ( dim_region ) ) )
+		formatString: 0.0%
+		displayFolder: Portfolio balance
+		lineageTag: 306aac84-7111-430d-afb1-c9309c065b69
+
+	/// Share of all margin in the same months and sites, across every product and region.
+	measure 'Share of Margin (%)' = DIVIDE ( [Margin (EUR)], CALCULATE ( [Margin (EUR)], REMOVEFILTERS ( dim_product ), REMOVEFILTERS ( dim_product_group ), REMOVEFILTERS ( dim_region ) ) )
+		formatString: 0.0%
+		displayFolder: Portfolio balance
+		lineageTag: 87ea2f0f-2cc2-438c-b319-d2882f4bfd4b
+
+	/// Scope 3 category 11: the lifetime electricity of the pumps sold, at the grid factor of the region of use (GHG Protocol direct use-phase method). Rest of world is not calculated. Factors are illustrative.
+	measure 'Use-phase Emissions (tCO2e)' = SUM ( fact_use_phase[tco2e] )
+		formatString: #,0.0
+		displayFolder: Product sustainability
+		lineageTag: c717ee23-89e1-4e30-a085-b65a265cbd24
+
+	/// Category 11 per unit sold, over the units it covers (energy-using products outside Rest of world).
+	measure 'Use-phase Emissions per Unit (tCO2e)' = DIVIDE ( [Use-phase Emissions (tCO2e)], SUM ( fact_use_phase[units] ) )
+		formatString: #,0.0
+		displayFolder: Product sustainability
+		lineageTag: 03483a05-497a-473f-97d7-d914558c1879
+
+	/// Category 11 per thousand euros of the sales it covers. Dividing sales by 1,000 turns euros into thousands of euros.
+	measure 'Use-phase Emissions per Thousand EUR (tCO2e)' = DIVIDE ( [Use-phase Emissions (tCO2e)], DIVIDE ( SUM ( fact_use_phase[net_sales_eur] ), 1000 ) )
+		formatString: #,0.00
+		displayFolder: Product sustainability
+		lineageTag: 724f013a-cdb5-4967-9a81-378f43db17c1
+
+	/// Scorecard score: ratings (1 to 10) times each criterion's weight, divided by the sum of the weights (Cooper and Edgett's scoring model). Weights are Fjordvik's own choice, held in dim_score_criterion.
+	measure 'Weighted Score' = DIVIDE ( SUMX ( fact_product_rating, fact_product_rating[rating] * RELATED ( dim_score_criterion[weight] ) ), SUMX ( fact_product_rating, RELATED ( dim_score_criterion[weight] ) ) )
+		formatString: 0.0
+		displayFolder: Scorecard
+		lineageTag: afbd5b67-bfe8-4fd6-bcaf-b4282cd90729
+
+	/// Value of extract lines held back because their item number is not in the global classification. KEEPFILTERS means a filter on another status gives blank.
+	measure 'Quarantined Sales (EUR)' = CALCULATE ( SUM ( fact_data_issue[amount_eur] ), KEEPFILTERS ( fact_data_issue[status] = "Quarantined" ) )
+		formatString: #,0.00
+		displayFolder: Data quality
+		lineageTag: a54eee44-d881-4b81-b7b8-e9277ce7147f
+
+	/// Finance revenue minus clean sales minus quarantined sales, rounded to the cent. Should be zero; read it without a product or region filter, since revenue has neither.
+	measure 'Sales Reconciliation Difference (EUR)' = ROUND ( [Revenue (EUR)] - [Net Sales (EUR)] - [Quarantined Sales (EUR)], 2 )
+		formatString: #,0.00
+		displayFolder: Data quality
+		lineageTag: 5eaee3c5-8de7-4925-875e-30d53b880627
+
+	/// Number of issues the SQL logged in the ERP extract.
+	measure 'Data Issues' = COUNTROWS ( fact_data_issue )
+		formatString: #,0
+		displayFolder: Data quality
+		lineageTag: 5c37ec5a-cff1-4ad4-9048-16496c7edd47
 
 	column Placeholder
 		dataType: string

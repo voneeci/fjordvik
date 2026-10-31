@@ -9,10 +9,10 @@ Every measure lives in the `_Measures` table, grouped by display folder.
 
 ### Emissions
 
-**Total Emissions (tCO2e)**: Tonnes of CO2 equivalent, location-based: scope 1, scope 2 location-based and the scope 3 categories held (1; 3 parts a and c; 4; 5 landfill only; 6 flights only; 9), from the stored tco2e columns of the four emission tables. Market-based scope 2 is a separate measure and is never added in. Format: `#,0.0`.
+**Total Emissions (tCO2e)**: Tonnes of CO2 equivalent, location-based: scope 1, scope 2 location-based and the scope 3 categories held (1; 3 parts a and c; 4; 5 landfill only; 6 flights only; 9; 11 outside Rest of world), from the stored tco2e columns of the five emission tables. Market-based scope 2 is a separate measure and is never added in. Format: `#,0.0`.
 
 ```dax
-SUM ( fact_emissions[tco2e] ) + SUM ( fact_energy_upstream[tco2e] ) + SUM ( fact_purchases[tco2e] ) + SUM ( fact_freight[tco2e] )
+SUM ( fact_emissions[tco2e] ) + SUM ( fact_energy_upstream[tco2e] ) + SUM ( fact_purchases[tco2e] ) + SUM ( fact_freight[tco2e] ) + SUM ( fact_use_phase[tco2e] )
 ```
 
 **Scope 1 Emissions (tCO2e)**: Scope 1. Direct emissions: fuels burned on site and refrigerant leaks. KEEPFILTERS means a slicer on another scope gives blank, not this scope's total. Format: `#,0.0`.
@@ -27,7 +27,7 @@ CALCULATE ( [Total Emissions (tCO2e)], KEEPFILTERS ( dim_source[scope] = 1 ) )
 CALCULATE ( [Total Emissions (tCO2e)], KEEPFILTERS ( dim_source[scope] = 2 ) )
 ```
 
-**Scope 3 Emissions (tCO2e)**: Scope 3: the categories held (purchased goods and services, upstream fuels and transmission losses, freight, waste to landfill, business flights). Category 11, use of sold products, is not yet calculated. KEEPFILTERS means a slicer on another scope gives blank, not this scope's total. Format: `#,0.0`.
+**Scope 3 Emissions (tCO2e)**: Scope 3: the categories held (purchased goods and services, upstream fuels and transmission losses, freight, waste to landfill, business flights, use of sold products). KEEPFILTERS means a slicer on another scope gives blank, not this scope's total. Format: `#,0.0`.
 
 ```dax
 CALCULATE ( [Total Emissions (tCO2e)], KEEPFILTERS ( dim_source[scope] = 3 ) )
@@ -106,10 +106,10 @@ DIVIDE ( [Emissions Change Including New Sites (tCO2e)], [Emissions Prior Year (
 
 ### Data quality
 
-**Recalculated Emissions (tCO2e)**: Emissions worked out again row by row in all four emission tables: activity times factor, divided by 1,000 to turn kilograms into tonnes. Format: `#,0.0`.
+**Recalculated Emissions (tCO2e)**: Emissions worked out again row by row in all five emission tables: activity times factor, divided by 1,000 to turn kilograms into tonnes. Format: `#,0.0`.
 
 ```dax
-SUMX ( fact_emissions, fact_emissions[activity_amount] * fact_emissions[emission_factor] / 1000 ) + SUMX ( fact_energy_upstream, fact_energy_upstream[activity_amount] * fact_energy_upstream[emission_factor] / 1000 ) + SUMX ( fact_purchases, fact_purchases[activity_amount] * fact_purchases[emission_factor] / 1000 ) + SUMX ( fact_freight, fact_freight[activity_amount] * fact_freight[emission_factor] / 1000 )
+SUMX ( fact_emissions, fact_emissions[activity_amount] * fact_emissions[emission_factor] / 1000 ) + SUMX ( fact_energy_upstream, fact_energy_upstream[activity_amount] * fact_energy_upstream[emission_factor] / 1000 ) + SUMX ( fact_purchases, fact_purchases[activity_amount] * fact_purchases[emission_factor] / 1000 ) + SUMX ( fact_freight, fact_freight[activity_amount] * fact_freight[emission_factor] / 1000 ) + SUMX ( fact_use_phase, fact_use_phase[activity_amount] * fact_use_phase[emission_factor] / 1000 )
 ```
 
 **Reconciliation Difference (tCO2e)**: Stored minus recalculated emissions, rounded to 0.001 t (1 kg): the stored values carry 6 decimals, so adding thousands of them leaves a few grams of rounding. Anything that survives the rounding means a row's tco2e doesn't match its activity and factor. Format: `#,0.000`.
@@ -134,6 +134,24 @@ DISTINCTCOUNT ( fact_emissions[site_id] )
 
 ```dax
 ROUND ( [Scope 2 Market-based Emissions (tCO2e)] - SUMX ( fact_scope2_market, fact_scope2_market[activity_amount] * fact_scope2_market[emission_factor] / 1000 ), 3 )
+```
+
+**Quarantined Sales (EUR)**: Value of extract lines held back because their item number is not in the global classification. KEEPFILTERS means a filter on another status gives blank. Format: `#,0.00`.
+
+```dax
+CALCULATE ( SUM ( fact_data_issue[amount_eur] ), KEEPFILTERS ( fact_data_issue[status] = "Quarantined" ) )
+```
+
+**Sales Reconciliation Difference (EUR)**: Finance revenue minus clean sales minus quarantined sales, rounded to the cent. Should be zero; read it without a product or region filter, since revenue has neither. Format: `#,0.00`.
+
+```dax
+ROUND ( [Revenue (EUR)] - [Net Sales (EUR)] - [Quarantined Sales (EUR)], 2 )
+```
+
+**Data Issues**: Number of issues the SQL logged in the ERP extract. Format: `#,0`.
+
+```dax
+COUNTROWS ( fact_data_issue )
 ```
 
 ### Activity
@@ -256,6 +274,218 @@ SUM ( fact_freight[activity_amount] )
 DIVIDE ( [Purchased Goods and Services Emissions (tCO2e)], DIVIDE ( [Purchased Spend (EUR)], 1000 ) )
 ```
 
+### Sales
+
+**Units Sold**: Units sold, from the cleaned sales. A flow: it adds up over months. Format: `#,0`.
+
+```dax
+SUM ( fact_sales[units] )
+```
+
+**Net Sales (EUR)**: Net sales in euros from the cleaned ERP extract. Swedish kronor are converted at the ECB monthly average rate in the SQL. Format: `#,0`.
+
+```dax
+SUM ( fact_sales[net_sales_eur] )
+```
+
+**Cost of Sales (EUR)**: Standard cost of the units sold, in euros. Format: `#,0`.
+
+```dax
+SUM ( fact_sales[cost_of_sales_eur] )
+```
+
+**Margin (EUR)**: Net sales minus cost of sales. Format: `#,0`.
+
+```dax
+SUM ( fact_sales[margin_eur] )
+```
+
+**Margin (%)**: Margin as a share of net sales. Format: `0.0%`.
+
+```dax
+DIVIDE ( [Margin (EUR)], [Net Sales (EUR)] )
+```
+
+**Average Price (EUR)**: Net sales per unit. Mixes products of very different prices, so read it within one product group. Format: `#,0`.
+
+```dax
+DIVIDE ( [Net Sales (EUR)], [Units Sold] )
+```
+
+**Units Sold Prior Year**: Units sold in the same months a year earlier (the month key shifted back one year). Blank where there is no prior year. Format: `#,0`.
+
+```dax
+VAR PriorKeys =
+	SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+RETURN
+	CALCULATE ( [Units Sold], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+```
+
+**Net Sales Prior Year (EUR)**: Net sales in the same months a year earlier. Format: `#,0`.
+
+```dax
+VAR PriorKeys =
+	SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+RETURN
+	CALCULATE ( [Net Sales (EUR)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+```
+
+**Cost of Sales Prior Year (EUR)**: Cost of sales in the same months a year earlier. Format: `#,0`.
+
+```dax
+VAR PriorKeys =
+	SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+RETURN
+	CALCULATE ( [Cost of Sales (EUR)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+```
+
+**Margin Prior Year (EUR)**: Margin in the same months a year earlier. Format: `#,0`.
+
+```dax
+VAR PriorKeys =
+	SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+RETURN
+	CALCULATE ( [Margin (EUR)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+```
+
+### Price, volume and mix
+
+**Margin Change vs Prior Year (EUR)**: This period's margin minus the same months a year earlier. Equals the sum of the price, volume, cost and not-comparable effects. Blank with no prior year. Format: `#,0`.
+
+```dax
+IF ( NOT ISBLANK ( [Margin Prior Year (EUR)] ), [Margin (EUR)] - [Margin Prior Year (EUR)] )
+```
+
+**Price Effect (EUR)**: ACCA F5 sales variances with the prior year as standard: actual = this period, standard = the same months a year earlier, compared product by product over products sold in both. Price effect = (actual price - prior-year price) x actual units. The joint price-times-volume piece sits here, as most textbooks place it (Sorochuk, Vinroot and Leemis, 2023). Format: `#,0`.
+
+```dax
+VAR Products =
+	ADDCOLUMNS (
+		VALUES ( dim_product[product_id] ),
+		"@AU", [Units Sold], "@PU", [Units Sold Prior Year],
+		"@S", [Net Sales (EUR)], "@PS", [Net Sales Prior Year (EUR)],
+		"@C", [Cost of Sales (EUR)], "@PC", [Cost of Sales Prior Year (EUR)]
+	)
+VAR Comparable = FILTER ( Products, NOT ISBLANK ( [@AU] ) && NOT ISBLANK ( [@PU] ) )
+RETURN
+	SUMX ( Comparable, [@S] - DIVIDE ( [@PS], [@PU] ) * [@AU] )
+```
+
+**Mix Effect (EUR)**: ACCA F5 sales variances with the prior year as standard: actual = this period, standard = the same months a year earlier, compared product by product over products sold in both. Mix effect = (actual units - actual total units in the prior-year mix) x prior-year margin per unit, measured on units (ACCA examiner's report, June 2020). Across very different products (pumps and spare parts) it is large and offset by quantity: read it within one family. Format: `#,0`.
+
+```dax
+VAR Products =
+	ADDCOLUMNS (
+		VALUES ( dim_product[product_id] ),
+		"@AU", [Units Sold], "@PU", [Units Sold Prior Year],
+		"@S", [Net Sales (EUR)], "@PS", [Net Sales Prior Year (EUR)],
+		"@C", [Cost of Sales (EUR)], "@PC", [Cost of Sales Prior Year (EUR)]
+	)
+VAR Comparable = FILTER ( Products, NOT ISBLANK ( [@AU] ) && NOT ISBLANK ( [@PU] ) )
+VAR TotalAU = SUMX ( Comparable, [@AU] )
+VAR TotalPU = SUMX ( Comparable, [@PU] )
+RETURN
+	SUMX ( Comparable, ( [@AU] - TotalAU * DIVIDE ( [@PU], TotalPU ) ) * DIVIDE ( [@PS] - [@PC], [@PU] ) )
+```
+
+**Quantity Effect (EUR)**: ACCA F5 sales variances with the prior year as standard: actual = this period, standard = the same months a year earlier, compared product by product over products sold in both. Quantity effect = (actual total units in the prior-year mix - prior-year units) x prior-year margin per unit. Format: `#,0`.
+
+```dax
+VAR Products =
+	ADDCOLUMNS (
+		VALUES ( dim_product[product_id] ),
+		"@AU", [Units Sold], "@PU", [Units Sold Prior Year],
+		"@S", [Net Sales (EUR)], "@PS", [Net Sales Prior Year (EUR)],
+		"@C", [Cost of Sales (EUR)], "@PC", [Cost of Sales Prior Year (EUR)]
+	)
+VAR Comparable = FILTER ( Products, NOT ISBLANK ( [@AU] ) && NOT ISBLANK ( [@PU] ) )
+VAR TotalAU = SUMX ( Comparable, [@AU] )
+VAR TotalPU = SUMX ( Comparable, [@PU] )
+RETURN
+	SUMX ( Comparable, ( TotalAU * DIVIDE ( [@PU], TotalPU ) - [@PU] ) * DIVIDE ( [@PS] - [@PC], [@PU] ) )
+```
+
+**Volume Effect (EUR)**: ACCA F5 sales variances with the prior year as standard: actual = this period, standard = the same months a year earlier, compared product by product over products sold in both. Volume effect = mix effect + quantity effect = (actual units - prior-year units) x prior-year margin per unit. Format: `#,0`.
+
+```dax
+[Mix Effect (EUR)] + [Quantity Effect (EUR)]
+```
+
+**Cost Effect (EUR)**: Change in unit cost against the prior year: (prior-year cost per unit - actual cost per unit) x actual units, over products sold in both periods. Completes the margin bridge. Format: `#,0`.
+
+```dax
+VAR Products =
+	ADDCOLUMNS (
+		VALUES ( dim_product[product_id] ),
+		"@AU", [Units Sold], "@PU", [Units Sold Prior Year],
+		"@S", [Net Sales (EUR)], "@PS", [Net Sales Prior Year (EUR)],
+		"@C", [Cost of Sales (EUR)], "@PC", [Cost of Sales Prior Year (EUR)]
+	)
+VAR Comparable = FILTER ( Products, NOT ISBLANK ( [@AU] ) && NOT ISBLANK ( [@PU] ) )
+RETURN
+	SUMX ( Comparable, DIVIDE ( [@PC], [@PU] ) * [@AU] - [@C] )
+```
+
+**Not Comparable Change (EUR)**: Margin change from products sold in only one of the two periods, kept apart so the ACCA effects compare like with like. Blank with no prior year. Format: `#,0`.
+
+```dax
+VAR Products =
+	ADDCOLUMNS (
+		VALUES ( dim_product[product_id] ),
+		"@AU", [Units Sold], "@PU", [Units Sold Prior Year],
+		"@S", [Net Sales (EUR)], "@PS", [Net Sales Prior Year (EUR)],
+		"@C", [Cost of Sales (EUR)], "@PC", [Cost of Sales Prior Year (EUR)]
+	)
+VAR Comparable = FILTER ( Products, NOT ISBLANK ( [@AU] ) && NOT ISBLANK ( [@PU] ) )
+RETURN
+	IF (
+		NOT ISBLANK ( [Margin Prior Year (EUR)] ),
+		SUMX ( FILTER ( Products, ISBLANK ( [@AU] ) || ISBLANK ( [@PU] ) ), ( [@S] - [@C] ) - ( [@PS] - [@PC] ) )
+	)
+```
+
+### Portfolio balance
+
+**Share of Net Sales (%)**: Share of all net sales in the same months and sites, across every product and region: portfolio balance. Format: `0.0%`.
+
+```dax
+DIVIDE ( [Net Sales (EUR)], CALCULATE ( [Net Sales (EUR)], REMOVEFILTERS ( dim_product ), REMOVEFILTERS ( dim_product_group ), REMOVEFILTERS ( dim_region ) ) )
+```
+
+**Share of Margin (%)**: Share of all margin in the same months and sites, across every product and region. Format: `0.0%`.
+
+```dax
+DIVIDE ( [Margin (EUR)], CALCULATE ( [Margin (EUR)], REMOVEFILTERS ( dim_product ), REMOVEFILTERS ( dim_product_group ), REMOVEFILTERS ( dim_region ) ) )
+```
+
+### Product sustainability
+
+**Use-phase Emissions (tCO2e)**: Scope 3 category 11: the lifetime electricity of the pumps sold, at the grid factor of the region of use (GHG Protocol direct use-phase method). Rest of world is not calculated. Factors are illustrative. Format: `#,0.0`.
+
+```dax
+SUM ( fact_use_phase[tco2e] )
+```
+
+**Use-phase Emissions per Unit (tCO2e)**: Category 11 per unit sold, over the units it covers (energy-using products outside Rest of world). Format: `#,0.0`.
+
+```dax
+DIVIDE ( [Use-phase Emissions (tCO2e)], SUM ( fact_use_phase[units] ) )
+```
+
+**Use-phase Emissions per Thousand EUR (tCO2e)**: Category 11 per thousand euros of the sales it covers. Dividing sales by 1,000 turns euros into thousands of euros. Format: `#,0.00`.
+
+```dax
+DIVIDE ( [Use-phase Emissions (tCO2e)], DIVIDE ( SUM ( fact_use_phase[net_sales_eur] ), 1000 ) )
+```
+
+### Scorecard
+
+**Weighted Score**: Scorecard score: ratings (1 to 10) times each criterion's weight, divided by the sum of the weights (Cooper and Edgett's scoring model). Weights are Fjordvik's own choice, held in dim_score_criterion. Format: `0.0`.
+
+```dax
+DIVIDE ( SUMX ( fact_product_rating, fact_product_rating[rating] * RELATED ( dim_score_criterion[weight] ) ), SUMX ( fact_product_rating, RELATED ( dim_score_criterion[weight] ) ) )
+```
+
 ## Tables
 
 ### dim_contract
@@ -286,6 +516,51 @@ One row per month, January 2023 to December 2025. Monthly grain, so it is not ma
 | month | int64 | 0 |  |  |
 | month_name | string |  |  |  |
 
+### dim_product
+
+One row per product model. Rated kW, yearly kWh and lifetime are Fjordvik's own engineering specification.
+
+| Column | Type | Format | Hidden | Description |
+| --- | --- | --- | --- | --- |
+| product_id | string |  |  | Global product code. |
+| product_name | string |  |  |  |
+| product_group | string |  | yes |  |
+| product_family | string |  |  |  |
+| made_at_site_id | string |  |  |  |
+| rated_kw | int64 | 0 |  |  |
+| kwh_per_year | int64 | #,0 |  | Expected electricity use per year in service. |
+| lifetime_years | int64 | 0 |  |  |
+| list_price_eur | double | #,0 |  |  |
+| standard_cost_eur | double | #,0 |  |  |
+
+### dim_product_code
+
+The global classification: each business unit's local item number for each product.
+
+| Column | Type | Format | Hidden | Description |
+| --- | --- | --- | --- | --- |
+| business_unit | string |  |  |  |
+| local_item_number | string |  |  |  |
+| product_id | string |  | yes |  |
+
+### dim_product_group
+
+Product groups and the family each belongs to: the top two levels of the global product classification.
+
+| Column | Type | Format | Hidden | Description |
+| --- | --- | --- | --- | --- |
+| product_group | string |  |  |  |
+| product_family | string |  |  |  |
+
+### dim_region
+
+The four sales regions.
+
+| Column | Type | Format | Hidden | Description |
+| --- | --- | --- | --- | --- |
+| region_id | string |  |  |  |
+| region_name | string |  |  |  |
+
 ### dim_scope3_category
 
 The 15 Greenhouse Gas Protocol scope 3 categories, with Fjordvik's status for each and the reason for any not calculated.
@@ -296,6 +571,17 @@ The 15 Greenhouse Gas Protocol scope 3 categories, with Fjordvik's status for ea
 | category_name | string |  |  |  |
 | status | string |  |  | Calculated, Calculated in part, Not yet calculated or Not relevant. |
 | reason | string |  |  | What the figure covers, or why the category is not calculated (the Scope 3 Standard requires a reason for every exclusion). |
+
+### dim_score_criterion
+
+The six scorecard criteria (Cooper and Edgett) and the weight Fjordvik gives each: its own stated choice.
+
+| Column | Type | Format | Hidden | Description |
+| --- | --- | --- | --- | --- |
+| criterion_id | string |  |  |  |
+| criterion_name | string |  |  |  |
+| weight | int64 | 0 |  | Fjordvik's own weight; no source publishes weights. |
+| source | string |  |  |  |
 
 ### dim_site
 
@@ -331,6 +617,23 @@ Suppliers in the purchase ledger, each with its spend category. Names are synthe
 | supplier_name | string |  |  |  |
 | country | string |  |  |  |
 | spend_category | string |  |  |  |
+
+### fact_data_issue
+
+Problems the SQL found in the ERP extract, one row each, with the action for the data owner.
+
+| Column | Type | Format | Hidden | Description |
+| --- | --- | --- | --- | --- |
+| issue_id | int64 | 0 |  |  |
+| date_key | int64 | 0 | yes |  |
+| site_id | string |  | yes |  |
+| business_unit | string |  |  |  |
+| issue_type | string |  |  |  |
+| detail | string |  |  |  |
+| line_count | int64 | #,0 |  |  |
+| amount_eur | double | #,0.00 |  |  |
+| status | string |  |  | Removed by rule, Corrected by rule or Quarantined. |
+| action | string |  |  |  |
 
 ### fact_emissions
 
@@ -380,6 +683,17 @@ Scope 3 categories 4 and 9, distance-based: one row per month, site, direction, 
 | emission_factor | double | #,0.000 |  | Illustrative factor in kilograms of CO2 equivalent per unit. Not for real reporting. |
 | tco2e | double | #,0.000000 |  | Tonnes of CO2 equivalent, as stored in the source data. |
 
+### fact_product_rating
+
+Each quarter's portfolio review: a 1 to 10 rating per product group and criterion, keyed to the quarter's first month.
+
+| Column | Type | Format | Hidden | Description |
+| --- | --- | --- | --- | --- |
+| date_key | int64 | 0 | yes |  |
+| product_group | string |  | yes |  |
+| criterion_id | string |  | yes |  |
+| rating | int64 | 0 |  |  |
+
 ### fact_purchases
 
 Scope 3 category 1, spend-based: one row per month, site and supplier from the purchase ledger, in euros. Factors (kg CO2e per euro) are illustrative.
@@ -396,6 +710,21 @@ Scope 3 category 1, spend-based: one row per month, site and supplier from the p
 | unit | string |  |  |  |
 | emission_factor | double | #,0.000 |  | Illustrative factor in kilograms of CO2 equivalent per unit. Not for real reporting. |
 | tco2e | double | #,0.000000 |  | Tonnes of CO2 equivalent, as stored in the source data. |
+
+### fact_sales
+
+One row per month, shipping site, product and region, cleaned by SQL from the simulated Oracle extract. Reconciles to finance revenue.
+
+| Column | Type | Format | Hidden | Description |
+| --- | --- | --- | --- | --- |
+| date_key | int64 | 0 | yes |  |
+| site_id | string |  | yes |  |
+| product_id | string |  | yes |  |
+| region_id | string |  | yes |  |
+| units | int64 | #,0 |  |  |
+| net_sales_eur | double | #,0.00 |  |  |
+| cost_of_sales_eur | double | #,0.00 |  |  |
+| margin_eur | double | #,0.00 |  |  |
 
 ### fact_scope2_market
 
@@ -424,6 +753,24 @@ One row per month and site: revenue and full-time equivalent employees (FTE). FT
 | revenue_eur | double | #,0.00 |  |  |
 | fte | double | #,0.0 |  |  |
 
+### fact_use_phase
+
+Scope 3 category 11, use of sold products: units x lifetime years x yearly kWh x the grid factor of the region of use. No Rest of world rows: no factor source identified. Factors are illustrative.
+
+| Column | Type | Format | Hidden | Description |
+| --- | --- | --- | --- | --- |
+| date_key | int64 | 0 | yes |  |
+| site_id | string |  | yes |  |
+| source_id | string |  | yes |  |
+| product_id | string |  | yes |  |
+| region_id | string |  | yes |  |
+| units | int64 | #,0 |  |  |
+| net_sales_eur | double | #,0.00 |  |  |
+| activity_amount | double | #,0 |  | Lifetime electricity of the units sold, kWh. |
+| unit | string |  |  |  |
+| emission_factor | double | #,0.000 |  | Illustrative grid factor in kilograms of CO2 equivalent per kWh. Not for real reporting. |
+| tco2e | double | #,0.000000 |  | Tonnes of CO2 equivalent, as stored in the source data. |
+
 ## Relationships
 
 All many-to-one, filtering from the dimension to the fact.
@@ -450,11 +797,31 @@ All many-to-one, filtering from the dimension to the fact.
 | fact_purchases.supplier_id | dim_supplier.supplier_id |
 | fact_scope2_market.contract_id | dim_contract.contract_id |
 | dim_source.scope3_category | dim_scope3_category.scope3_category |
+| fact_sales.date_key | dim_date.date_key |
+| fact_sales.site_id | dim_site.site_id |
+| fact_sales.product_id | dim_product.product_id |
+| fact_sales.region_id | dim_region.region_id |
+| fact_use_phase.date_key | dim_date.date_key |
+| fact_use_phase.site_id | dim_site.site_id |
+| fact_use_phase.source_id | dim_source.source_id |
+| fact_use_phase.product_id | dim_product.product_id |
+| fact_use_phase.region_id | dim_region.region_id |
+| fact_data_issue.date_key | dim_date.date_key |
+| fact_data_issue.site_id | dim_site.site_id |
+| fact_product_rating.date_key | dim_date.date_key |
+| fact_product_rating.product_group | dim_product_group.product_group |
+| fact_product_rating.criterion_id | dim_score_criterion.criterion_id |
+| dim_product.product_group | dim_product_group.product_group |
+| dim_product_code.product_id | dim_product.product_id |
 
 ## Row-level security roles
 
 | Role | Filter |
 | --- | --- |
+| Baltics | `dim_region = dim_region[region_id] = "BAL"` |
 | Estonia | `dim_site = dim_site[country] = "Estonia"` |
 | Finland | `dim_site = dim_site[country] = "Finland"` |
+| Nordics | `dim_region = dim_region[region_id] = "NOR"` |
+| Rest of world | `dim_region = dim_region[region_id] = "ROW"` |
 | Sweden | `dim_site = dim_site[country] = "Sweden"` |
+| Western Europe | `dim_region = dim_region[region_id] = "WEU"` |

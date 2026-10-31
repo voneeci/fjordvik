@@ -1,0 +1,128 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "matrix_effects_by_family",
+  "position": {
+    "x": 660,
+    "y": 210,
+    "z": 500,
+    "height": 290,
+    "width": 600,
+    "tabOrder": 500
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_product_group"
+                    }
+                  },
+                  "Property": "product_family"
+                }
+              },
+              "queryRef": "dim_product_group.product_family",
+              "nativeQueryRef": "product_family",
+              "displayName": "Family",
+              "active": true
+            }
+          ]
+        },
+        "Columns": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_date"
+                    }
+                  },
+                  "Property": "year"
+                }
+              },
+              "queryRef": "dim_date.year",
+              "nativeQueryRef": "year",
+              "displayName": "Year",
+              "active": true
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Price Effect (EUR)"
+                }
+              },
+              "queryRef": "_Measures.Price Effect (EUR)",
+              "nativeQueryRef": "Price Effect (EUR)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Volume Effect (EUR)"
+                }
+              },
+              "queryRef": "_Measures.Volume Effect (EUR)",
+              "nativeQueryRef": "Volume Effect (EUR)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Cost Effect (EUR)"
+                }
+              },
+              "queryRef": "_Measures.Cost Effect (EUR)",
+              "nativeQueryRef": "Cost Effect (EUR)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Price, volume and cost effect by family and year (EUR)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

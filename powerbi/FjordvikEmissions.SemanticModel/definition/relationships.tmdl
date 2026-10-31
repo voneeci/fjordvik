@@ -77,3 +77,67 @@ relationship fact_scope2_market_contract_id
 relationship dim_source_scope3_category
 	fromColumn: dim_source.scope3_category
 	toColumn: dim_scope3_category.scope3_category
+
+relationship fact_sales_date_key
+	fromColumn: fact_sales.date_key
+	toColumn: dim_date.date_key
+
+relationship fact_sales_site_id
+	fromColumn: fact_sales.site_id
+	toColumn: dim_site.site_id
+
+relationship fact_sales_product_id
+	fromColumn: fact_sales.product_id
+	toColumn: dim_product.product_id
+
+relationship fact_sales_region_id
+	fromColumn: fact_sales.region_id
+	toColumn: dim_region.region_id
+
+relationship fact_use_phase_date_key
+	fromColumn: fact_use_phase.date_key
+	toColumn: dim_date.date_key
+
+relationship fact_use_phase_site_id
+	fromColumn: fact_use_phase.site_id
+	toColumn: dim_site.site_id
+
+relationship fact_use_phase_source_id
+	fromColumn: fact_use_phase.source_id
+	toColumn: dim_source.source_id
+
+relationship fact_use_phase_product_id
+	fromColumn: fact_use_phase.product_id
+	toColumn: dim_product.product_id
+
+relationship fact_use_phase_region_id
+	fromColumn: fact_use_phase.region_id
+	toColumn: dim_region.region_id
+
+relationship fact_data_issue_date_key
+	fromColumn: fact_data_issue.date_key
+	toColumn: dim_date.date_key
+
+relationship fact_data_issue_site_id
+	fromColumn: fact_data_issue.site_id
+	toColumn: dim_site.site_id
+
+relationship fact_product_rating_date_key
+	fromColumn: fact_product_rating.date_key
+	toColumn: dim_date.date_key
+
+relationship fact_product_rating_product_group
+	fromColumn: fact_product_rating.product_group
+	toColumn: dim_product_group.product_group
+
+relationship fact_product_rating_criterion_id
+	fromColumn: fact_product_rating.criterion_id
+	toColumn: dim_score_criterion.criterion_id
+
+relationship dim_product_product_group
+	fromColumn: dim_product.product_group
+	toColumn: dim_product_group.product_group
+
+relationship dim_product_code_product_id
+	fromColumn: dim_product_code.product_id
+	toColumn: dim_product.product_id

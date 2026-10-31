@@ -1,0 +1,4 @@
+Refresh before the live tests, 31 October 2026 (62 measures, 16 report pages, portfolio tables)
+Command: scriptsun_dax_table.ps1 -QueryFile <empty query list> -Port 54638 -Refresh
+Output:
+refreshed database bb3d195b-52e5-44d0-a642-97ce8050f77b

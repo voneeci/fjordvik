@@ -21,7 +21,8 @@ def read(name):
 # Since 31 October 2026 the location-based inventory is four tables: what the sites
 # report, plus the value-chain tables (category 3, purchases, freight).
 SITE_EM = read("fact_emissions")
-EM = SITE_EM + read("fact_energy_upstream") + read("fact_purchases") + read("fact_freight")
+USE_PHASE = read("fact_use_phase")
+EM = SITE_EM + read("fact_energy_upstream") + read("fact_purchases") + read("fact_freight") + USE_PHASE
 MARKET = read("fact_scope2_market")
 PURCHASES = read("fact_purchases")
 FREIGHT = read("fact_freight")
@@ -144,6 +145,9 @@ FILTERS = {
     "month_key": ("dim_date", "date_key", int),
     "source": ("dim_source", "source_id", str),
     "scope3_category": ("dim_scope3_category", "scope3_category", int),
+    "family": ("dim_product_group", "product_family", str),
+    "region": ("dim_region", "region_id", str),
+    "group": ("dim_product_group", "product_group", str),
 }
 
 
@@ -231,7 +235,171 @@ def cases():
         case("rls_sweden_cannot_see_finland", total, None, role="Sweden", country="Finland"),
     ]
     out += value_chain_cases()
+    out += portfolio_cases()
     return out
+
+
+# ---------------------------------------------------------------------------
+# Phase 2: sales, the price/volume/mix bridge, balance, scorecard, category 11
+# ---------------------------------------------------------------------------
+
+SALES = read("fact_sales")
+PRODUCT = {r["product_id"]: r for r in read("dim_product")}
+ISSUES = read("fact_data_issue")
+RATINGS = read("fact_product_rating")
+WEIGHT = {r["criterion_id"]: int(r["weight"]) for r in read("dim_score_criterion")}
+GROUP_FAMILY = {r["product_group"]: r["product_family"] for r in read("dim_product_group")}
+
+
+def sales_rows(year=None, family=None, region=None, site=None, month_key=None, product=None):
+    for r in SALES:
+        if year and not r["date_key"].startswith(str(year)):
+            continue
+        if month_key and r["date_key"] != str(month_key):
+            continue
+        if family and PRODUCT[r["product_id"]]["product_family"] != family:
+            continue
+        if region and r["region_id"] != region:
+            continue
+        if site and r["site_id"] != site:
+            continue
+        if product and r["product_id"] != product:
+            continue
+        yield r
+
+
+def sales(column, **f):
+    picked = [float(r[column]) for r in sales_rows(**f)]
+    return sum(picked) if picked else None
+
+
+def by_product(**f):
+    out = defaultdict(lambda: [0.0, 0.0, 0.0])
+    for r in sales_rows(**f):
+        a = out[r["product_id"]]
+        a[0] += float(r["units"]); a[1] += float(r["net_sales_eur"]); a[2] += float(r["cost_of_sales_eur"])
+    return out
+
+
+def bridge(cur, prev):
+    """ACCA F5 sales variances with the prior year as standard, product by product.
+    cur and prev are sales_rows filters for this period and the same months a year earlier."""
+    cy, py = by_product(**cur), by_product(**prev)
+    comp = [p for p in cy if p in py]
+    ta, tp = sum(cy[p][0] for p in comp), sum(py[p][0] for p in comp)
+    pm = {p: (py[p][1] - py[p][2]) / py[p][0] for p in comp}
+    margin = lambda d, p: d[p][1] - d[p][2] if p in d else 0.0
+    others = (set(cy) | set(py)) - set(comp)
+    return {"price": sum(cy[p][1] - py[p][1] / py[p][0] * cy[p][0] for p in comp),
+            "mix": sum((cy[p][0] - ta * py[p][0] / tp) * pm[p] for p in comp),
+            "quantity": sum((ta * py[p][0] / tp - py[p][0]) * pm[p] for p in comp),
+            "cost": sum(py[p][2] / py[p][0] * cy[p][0] - cy[p][2] for p in comp),
+            "other": sum(margin(cy, p) - margin(py, p) for p in others) if others else None,
+            "change": sum(margin(cy, p) for p in cy) - sum(margin(py, p) for p in py)}
+
+
+def weighted_score(year=None, group=None, family=None):
+    num = den = 0.0
+    for r in RATINGS:
+        if year and not r["date_key"].startswith(str(year)):
+            continue
+        if group and r["product_group"] != group:
+            continue
+        if family and GROUP_FAMILY[r["product_group"]] != family:
+            continue
+        num += int(r["rating"]) * WEIGHT[r["criterion_id"]]
+        den += WEIGHT[r["criterion_id"]]
+    return num / den
+
+
+def use_phase(column="tco2e", **f):
+    picked = [float(r[column]) for r in USE_PHASE
+              if (not f.get("year") or r["date_key"].startswith(str(f["year"])))
+              and (not f.get("region") or r["region_id"] == f["region"])
+              and (not f.get("family") or PRODUCT[r["product_id"]]["product_family"] == f["family"])]
+    return sum(picked) if picked else None
+
+
+def portfolio_cases():
+    pumps = "Industrial process pumps"
+    b25 = bridge({"year": 2025}, {"year": 2024})
+    b25f = bridge({"year": 2025, "family": pumps}, {"year": 2024, "family": pumps})
+    packages = "Pump packages and controls"
+    june = bridge({"month_key": 20250601, "region": "BAL", "family": packages},
+                  {"month_key": 20240601, "region": "BAL", "family": packages})
+    quarantined = sum(float(r["amount_eur"]) for r in ISSUES if r["status"] == "Quarantined")
+    total_2025 = sales("net_sales_eur", year=2025)
+    return [
+        case("units_2025", "Units Sold", sales("units", year=2025), year=2025),
+        case("net_sales_2025", "Net Sales (EUR)", total_2025, year=2025, tolerance=0.01),
+        case("net_sales_baltics_2024", "Net Sales (EUR)", sales("net_sales_eur", year=2024, region="BAL"),
+             year=2024, region="BAL", tolerance=0.01),
+        case("cost_2025", "Cost of Sales (EUR)", sales("cost_of_sales_eur", year=2025), year=2025, tolerance=0.01),
+        case("margin_2025", "Margin (EUR)", sales("margin_eur", year=2025), year=2025, tolerance=0.01),
+        case("margin_pct_pumps_2025", "Margin (%)",
+             sales("margin_eur", year=2025, family=pumps) / sales("net_sales_eur", year=2025, family=pumps),
+             year=2025, family=pumps, tolerance=0.00001),
+        case("average_price_pumps_2025", "Average Price (EUR)",
+             sales("net_sales_eur", year=2025, family=pumps) / sales("units", year=2025, family=pumps),
+             year=2025, family=pumps, tolerance=0.01),
+        case("margin_prior_year_of_2025", "Margin Prior Year (EUR)", sales("margin_eur", year=2024),
+             year=2025, tolerance=0.01),
+        case("margin_prior_year_of_2023_is_blank", "Margin Prior Year (EUR)", None, year=2023),
+        case("margin_change_2025", "Margin Change vs Prior Year (EUR)", b25["change"], year=2025, tolerance=0.01),
+        case("price_effect_2025", "Price Effect (EUR)", b25["price"], year=2025, tolerance=0.01),
+        case("mix_effect_2025", "Mix Effect (EUR)", b25["mix"], year=2025, tolerance=0.01),
+        case("quantity_effect_2025", "Quantity Effect (EUR)", b25["quantity"], year=2025, tolerance=0.01),
+        case("volume_effect_2025", "Volume Effect (EUR)", b25["mix"] + b25["quantity"], year=2025, tolerance=0.01),
+        case("cost_effect_2025", "Cost Effect (EUR)", b25["cost"], year=2025, tolerance=0.01),
+        # Every product sold in both years, so nothing is left out of the comparison.
+        case("not_comparable_2025_is_blank", "Not Comparable Change (EUR)", None, year=2025),
+        # June 2025: one Baltic booster set line was quarantined, so that product has no
+        # sales that month and its prior-year margin is not comparable.
+        case("not_comparable_baltics_june_2025", "Not Comparable Change (EUR)", june["other"],
+             month_key=20250601, region="BAL", family=packages, tolerance=0.01),
+        case("margin_change_baltics_june_2025", "Margin Change vs Prior Year (EUR)", june["change"],
+             month_key=20250601, region="BAL", family=packages, tolerance=0.01),
+        case("price_effect_pumps_2024", "Price Effect (EUR)",
+             bridge({"year": 2024, "family": pumps}, {"year": 2023, "family": pumps})["price"],
+             year=2024, family=pumps, tolerance=0.01),
+        case("mix_effect_pumps_2025", "Mix Effect (EUR)", b25f["mix"], year=2025, family=pumps, tolerance=0.01),
+        case("quantity_effect_pumps_2025", "Quantity Effect (EUR)", b25f["quantity"], year=2025, family=pumps,
+             tolerance=0.01),
+        case("price_effect_2023_is_blank", "Price Effect (EUR)", None, year=2023),
+        case("share_pumps_2025", "Share of Net Sales (%)",
+             sales("net_sales_eur", year=2025, family=pumps) / total_2025, year=2025, family=pumps,
+             tolerance=0.00001),
+        case("share_margin_western_europe_2025", "Share of Margin (%)",
+             sales("margin_eur", year=2025, region="WEU") / sales("margin_eur", year=2025),
+             year=2025, region="WEU", tolerance=0.00001),
+        case("use_phase_2025", "Use-phase Emissions (tCO2e)", use_phase(year=2025), year=2025, tolerance=0.01),
+        case("use_phase_rest_of_world_is_blank", "Use-phase Emissions (tCO2e)", None, region="ROW"),
+        case("use_phase_per_unit_pumps_2025", "Use-phase Emissions per Unit (tCO2e)",
+             use_phase(year=2025, family=pumps) / use_phase("units", year=2025, family=pumps),
+             year=2025, family=pumps, tolerance=0.0001),
+        case("use_phase_per_thousand_eur_2025", "Use-phase Emissions per Thousand EUR (tCO2e)",
+             use_phase(year=2025) / (use_phase("net_sales_eur", year=2025) / 1000), year=2025,
+             tolerance=0.0001),
+        case("total_under_category_11_2025", "Total Emissions (tCO2e)", use_phase(year=2025),
+             year=2025, scope3_category=11, tolerance=0.01),
+        case("weighted_score_2025", "Weighted Score", weighted_score(year=2025), year=2025, tolerance=0.00001),
+        case("weighted_score_multistage_2024", "Weighted Score", weighted_score(year=2024, group="Multistage pumps"),
+             year=2024, group="Multistage pumps", tolerance=0.00001),
+        case("quarantined_2025", "Quarantined Sales (EUR)", quarantined, year=2025, tolerance=0.01),
+        case("sales_reconciliation_all", "Sales Reconciliation Difference (EUR)", 0.0, tolerance=0.001),
+        case("data_issues_all", "Data Issues", float(len(ISSUES))),
+        # Region roles see their region's sales, and blank site figures.
+        case("rls_nordics_sales_2025", "Net Sales (EUR)", sales("net_sales_eur", year=2025, region="NOR"),
+             role="Nordics", year=2025, tolerance=0.01),
+        case("rls_nordics_cannot_see_baltics", "Net Sales (EUR)", None, role="Nordics", region="BAL"),
+        case("rls_baltics_site_emissions_blank", "Scope 1 Emissions (tCO2e)", None, role="Baltics"),
+        case("rls_western_europe_use_phase", "Use-phase Emissions (tCO2e)", use_phase(region="WEU"),
+             role="Western Europe", tolerance=0.01),
+        case("rls_rest_of_world_revenue_blank", "Revenue (EUR)", None, role="Rest of world"),
+        case("rls_finland_sales_2025", "Net Sales (EUR)",
+             sum(float(r["net_sales_eur"]) for r in sales_rows(year=2025)
+                 if SITE[r["site_id"]]["country"] == "Finland"), role="Finland", year=2025, tolerance=0.01),
+    ]
 
 
 def value_chain_cases():
@@ -290,8 +458,11 @@ def value_chain_cases():
              total(PURCHASES, year=2025), year=2025, scope3_category=1),
         case("total_under_category_9", "Total Emissions (tCO2e)", total(FREIGHT, source="S13"),
              scope3_category=9),
-        case("total_under_category_11_is_blank", "Total Emissions (tCO2e)", None,
-             scope3_category=11),
+        # Was blank until phase 2 calculated category 11 from units sold (31 October 2026).
+        case("total_under_category_11", "Total Emissions (tCO2e)", total(EM, scope3_category=11),
+             scope3_category=11, tolerance=0.01),
+        case("total_under_category_2_is_blank", "Total Emissions (tCO2e)", None,
+             scope3_category=2),
         # Row-level security reaches the new tables through dim_site.
         case("rls_finland_market", market, total(MARKET, country="Finland"), role="Finland"),
         case("rls_estonia_purchases_2025", "Purchased Goods and Services Emissions (tCO2e)",

@@ -10,7 +10,13 @@
     "energy",
     "changed",
     "sites",
-    "data_quality"
+    "data_quality",
+    "portfolio_overview",
+    "price_volume_mix",
+    "portfolio_balance",
+    "product_sustainability",
+    "scorecard",
+    "classification"
   ],
   "activePageName": "introduction"
 }

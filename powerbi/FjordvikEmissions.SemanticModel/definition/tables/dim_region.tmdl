@@ -1,0 +1,28 @@
+/// The four sales regions.
+table dim_region
+	lineageTag: 8fec000a-0b7b-4fce-9d98-e2ef70ca76ab
+
+	column region_id
+		dataType: string
+		lineageTag: c9822d82-15ea-4460-a641-597eee6aef5e
+		summarizeBy: none
+		sourceColumn: region_id
+
+	column region_name
+		dataType: string
+		lineageTag: d065ee12-c7b8-4e3c-8b48-715db4831041
+		summarizeBy: none
+		sourceColumn: region_name
+
+	partition dim_region = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(DataFolder & "\dim_region.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					// "en-US" so "0.200" is read with a full stop as the decimal mark on any Windows locale
+					Typed = Table.TransformColumnTypes(Promoted, {{"region_id", type text}, {"region_name", type text}}, "en-US")
+				in
+					Typed
+
+	annotation PBI_ResultType = Table

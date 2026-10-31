@@ -36,5 +36,5 @@ power-automate. Permanent rules in
 ```bash
 python scripts/build_report.py            # regenerate report pages
 python scripts/build_data_dictionary.py   # regenerate docs/data-dictionary.md
-python -m pytest -q                       # 225 tests (68 need Desktop open)
+python -m pytest -q                       # 371 tests (109 need Desktop open)
 ```

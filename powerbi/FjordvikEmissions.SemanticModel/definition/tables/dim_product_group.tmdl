@@ -1,0 +1,28 @@
+/// Product groups and the family each belongs to: the top two levels of the global product classification.
+table dim_product_group
+	lineageTag: f14d8195-7591-43f5-ba81-bc5156be2b15
+
+	column product_group
+		dataType: string
+		lineageTag: 53e5ee8f-6189-4f9b-8b2f-83e262b48998
+		summarizeBy: none
+		sourceColumn: product_group
+
+	column product_family
+		dataType: string
+		lineageTag: 3d1d2b20-6564-4bc4-81fe-dbec42399b6d
+		summarizeBy: none
+		sourceColumn: product_family
+
+	partition dim_product_group = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(DataFolder & "\dim_product_group.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					// "en-US" so "0.200" is read with a full stop as the decimal mark on any Windows locale
+					Typed = Table.TransformColumnTypes(Promoted, {{"product_group", type text}, {"product_family", type text}}, "en-US")
+				in
+					Typed
+
+	annotation PBI_ResultType = Table

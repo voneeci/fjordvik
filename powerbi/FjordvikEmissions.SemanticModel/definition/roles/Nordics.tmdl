@@ -1,0 +1,15 @@
+/// Sales region manager for Nordics: sees only Nordics sales, margin, scorecard and category 11. The site emission and finance tables are denied, so site figures show blank.
+role Nordics
+	modelPermission: read
+
+	tablePermission dim_region = dim_region[region_id] = "NOR"
+
+	tablePermission fact_emissions = FALSE()
+	tablePermission fact_energy_upstream = FALSE()
+	tablePermission fact_purchases = FALSE()
+	tablePermission fact_freight = FALSE()
+	tablePermission fact_scope2_market = FALSE()
+	tablePermission fact_site_metrics = FALSE()
+	tablePermission fact_data_issue = FALSE()
+
+	annotation PBI_Id = c4da75da21024060ba6bccdf6ee6cea7

@@ -1,0 +1,45 @@
+/// Each quarter's portfolio review: a 1 to 10 rating per product group and criterion, keyed to the quarter's first month.
+table fact_product_rating
+	lineageTag: 90384e77-3d2f-401d-bf49-4340034819aa
+
+	column date_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b94ba39d-4376-45ff-adf4-340e6824c8f9
+		summarizeBy: none
+		sourceColumn: date_key
+
+	column product_group
+		dataType: string
+		isHidden
+		lineageTag: 2260648c-1150-489d-b2af-2ffdd86baba2
+		summarizeBy: none
+		sourceColumn: product_group
+
+	column criterion_id
+		dataType: string
+		isHidden
+		lineageTag: 0c4c0f6e-ab8b-4979-a2e2-8f8a5a9d5a92
+		summarizeBy: none
+		sourceColumn: criterion_id
+
+	column rating
+		dataType: int64
+		formatString: 0
+		lineageTag: 86059eaa-b6d7-4e13-b1fd-8db493a09244
+		summarizeBy: none
+		sourceColumn: rating
+
+	partition fact_product_rating = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(DataFolder & "\fact_product_rating.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					// "en-US" so "0.200" is read with a full stop as the decimal mark on any Windows locale
+					Typed = Table.TransformColumnTypes(Promoted, {{"date_key", Int64.Type}, {"product_group", type text}, {"criterion_id", type text}, {"rating", Int64.Type}}, "en-US")
+				in
+					Typed
+
+	annotation PBI_ResultType = Table

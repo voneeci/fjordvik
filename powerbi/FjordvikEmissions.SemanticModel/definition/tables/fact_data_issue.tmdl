@@ -1,0 +1,83 @@
+/// Problems the SQL found in the ERP extract, one row each, with the action for the data owner.
+table fact_data_issue
+	lineageTag: 8049679b-524d-4be3-9f0d-0d2247ea69f9
+
+	column issue_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 6560f892-ba2c-4553-b78a-f4c7448a3f3a
+		summarizeBy: none
+		sourceColumn: issue_id
+
+	column date_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 993f0856-ac73-49c2-ba11-57b3cd41147a
+		summarizeBy: none
+		sourceColumn: date_key
+
+	column site_id
+		dataType: string
+		isHidden
+		lineageTag: d8f79dd7-84b7-40d1-b855-04602b3b3ff3
+		summarizeBy: none
+		sourceColumn: site_id
+
+	column business_unit
+		dataType: string
+		lineageTag: d54a35a2-907b-47a0-988f-74fcbc33a9ed
+		summarizeBy: none
+		sourceColumn: business_unit
+
+	column issue_type
+		dataType: string
+		lineageTag: 53431b88-16da-4ad7-879f-879681b9831e
+		summarizeBy: none
+		sourceColumn: issue_type
+
+	column detail
+		dataType: string
+		lineageTag: 030fb2c4-be53-47e3-bd62-69d2377186fe
+		summarizeBy: none
+		sourceColumn: detail
+
+	column line_count
+		dataType: int64
+		formatString: #,0
+		lineageTag: 0be3072d-78c0-4926-8574-a5703e298c48
+		summarizeBy: none
+		sourceColumn: line_count
+
+	column amount_eur
+		dataType: double
+		formatString: #,0.00
+		lineageTag: f49a55ff-1716-4b4d-a57e-60b1ae0a7c75
+		summarizeBy: none
+		sourceColumn: amount_eur
+
+	/// Removed by rule, Corrected by rule or Quarantined.
+	column status
+		dataType: string
+		lineageTag: 17bd887f-22ca-4a20-9c6e-6ae80393f7fe
+		summarizeBy: none
+		sourceColumn: status
+
+	column action
+		dataType: string
+		lineageTag: a7f5a111-2c35-46bb-b013-6b20216d3ef8
+		summarizeBy: none
+		sourceColumn: action
+
+	partition fact_data_issue = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(DataFolder & "\fact_data_issue.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					// "en-US" so "0.200" is read with a full stop as the decimal mark on any Windows locale
+					Typed = Table.TransformColumnTypes(Promoted, {{"issue_id", Int64.Type}, {"date_key", Int64.Type}, {"site_id", type text}, {"business_unit", type text}, {"issue_type", type text}, {"detail", type text}, {"line_count", Int64.Type}, {"amount_eur", type number}, {"status", type text}, {"action", type text}}, "en-US")
+				in
+					Typed
+
+	annotation PBI_ResultType = Table

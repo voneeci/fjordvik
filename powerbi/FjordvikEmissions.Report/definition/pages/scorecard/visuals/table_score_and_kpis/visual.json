@@ -1,0 +1,145 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "table_score_and_kpis",
+  "position": {
+    "x": 20,
+    "y": 440,
+    "z": 500,
+    "height": 270,
+    "width": 1240,
+    "tabOrder": 500
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_product_group"
+                    }
+                  },
+                  "Property": "product_group"
+                }
+              },
+              "queryRef": "dim_product_group.product_group",
+              "nativeQueryRef": "product_group",
+              "displayName": "Product group"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Weighted Score"
+                }
+              },
+              "queryRef": "_Measures.Weighted Score",
+              "nativeQueryRef": "Weighted Score"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Net Sales (EUR)"
+                }
+              },
+              "queryRef": "_Measures.Net Sales (EUR)",
+              "nativeQueryRef": "Net Sales (EUR)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Margin (%)"
+                }
+              },
+              "queryRef": "_Measures.Margin (%)",
+              "nativeQueryRef": "Margin (%)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Share of Net Sales (%)"
+                }
+              },
+              "queryRef": "_Measures.Share of Net Sales (%)",
+              "nativeQueryRef": "Share of Net Sales (%)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Price Effect (EUR)"
+                }
+              },
+              "queryRef": "_Measures.Price Effect (EUR)",
+              "nativeQueryRef": "Price Effect (EUR)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Use-phase Emissions per Unit (tCO2e)"
+                }
+              },
+              "queryRef": "_Measures.Use-phase Emissions per Unit (tCO2e)",
+              "nativeQueryRef": "Use-phase Emissions per Unit (tCO2e)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Score beside the figures: sales, margin, share, price effect, use-phase emissions'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

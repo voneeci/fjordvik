@@ -232,6 +232,16 @@ VALUE_CHAIN_CARDS = ["Scope 3 Emissions (tCO2e)", "Purchased Goods and Services 
                      "Upstream Transport Emissions (tCO2e)", "Downstream Transport Emissions (tCO2e)"]
 FREIGHT = [("Upstream Transport Emissions (tCO2e)", "#7A5BA6"),
            ("Downstream Transport Emissions (tCO2e)", "#3F2D63")]
+FAMILY = column("dim_product_group", "product_family", "Family")
+GROUP = column("dim_product_group", "product_group", "Product group")
+REGION = column("dim_region", "region_name", "Region")
+PRODUCT = column("dim_product", "product_name", "Product")
+QUARTER = column("dim_date", "quarter", "Quarter")
+FAMILY_COLOURS = {"Industrial process pumps": "#2A78D6", "Water and wastewater pumps": "#1BAF7A",
+                  "Pump packages and controls": "#EB6834", "Spare parts and service": "#7A5BA6"}
+SALES_CARDS = ["Units Sold", "Net Sales (EUR)", "Average Price (EUR)", "Margin (EUR)", "Margin (%)"]
+EFFECTS = ["Price Effect (EUR)", "Mix Effect (EUR)", "Quantity Effect (EUR)", "Cost Effect (EUR)",
+           "Not Comparable Change (EUR)"]
 ACTIVITY_CARDS = ["Energy Used (kWh)", "Vehicle Fuel Used (litres)", "Refrigerant Leakage (kg)",
                   "Business Flights (passenger-km)", "Waste to Landfill (tonnes)"]
 
@@ -262,8 +272,8 @@ def introduction():
             "Gothenburg, pump packages and controls in Tallinn, with warehouses in Oulu and Tartu "
             "and a head office in Helsinki.",
             "Each month the sites report the energy, fuel, refrigerant, flights and waste they "
-            "used; purchasing, logistics and energy contracts add the value chain. This report "
-            "turns them into greenhouse gas emissions, January 2023 to December 2025.",
+            "used; purchasing, logistics, energy contracts and the ERP sales extract add the value "
+            "chain and the product portfolio, January 2023 to December 2025.",
             "Tartu Warehouse opened in July 2024, and Tampere Plant installed rooftop solar panels "
             "the same month.",
         ]),
@@ -275,15 +285,14 @@ def introduction():
             "Country managers see only their own country's sites, through row-level security.",
         ]),
         section("page_guide", 640, 155, 620, 270, 500, "What each page answers", [
-            "Overview: how much does Fjordvik emit, and where?",
-            "Emissions breakdown: what are the emissions made of, by scope, source and country?",
-            "Value chain (scope 3): which scope 3 categories are counted, and why the rest are not?",
-            "Scope 2 methods: how do location-based and market-based scope 2 compare?",
-            "Intensity and growth: is Fjordvik getting cleaner as it grows?",
-            "Energy and activity: how much energy, fuel and other activity did each site use?",
-            "What changed: why did emissions move on the prior year?",
-            "Sites: how do the six sites compare?",
-            "Data quality: do the figures reconcile, and is every site reporting?",
+            "Emissions: Overview, Emissions breakdown, Value chain (scope 3), Scope 2 methods, "
+            "Intensity and growth, Energy and activity, What changed, Sites and Data quality: how "
+            "much Fjordvik emits, where, why it moved, and whether the figures reconcile.",
+            "Portfolio: Portfolio overview, Price, volume and mix, Portfolio balance, Product "
+            "sustainability, Quarterly scorecard, and Classification and data quality: what sells, "
+            "what earns, why margin moved, how products score, and what the ERP data got wrong.",
+            "Country managers see their own sites; sales region managers see their own region's "
+            "sales and blank site figures.",
         ]),
         section("reading_guide", 640, 435, 620, 270, 600, "How to read the figures", [
             "Scope 1: fuel burned on site and refrigerant leaks. Scope 2: electricity and heat "
@@ -398,6 +407,139 @@ def scope2_methods():
     ]
 
 
+def portfolio_overview():
+    return [
+        *header("Portfolio overview",
+                "Volume, sales, price and margin from the cleaned ERP sales (the extract is simulated).",
+                slicers=(YEAR, REGION)),
+        *[card(f"card_{i}", 20 + i * 250, 95, 240, 100, 300 + i, m) for i, m in enumerate(SALES_CARDS)],
+        chart("columnChart", "column_sales_by_month", 20, 210, 760, 260, 400, MONTH,
+              [measure("Net Sales (EUR)")], series=FAMILY, title="Net sales by month and family (EUR)",
+              colours=[(for_value(FAMILY, f), c) for f, c in FAMILY_COLOURS.items()], legend=True),
+        chart("clusteredBarChart", "bar_margin_pct_by_group", 800, 210, 460, 260, 500, GROUP,
+              [measure("Margin (%)")], sort_by_value=True, title="Margin by product group (%)",
+              colours=single(), labels=True),
+        table("table_by_family", 20, 485, 1240, 225, 600, [
+            FAMILY, GROUP, measure("Units Sold"), measure("Net Sales (EUR)"),
+            measure("Average Price (EUR)"), measure("Margin (EUR)"), measure("Margin (%)")],
+            title="Sales and margin by family and product group"),
+    ]
+
+
+def price_volume_mix():
+    return [
+        *header("Price, volume and mix",
+                "How margin moved against the same months a year earlier (ACCA, prior year as "
+                "standard). Pick one family: across pumps and spare parts, mix and quantity mislead.",
+                slicers=(YEAR, FAMILY)),
+        card("card_prior", 20, 95, 300, 100, 300, "Margin Prior Year (EUR)"),
+        card("card_change", 340, 95, 300, 100, 301, "Margin Change vs Prior Year (EUR)"),
+        card("card_margin", 660, 95, 300, 100, 302, "Margin (EUR)"),
+        card("card_volume", 980, 95, 280, 100, 303, "Volume Effect (EUR)"),
+        chart("clusteredBarChart", "bar_effects", 20, 210, 620, 290, 400, YEAR,
+              [measure(m) for m in EFFECTS],
+              title="What moved margin: price, mix, quantity, cost and not comparable (EUR)",
+              colours=[(for_measure(m), c) for m, c in zip(EFFECTS, ["#1F6FA8", "#C77A1A", "#7A5BA6",
+                                                                    "#C4502A", "#6B6B6B"])],
+              labels=True, legend=True),
+        matrix("matrix_effects_by_family", 660, 210, 600, 290, 500, [FAMILY], [YEAR],
+               [measure("Price Effect (EUR)"), measure("Volume Effect (EUR)"), measure("Cost Effect (EUR)")],
+               title="Price, volume and cost effect by family and year (EUR)"),
+        table("table_effects_by_group", 20, 515, 1240, 195, 600, [
+            GROUP, measure("Margin Prior Year (EUR)"), *[measure(m) for m in EFFECTS],
+            measure("Margin (EUR)")], title="Bridge by product group (EUR)"),
+    ]
+
+
+def portfolio_balance():
+    return [
+        *header("Portfolio balance", "Where sales and margin come from, by family and region.",
+                slicers=(YEAR,)),
+        chart("donutChart", "donut_share_by_family", 20, 95, 400, 300, 300, FAMILY,
+              [measure("Net Sales (EUR)")], sort_by_value=True, title="Share of net sales by family",
+              colours=[(for_value(FAMILY, f), c) for f, c in FAMILY_COLOURS.items()],
+              labels=True, legend=True),
+        matrix("matrix_share_family_region", 440, 95, 820, 300, 400, [FAMILY], [REGION],
+               [measure("Share of Net Sales (%)")], title="Share of net sales by family and region (%)"),
+        chart("clusteredBarChart", "bar_share_margin_by_group", 20, 410, 620, 300, 500, GROUP,
+              [measure("Share of Margin (%)")], sort_by_value=True, title="Share of margin by product group (%)",
+              colours=single(), labels=True),
+        chart("clusteredColumnChart", "column_sales_by_region", 660, 410, 600, 300, 600, REGION,
+              [measure("Net Sales (EUR)")], sort_by_value=True, title="Net sales by region (EUR)",
+              colours=single(), labels=True),
+    ]
+
+
+def product_sustainability():
+    cards = ["Use-phase Emissions (tCO2e)", "Use-phase Emissions per Unit (tCO2e)",
+             "Use-phase Emissions per Thousand EUR (tCO2e)"]
+    return [
+        *header("Product sustainability",
+                "Scope 3 category 11: the lifetime electricity of the pumps sold, at the grid factor of "
+                "the region of use. Rest of world is not calculated (no factor source).",
+                slicers=(YEAR, REGION)),
+        *[card(f"card_{i}", 20 + i * 420, 95, 400, 100, 300 + i, m) for i, m in enumerate(cards)],
+        chart("clusteredBarChart", "bar_per_unit_by_group", 20, 210, 620, 260, 400, GROUP,
+              [measure("Use-phase Emissions per Unit (tCO2e)")], sort_by_value=True,
+              title="Use-phase emissions per unit sold, by product group (tCO2e)", colours=single("#7A5BA6"),
+              labels=True),
+        chart("clusteredColumnChart", "column_use_phase_by_region", 660, 210, 600, 260, 500, REGION,
+              [measure("Use-phase Emissions (tCO2e)")], sort_by_value=True,
+              title="Use-phase emissions by region of use (tCO2e)", colours=single("#7A5BA6"), labels=True),
+        table("table_products", 20, 485, 1240, 225, 600, [
+            PRODUCT, column("dim_product", "kwh_per_year", "kWh a year"),
+            column("dim_product", "lifetime_years", "Lifetime (years)"),
+            measure("Units Sold"), measure("Use-phase Emissions per Unit (tCO2e)"),
+            measure("Use-phase Emissions per Thousand EUR (tCO2e)")],
+            title="Each product: specification and use-phase emissions"),
+    ]
+
+
+def scorecard():
+    return [
+        *header("Quarterly portfolio scorecard",
+                "Each quarter's review rates every product group 1 to 10 on six criteria; weights are "
+                "Fjordvik's own choice. The figures beside the score inform the next review.",
+                slicers=(YEAR, FAMILY)),
+        matrix("matrix_score_by_quarter", 20, 95, 760, 330, 300, [GROUP], [YEAR, QUARTER],
+               [measure("Weighted Score")], title="Weighted score by product group and quarter"),
+        table("table_criteria", 800, 95, 460, 330, 400, [
+            column("dim_score_criterion", "criterion_name", "Criterion"),
+            column("dim_score_criterion", "weight", "Weight")],
+            title="Criteria (Cooper and Edgett) and Fjordvik's weights"),
+        table("table_score_and_kpis", 20, 440, 1240, 270, 500, [
+            GROUP, measure("Weighted Score"), measure("Net Sales (EUR)"), measure("Margin (%)"),
+            measure("Share of Net Sales (%)"), measure("Price Effect (EUR)"),
+            measure("Use-phase Emissions per Unit (tCO2e)")],
+            title="Score beside the figures: sales, margin, share, price effect, use-phase emissions"),
+    ]
+
+
+def classification():
+    return [
+        textbox("title", 20, 10, 1240, 70, 0, [
+            "Classification and data quality",
+            "What the SQL found in the simulated ERP extract, for the data owner. " + CAVEAT]),
+        card("card_issues", 20, 95, 300, 100, 100, "Data Issues"),
+        card("card_quarantined", 340, 95, 300, 100, 101, "Quarantined Sales (EUR)"),
+        card("card_recon", 660, 95, 300, 100, 102, "Sales Reconciliation Difference (EUR)"),
+        table("table_issues", 20, 210, 1240, 250, 200, [
+            column("dim_date", "date", "Month"), SITE,
+            column("fact_data_issue", "issue_type", "Issue"),
+            column("fact_data_issue", "detail", "Detail"),
+            column("fact_data_issue", "line_count", "Lines"),
+            column("fact_data_issue", "amount_eur", "Amount (EUR)"),
+            column("fact_data_issue", "status", "Status"),
+            column("fact_data_issue", "action", "Action for the data owner")],
+            title="Issues found in the extract"),
+        table("table_codes", 20, 475, 1240, 235, 300, [
+            column("dim_product_code", "business_unit", "Business unit"),
+            column("dim_product_code", "local_item_number", "Local item number"),
+            column("dim_product", "product_id", "Global product"), PRODUCT, FAMILY],
+            title="The global product classification: local item numbers by business unit"),
+    ]
+
+
 def intensity():
     return [
         *header("Intensity and growth",
@@ -504,7 +646,13 @@ PAGES = [("introduction", "Introduction", introduction), ("overview", "Overview"
          ("scope2_methods", "Scope 2 methods", scope2_methods),
          ("intensity", "Intensity and growth", intensity), ("energy", "Energy and activity", energy),
          ("changed", "What changed", changed), ("sites", "Sites", sites),
-         ("data_quality", "Data quality", data_quality)]
+         ("data_quality", "Data quality", data_quality),
+         ("portfolio_overview", "Portfolio overview", portfolio_overview),
+         ("price_volume_mix", "Price, volume and mix", price_volume_mix),
+         ("portfolio_balance", "Portfolio balance", portfolio_balance),
+         ("product_sustainability", "Product sustainability", product_sustainability),
+         ("scorecard", "Quarterly scorecard", scorecard),
+         ("classification", "Classification and data quality", classification)]
 
 
 def write_json(path, data):

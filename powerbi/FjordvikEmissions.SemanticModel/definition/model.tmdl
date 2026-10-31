@@ -9,7 +9,7 @@ model Model
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["DataFolder","dim_date","dim_site","dim_source","fact_emissions","fact_site_metrics","dim_scope3_category","dim_contract","fact_scope2_market","fact_energy_upstream","dim_supplier","fact_purchases","fact_freight"]
+annotation PBI_QueryOrder = ["DataFolder","dim_date","dim_site","dim_source","fact_emissions","fact_site_metrics","dim_scope3_category","dim_contract","fact_scope2_market","fact_energy_upstream","dim_supplier","fact_purchases","fact_freight","dim_product_group","dim_product","dim_region","dim_product_code","fact_sales","fact_data_issue","fact_use_phase","dim_score_criterion","fact_product_rating"]
 
 annotation PBI_ProTooling = ["DevMode"]
 
@@ -26,10 +26,23 @@ ref table fact_energy_upstream
 ref table dim_supplier
 ref table fact_purchases
 ref table fact_freight
+ref table dim_product_group
+ref table dim_product
+ref table dim_region
+ref table dim_product_code
+ref table fact_sales
+ref table fact_data_issue
+ref table fact_use_phase
+ref table dim_score_criterion
+ref table fact_product_rating
 
 ref role Finland
 ref role Sweden
 ref role Estonia
+ref role Nordics
+ref role Baltics
+ref role 'Western Europe'
+ref role 'Rest of world'
 
 ref cultureInfo en-US
 

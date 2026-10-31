@@ -1,0 +1,96 @@
+/// Scope 3 category 11, use of sold products: units x lifetime years x yearly kWh x the grid factor of the region of use. No Rest of world rows: no factor source identified. Factors are illustrative.
+table fact_use_phase
+	lineageTag: 0d893f76-b840-4e59-bbce-58fe818393fb
+
+	column date_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 8173eca3-d2f0-432d-9ea2-66aee86767a8
+		summarizeBy: none
+		sourceColumn: date_key
+
+	column site_id
+		dataType: string
+		isHidden
+		lineageTag: 08979106-e6ea-45d3-b5be-a8b48f419409
+		summarizeBy: none
+		sourceColumn: site_id
+
+	column source_id
+		dataType: string
+		isHidden
+		lineageTag: 7e07e76f-9360-46b2-b6b7-923f13dfa591
+		summarizeBy: none
+		sourceColumn: source_id
+
+	column product_id
+		dataType: string
+		isHidden
+		lineageTag: 96eb73c5-9ebc-4417-9089-66f63b4d3800
+		summarizeBy: none
+		sourceColumn: product_id
+
+	column region_id
+		dataType: string
+		isHidden
+		lineageTag: 533cf3a7-b309-4d54-bf4f-83e8d047157c
+		summarizeBy: none
+		sourceColumn: region_id
+
+	column units
+		dataType: int64
+		formatString: #,0
+		lineageTag: 324e0ee2-bf50-44ef-b957-3a0c91e8f24f
+		summarizeBy: none
+		sourceColumn: units
+
+	column net_sales_eur
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 5a772762-a84c-4838-8527-c8b6338bf11a
+		summarizeBy: none
+		sourceColumn: net_sales_eur
+
+	/// Lifetime electricity of the units sold, kWh.
+	column activity_amount
+		dataType: double
+		formatString: #,0
+		lineageTag: 7c1c481f-2a05-4dce-a5ac-6daf4f4f2e82
+		summarizeBy: none
+		sourceColumn: activity_amount
+
+	column unit
+		dataType: string
+		lineageTag: b49feb01-c56a-4654-86fe-5246874bc6fb
+		summarizeBy: none
+		sourceColumn: unit
+
+	/// Illustrative grid factor in kilograms of CO2 equivalent per kWh. Not for real reporting.
+	column emission_factor
+		dataType: double
+		formatString: #,0.000
+		lineageTag: 515b855c-dc7e-470e-ad01-10180930cbbe
+		summarizeBy: none
+		sourceColumn: emission_factor
+
+	/// Tonnes of CO2 equivalent, as stored in the source data.
+	column tco2e
+		dataType: double
+		formatString: #,0.000000
+		lineageTag: f8bd49e4-e1fd-46fc-86db-714a53a429f6
+		summarizeBy: none
+		sourceColumn: tco2e
+
+	partition fact_use_phase = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(DataFolder & "\fact_use_phase.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					// "en-US" so "0.200" is read with a full stop as the decimal mark on any Windows locale
+					Typed = Table.TransformColumnTypes(Promoted, {{"date_key", Int64.Type}, {"site_id", type text}, {"source_id", type text}, {"product_id", type text}, {"region_id", type text}, {"units", Int64.Type}, {"net_sales_eur", type number}, {"activity_amount", type number}, {"unit", type text}, {"emission_factor", type number}, {"tco2e", type number}}, "en-US")
+				in
+					Typed
+
+	annotation PBI_ResultType = Table

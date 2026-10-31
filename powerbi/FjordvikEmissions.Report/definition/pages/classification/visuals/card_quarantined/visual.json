@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "card_quarantined",
+  "position": {
+    "x": 340,
+    "y": 95,
+    "z": 101,
+    "height": 100,
+    "width": 300,
+    "tabOrder": 101
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Quarantined Sales (EUR)"
+                }
+              },
+              "queryRef": "_Measures.Quarantined Sales (EUR)",
+              "nativeQueryRef": "Quarantined Sales (EUR)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

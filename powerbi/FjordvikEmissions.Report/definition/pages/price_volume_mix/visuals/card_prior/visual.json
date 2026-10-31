@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "card_prior",
+  "position": {
+    "x": 20,
+    "y": 95,
+    "z": 300,
+    "height": 100,
+    "width": 300,
+    "tabOrder": 300
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Margin Prior Year (EUR)"
+                }
+              },
+              "queryRef": "_Measures.Margin Prior Year (EUR)",
+              "nativeQueryRef": "Margin Prior Year (EUR)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "table_by_family",
+  "position": {
+    "x": 20,
+    "y": 485,
+    "z": 600,
+    "height": 225,
+    "width": 1240,
+    "tabOrder": 600
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_product_group"
+                    }
+                  },
+                  "Property": "product_family"
+                }
+              },
+              "queryRef": "dim_product_group.product_family",
+              "nativeQueryRef": "product_family",
+              "displayName": "Family"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_product_group"
+                    }
+                  },
+                  "Property": "product_group"
+                }
+              },
+              "queryRef": "dim_product_group.product_group",
+              "nativeQueryRef": "product_group",
+              "displayName": "Product group"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Units Sold"
+                }
+              },
+              "queryRef": "_Measures.Units Sold",
+              "nativeQueryRef": "Units Sold"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Net Sales (EUR)"
+                }
+              },
+              "queryRef": "_Measures.Net Sales (EUR)",
+              "nativeQueryRef": "Net Sales (EUR)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Average Price (EUR)"
+                }
+              },
+              "queryRef": "_Measures.Average Price (EUR)",
+              "nativeQueryRef": "Average Price (EUR)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Margin (EUR)"
+                }
+              },
+              "queryRef": "_Measures.Margin (EUR)",
+              "nativeQueryRef": "Margin (EUR)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Margin (%)"
+                }
+              },
+              "queryRef": "_Measures.Margin (%)",
+              "nativeQueryRef": "Margin (%)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Sales and margin by family and product group'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
