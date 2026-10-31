@@ -239,12 +239,19 @@ file-based analytics database).
 | Tools | Six purpose-built tools plus a guarded SQL tool | SQL only | Purpose-built tools carry tested logic; SQL alone lets the model get the grain wrong |
 | Filter values | Bound parameters | Text pasted into SQL | Input can never change the query (no SQL injection) |
 | Errors | Clear messages for input mistakes, a generic message for crashes | Show every error | Claude gets what it can fix; internal details stay on the server |
-| Transport | Local stdio (standard input and output) | Remote HTTP | Simplest for one person on one machine; the remote version is the next step |
+| Transport | Local stdio (standard input and output), plus Streamable HTTP with sign-in | Stdio only | Stdio is simplest for one person; the HTTP version shows how a company shares one connector, with OAuth sign-in and a role per person |
 
 **Safety in layers.** The SQL tool accepts exactly one `SELECT`, the database's file and
 network access is switched off and locked, and results are capped at 1,000 rows. Each
 layer has its own tests, and the tests were checked by removing a guard on purpose and
 watching them fail.
+
+**Sign-in and roles.** Over HTTP the connector asks for OAuth 2.1 sign-in, as Claude
+clients expect of a remote connector: the client registers itself, sends the person to a
+sign-in page with a PKCE (Proof Key for Code Exchange) challenge, and swaps the returned
+code for a one-hour token. Each tool then checks the role: a Nordics sales manager sees
+Nordics sales only and no emissions, mirroring the Power BI region roles. The sign-in page
+is a demo (pick a role, no password) and the server runs on this computer only.
 
 **Getting the grain right.** Emissions and revenue are flows, so they are summed over
 months. Full-time equivalent employees (FTE) is a level, so it is summed across sites

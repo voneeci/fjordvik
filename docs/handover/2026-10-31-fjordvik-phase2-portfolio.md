@@ -104,6 +104,35 @@ Evidence: `powerbi/evidence/pytest-layout-live-2026-10-31.txt` (371 passed, live
 refreshed); `data`, `mcp` and `power-automate` in `evidence/pytest-layout-2026-10-31.txt`
 (58, 59 and 26 passed).
 
+## Addendum: connector over HTTP with sign-in (Reece's choice, 31 October 2026)
+
+Reece chose to see the connector working rather than build the other designed items:
+try the local connector in Claude Desktop, then build the company-style version. The
+Power BI Service, Power Automate tenant and data feeds stay as designs.
+
+- `python -m fjordvik_mcp --http` serves the seven tools over Streamable HTTP on
+  127.0.0.1:8765 only, behind OAuth 2.1 sign-in (dynamic client registration, PKCE,
+  one-hour tokens that name this server as their audience). Code: `mcp/src/fjordvik_mcp/auth.py`,
+  `server.py` (`permitted()` in every tool).
+- Four demo roles mirror the Power BI security roles: Group analyst (everything),
+  Sustainability reviewer (emissions only), Nordics and Western Europe sales managers
+  (their region's sales only). `run_sql` is for the group analyst only. The sign-in page
+  is a demo: pick a role, no password, nothing secret.
+- `mcp/scripts/try_http_connector.py` signs in through the browser and calls three tools.
+  Run as Group analyst it returned four regions (Nordics 2025 net sales EUR 67,502,855.20)
+  and 3,379 sales rows from `run_sql`; as Nordics sales manager, the Nordics only with the
+  same figure, and `run_sql` refused.
+- 17 new tests in `mcp/tests/test_http_auth.py` (each OAuth refusal, each role against the
+  real server, the SDK's own client end to end). Planting two faults (no region filter,
+  `run_sql` open to all) made four fail.
+
+Evidence: `mcp/evidence/pytest-http-auth-2026-10-31.txt` (76 passed),
+`mcp/evidence/try-http-connector-group-analyst-2026-10-31.txt`,
+`mcp/evidence/try-http-connector-nordics-manager-2026-10-31.txt`.
+
+Not built: hosting, a real identity provider, access from claude.ai or phones (they
+connect from Anthropic's cloud and cannot reach localhost), an audit log.
+
 ## Test results (each from its own folder and `.venv`)
 
 | Part | Result | Evidence |
@@ -125,4 +154,5 @@ blank (`expected.py` says so).
 
 ## Next step
 
-Publish to a Power BI Service trial to build the refresh design.
+Apply the dashboard design recommendations from the research note when it arrives (the
+16 page screenshots it reviews were taken at commit 87faac1).

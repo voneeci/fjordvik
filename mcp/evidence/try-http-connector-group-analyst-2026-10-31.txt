@@ -1,0 +1,11 @@
+
+Sign in here (your browser should open it):
+http://127.0.0.1:8765/authorize?response_type=code&client_id=4abcad0c-c31a-4926-bf65-ec8589d0feb6&redirect_uri=http%3A%2F%2F127.0.0.1%3A8766%2Fcallback&state=zq2xR1rSwsIFqW3el2xtejw-OO6USh7_R5a1mMBjqSk&code_challenge=n5Kso8k-ws2qgoet8W6UGDKZ5kKGvj5kh3vEqlfbgeE&code_challenge_method=S256&resource=http%3A%2F%2F127.0.0.1%3A8765%2Fmcp&scope=fjordvik.read
+
+Signed in. What this role gets back:
+  describe_dataset: 6 sites, period {'first_month': '2023-01', 'last_month': '2025-12', 'grain': 'monthly'}
+  sales_summary: Baltics 2025 net sales EUR 25,882,251.23
+  sales_summary: Nordics 2025 net sales EUR 67,502,855.20
+  sales_summary: Rest of world 2025 net sales EUR 18,369,180.16
+  sales_summary: Western Europe 2025 net sales EUR 42,928,566.10
+  run_sql: [{'sales_rows': 3379}]

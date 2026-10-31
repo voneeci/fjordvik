@@ -1,0 +1,8 @@
+
+Sign in here (your browser should open it):
+http://127.0.0.1:8765/authorize?response_type=code&client_id=389e0258-0c01-4539-9632-31fd7c26465f&redirect_uri=http%3A%2F%2F127.0.0.1%3A8766%2Fcallback&state=M08y-XXmNH6GZvltOVnytolEsCptsG6bj2wrailTX1I&code_challenge=LHY7x4GojGnoRZ5Dl7F7AT2As3SEZaWn7J01-q0FsYk&code_challenge_method=S256&resource=http%3A%2F%2F127.0.0.1%3A8765%2Fmcp&scope=fjordvik.read
+
+Signed in. What this role gets back:
+  describe_dataset: 6 sites, 2023-01 to 2025-12
+  sales_summary: Nordics 2025 net sales EUR 67,502,855.20
+  run_sql: refused. Error executing tool run_sql: Signed in as Nordics sales manager: run_sql is not available to this role. Roles that can use it: Group analyst.

@@ -28,7 +28,7 @@ price, volume and mix, portfolio balance and a quarterly scorecard.
 | Folder | What it shows | Tests |
 | --- | --- | --- |
 | [`data`](data) | The governed dataset: 21 tables with fixed names, checksums and quality tests, and the SQL that cleans the simulated ERP extract | 58 |
-| [`mcp`](mcp) | A Model Context Protocol (MCP) server that gives Claude seven read-only tools over the data (Python, DuckDB) | 59 |
+| [`mcp`](mcp) | A Model Context Protocol (MCP) server that gives Claude seven read-only tools over the data (Python, DuckDB), in Claude Desktop or over HTTP with sign-in and per-role access | 76 |
 | [`powerbi`](powerbi) | A Power BI Project: semantic model in Tabular Model Definition Language (TMDL), 62 Data Analysis Expressions (DAX) measures, seven row-level security roles, a 16-page report | 371 (109 need Power BI Desktop open) |
 | [`power-automate`](power-automate) | Power Automate intake and reminder flows with ten written rules, designed and tested offline | 26 |
 
@@ -145,7 +145,7 @@ python -m venv .venv
 .venv\Scripts\python -m pytest -q
 ```
 
-Each should end with a line such as `58 passed`: 58 for data, 59 for mcp, 26 for
+Each should end with a line such as `58 passed`: 58 for data, 76 for mcp, 26 for
 power-automate, and 262 for powerbi (with 109 skipped until Power BI Desktop is open).
 On macOS or Linux, use `.venv/bin/python` in place of `.venv\Scripts\python`.
 
@@ -169,6 +169,8 @@ On macOS or Linux, use `.venv/bin/python` in place of `.venv\Scripts\python`.
   in the `data` folder ([data/README.md](data/README.md) explains it).
 - To ask Claude questions about the data, follow
   [mcp/README.md](mcp/README.md#connect-it-to-claude-desktop).
+- To see how a company would share the connector, with sign-in and a role per person, follow
+  [mcp/README.md](mcp/README.md#run-it-over-http-with-sign-in).
 
 ## History
 

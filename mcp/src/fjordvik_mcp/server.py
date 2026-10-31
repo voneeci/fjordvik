@@ -1,20 +1,29 @@
 """The Fjordvik MCP server: seven read-only tools and two resources.
 
 Claude Desktop starts this as a subprocess and talks to it over standard input
-and output (the stdio transport). Each tool is a thin wrapper over a method in
-queries.py; the descriptions here are what Claude reads when deciding which
-tool to call, so they say what each tool is for, not how it works.
+and output (the stdio transport): one person on one laptop, full access. With
+--http it runs as a company connector would: over Streamable HTTP, behind an
+OAuth sign-in, and each tool checks the signed-in role (auth.py).
+
+Each tool is a thin wrapper over a method in queries.py; the descriptions here
+are what Claude reads when deciding which tool to call, so they say what each
+tool is for, not how it works.
 """
 
+import argparse
 import json
 from contextlib import contextmanager
 from typing import Any, Literal
 
+from mcp.server.auth.middleware.auth_context import get_access_token
+from mcp.server.auth.settings import AuthSettings, ClientRegistrationOptions, RevocationOptions
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
+from mcp.server.transport_security import TransportSecuritySettings
 from mcp.types import ToolAnnotations
 
 from fjordvik_mcp import db
+from fjordvik_mcp.auth import ROLES, SCOPE, DemoOAuthProvider, Role, sign_in_routes
 from fjordvik_mcp.queries import (GroupBy, IntensityGroupBy, SalesGroupBy, Scope2Method,
                                   Warehouse)
 
@@ -96,15 +105,51 @@ def user_errors():
         raise ToolError(str(e)) from e
 
 
-def build_server(warehouse: Warehouse | None = None) -> MCPServer:
+DEFAULT_PORT = 8765
+
+
+def permitted(tool: str) -> Role | None:
+    """The signed-in role, if it may use this tool. Over stdio there is no sign-in
+    and no token: one person on their own laptop, so every tool is open (None)."""
+    token = get_access_token()
+    if token is None:
+        return None
+    role = ROLES.get(token.subject or "")
+    if role is None or tool not in role.tools:
+        allowed = ", ".join(r.name for r in ROLES.values() if tool in r.tools)
+        who = role.name if role else "an unknown role"
+        raise ToolError(f"Signed in as {who}: {tool} is not available to this role. "
+                        f"Roles that can use it: {allowed}.")
+    return role
+
+
+def build_server(warehouse: Warehouse | None = None, http_url: str | None = None) -> MCPServer:
+    """The server. http_url (for example http://127.0.0.1:8765) turns on the OAuth
+    sign-in for the HTTP transport; without it the server is for stdio."""
     wh = warehouse or Warehouse(db.connect())
+    sign_in: dict[str, Any] = {}
+    if http_url:
+        provider = DemoOAuthProvider(http_url, f"{http_url}/mcp")
+        sign_in = dict(
+            auth_server_provider=provider,
+            auth=AuthSettings(
+                issuer_url=http_url, resource_server_url=f"{http_url}/mcp",
+                validate_token_resource=True, required_scopes=[SCOPE],
+                client_registration_options=ClientRegistrationOptions(
+                    enabled=True, valid_scopes=[SCOPE], default_scopes=[SCOPE]),
+                revocation_options=RevocationOptions(enabled=True)))
     server = MCPServer(name="fjordvik", title="Fjordvik emissions data",
-                       instructions=INSTRUCTIONS, version="1.0.0")
+                       instructions=INSTRUCTIONS, version="1.0.0", **sign_in)
+    if http_url:
+        show, finish = sign_in_routes(provider)
+        server.custom_route("/login", methods=["GET"])(show)
+        server.custom_route("/login", methods=["POST"])(finish)
 
     @server.tool(annotations=READ_ONLY)
     def describe_dataset() -> dict[str, Any]:
         """List the sites, emission sources, period, row counts, units and caveats.
         Use this first to learn valid site_id and source_id values."""
+        permitted("describe_dataset")
         return wh.describe()
 
     @server.tool(annotations=READ_ONLY)
@@ -129,6 +174,7 @@ def build_server(warehouse: Warehouse | None = None) -> MCPServer:
         Sweden, Estonia), scope (1, 2 or 3), source_id (e.g. S05), and
         start_month / end_month as YYYY-MM (inclusive).
         Example: monthly trend for one site = group_by ["month"], site_id "FI01"."""
+        permitted("emissions_total")
         with user_errors():
             return wh.emissions_total(group_by, scope2_method, year=year, site_id=site_id,
                                       country=country, scope=scope, source_id=source_id,
@@ -145,6 +191,7 @@ def build_server(warehouse: Warehouse | None = None) -> MCPServer:
         """Emissions per full-time equivalent employee (FTE) or per million euros of
         revenue, grouped by any of year, site, country, site_type. Covers all scopes.
         Intensity is null where the divisor is zero (the head office has no revenue)."""
+        permitted("emissions_intensity")
         with user_errors():
             return wh.emissions_intensity(per, group_by, year=year, site_id=site_id,
                                           country=country)
@@ -154,6 +201,7 @@ def build_server(warehouse: Warehouse | None = None) -> MCPServer:
         """The 15 Greenhouse Gas (GHG) Protocol scope 3 categories: whether Fjordvik
         calculates each, the reason for any it doesn't, and tCO2e for the year (or
         the whole period). Use it for questions about scope 3 coverage or exclusions."""
+        permitted("scope3_inventory")
         with user_errors():
             return wh.scope3_inventory(year)
 
@@ -166,7 +214,14 @@ def build_server(warehouse: Warehouse | None = None) -> MCPServer:
     ) -> dict[str, Any]:
         """Units sold, net sales (EUR), margin (EUR) and margin % from the cleaned sales,
         grouped by any of year, quarter, site, family, group, product, region.
-        Filters: year, region_id (NOR, BAL, WEU, ROW), product_family."""
+        Filters: year, region_id (NOR, BAL, WEU, ROW), product_family.
+        A sales region role sees its own region only."""
+        role = permitted("sales_summary")
+        if role and role.region_id:
+            if region_id and region_id != role.region_id:
+                raise ToolError(f"Signed in as {role.name}: only region {role.region_id} "
+                                f"is available, not {region_id}.")
+            region_id = role.region_id
         with user_errors():
             return wh.sales_summary(group_by, year=year, region_id=region_id,
                                     product_family=product_family)
@@ -180,6 +235,7 @@ def build_server(warehouse: Warehouse | None = None) -> MCPServer:
         payer split, a reason for every scope 3 category, and sales reconciling to finance
         revenue). Returns pass or fail for
         each, with up to ten example rows for any failure."""
+        permitted("data_quality_report")
         return wh.data_quality_report()
 
     @server.tool(annotations=READ_ONLY)
@@ -188,6 +244,7 @@ def build_server(warehouse: Warehouse | None = None) -> MCPServer:
         all_emissions view (see the
         fjordvik://schema resource). Only a single SELECT statement is accepted;
         files and the network are blocked. max_rows: 1 to 1000."""
+        permitted("run_sql")
         with user_errors():
             return wh.run_sql(query, max_rows)
 
@@ -206,5 +263,25 @@ def build_server(warehouse: Warehouse | None = None) -> MCPServer:
     return server
 
 
-def main() -> None:
-    build_server().run("stdio")
+def http_security(port: int) -> TransportSecuritySettings:
+    """Only Host and Origin headers naming this computer: a web page elsewhere can't use it."""
+    return TransportSecuritySettings(
+        allowed_hosts=[f"127.0.0.1:{port}", f"localhost:{port}"],
+        allowed_origins=[f"http://127.0.0.1:{port}", f"http://localhost:{port}"])
+
+
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(prog="fjordvik-mcp", description=__doc__.splitlines()[0])
+    parser.add_argument("--http", action="store_true",
+                        help="run over Streamable HTTP with sign-in, on this computer only")
+    parser.add_argument("--port", type=int, default=DEFAULT_PORT)
+    args = parser.parse_args(argv)
+    if not args.http:
+        build_server().run("stdio")
+        return
+    url = f"http://127.0.0.1:{args.port}"
+    print(f"Fjordvik connector with sign-in at {url}/mcp (this computer only; Ctrl+C stops it)",
+          flush=True)
+    # Bound to 127.0.0.1, so no other machine can reach it.
+    build_server(http_url=url).run("streamable-http", host="127.0.0.1", port=args.port,
+                                   transport_security=http_security(args.port))

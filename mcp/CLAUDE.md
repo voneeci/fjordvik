@@ -1,8 +1,9 @@
 # fjordvik-mcp
 
 Model Context Protocol (MCP) server over the synthetic Fjordvik dataset, for Claude
-Desktop. One of four folders in the fjordvik repository: data (source of the data), mcp,
-powerbi, power-automate. Permanent rules in
+Desktop (stdio) and, as a local demo, over HTTP with OAuth sign-in. One of four folders
+in the fjordvik repository: data (source of the data), mcp, powerbi, power-automate.
+Permanent rules in
 `C:\Users\reece\Projects\knowledge\RULES.md` override this file.
 
 ## Rules for this repo
@@ -19,12 +20,18 @@ powerbi, power-automate. Permanent rules in
 - MCP SDK is 2.x: `from mcp.server.mcpserver import MCPServer` (FastMCP was renamed),
   in-process tests via `mcp.Client(server)`. Raise `ToolError` for messages Claude
   should see; other exceptions are hidden by design.
+- The HTTP transport (`--http`) binds to 127.0.0.1 only and needs sign-in; every tool
+  calls `permitted()` first, and the roles in `auth.py` mirror the Power BI security
+  roles. The sign-in page is a demo: no passwords or secrets, ever. Opening the server to
+  other machines or adding a role needs Reece's yes.
 - Writing: no em dashes, Australian spelling, spell out acronyms on first use.
 
 ## Commands
 
 ```bash
 .venv\Scripts\python -m pip install -e ".[dev]"
-.venv\Scripts\python -m pytest -q        # 59 tests
+.venv\Scripts\python -m pytest -q        # 76 tests
 .venv\Scripts\python -m fjordvik_mcp     # run over stdio (Claude Desktop does this)
+.venv\Scripts\python -m fjordvik_mcp --http           # HTTP with sign-in, 127.0.0.1:8765
+.venv\Scripts\python scripts\try_http_connector.py    # sign in and try it
 ```
