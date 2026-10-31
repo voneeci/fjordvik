@@ -65,7 +65,66 @@ def card(name, x, y, w, h, z, m):
         "drillFilterOtherVisuals": True})
 
 
-def chart(kind, name, x, y, w, h, z, category, values, series=None, sort_by_value=False):
+def lit(value):
+    """A PBIR literal: text in single quotes, numbers with a type suffix, true/false bare."""
+    return {"expr": {"Literal": {"Value": value}}}
+
+
+def fill(hex_colour):
+    return {"solid": {"color": lit(f"'{hex_colour}'")}}
+
+
+def for_measure(name):
+    """Colour selector for one measure on a chart with several measures."""
+    return {"metadata": f"_Measures.{name}"}
+
+
+def for_value(field, value):
+    """Colour selector for one category or legend value, such as country = 'Finland'."""
+    entity, prop, kind, _label = field
+    right = f"'{value}'" if isinstance(value, str) else f"{value}L"
+    return {"data": [{"scopeId": {"Comparison": {
+        "ComparisonKind": 0,
+        "Left": {kind: {"Expression": {"SourceRef": {"Entity": entity}}, "Property": prop}},
+        "Right": {"Literal": {"Value": right}}}}}]}
+
+
+def style(visual, title=None, colours=None, labels=False, legend=False, extra=None):
+    """The design pass: a title that says what the chart shows, fixed colours, and data
+    labels or a legend where they help. colours is a list of (selector or None, hex)."""
+    objects = dict(visual.get("objects", {}))
+    if colours:
+        objects["dataPoint"] = [({"properties": {"fill": fill(c)}, "selector": s} if s
+                                 else {"properties": {"fill": fill(c)}}) for s, c in colours]
+    if labels:
+        objects["labels"] = [{"properties": {"show": lit("true")}}]
+    if legend:
+        objects["legend"] = [{"properties": {"show": lit("true"), "position": lit("'Top'")}}]
+    objects.update(extra or {})
+    if objects:
+        visual["objects"] = objects
+    if title:
+        visual["visualContainerObjects"] = {"title": [{"properties": {
+            "show": lit("true"), "text": lit("'" + title.replace("'", "''") + "'")}}]}
+    return visual
+
+
+def year_filter(year):
+    """A visual-level filter fixing dim_date[year], for a chart that explains one year."""
+    return {"filters": [{
+        "name": f"year_{year}",
+        "field": field_expr(YEAR),
+        "type": "Categorical",
+        "filter": {"Version": 2,
+                   "From": [{"Name": "d", "Entity": "dim_date", "Type": 0}],
+                   "Where": [{"Condition": {"In": {
+                       "Expressions": [{"Column": {"Expression": {"SourceRef": {"Source": "d"}},
+                                                   "Property": "year"}}],
+                       "Values": [[{"Literal": {"Value": f"{year}L"}}]]}}}]}}]}
+
+
+def chart(kind, name, x, y, w, h, z, category, values, series=None, sort_by_value=False,
+          title=None, colours=None, labels=False, legend=False, filter_year=None, extra=None):
     state = {"Category": {"projections": [projection(category, active=True)]},
              "Y": {"projections": [projection(v) for v in values]}}
     if series:
@@ -75,15 +134,29 @@ def chart(kind, name, x, y, w, h, z, category, values, series=None, sort_by_valu
              "sortDefinition": {"sort": [{"field": field_expr(sort_field),
                                           "direction": "Descending" if sort_by_value else "Ascending"}],
                                 "isDefaultSort": True}}
-    return container(name, x, y, w, h, z, {"visualType": kind, "query": query,
-                                           "drillFilterOtherVisuals": True})
+    visual = style({"visualType": kind, "query": query, "drillFilterOtherVisuals": True},
+                   title, colours, labels, legend, extra)
+    c = container(name, x, y, w, h, z, visual)
+    if filter_year:
+        c["filterConfig"] = year_filter(filter_year)
+    return c
 
 
-def table(name, x, y, w, h, z, fields):
-    return container(name, x, y, w, h, z, {
+def table(name, x, y, w, h, z, fields, title=None):
+    return container(name, x, y, w, h, z, style({
         "visualType": "tableEx",
         "query": {"queryState": {"Values": {"projections": [projection(f) for f in fields]}}},
-        "drillFilterOtherVisuals": True})
+        "drillFilterOtherVisuals": True}, title))
+
+
+def matrix(name, x, y, w, h, z, rows, columns, values, title=None):
+    return container(name, x, y, w, h, z, style({
+        "visualType": "pivotTable",
+        "query": {"queryState": {
+            "Rows": {"projections": [projection(f, active=True) for f in rows]},
+            "Columns": {"projections": [projection(f, active=True) for f in columns]},
+            "Values": {"projections": [projection(f) for f in values]}}},
+        "drillFilterOtherVisuals": True}, title))
 
 
 def slicer(name, x, y, w, h, z, field):
@@ -110,37 +183,161 @@ def textbox(name, x, y, w, h, z, lines):
 # ---------------------------------------------------------------------------
 
 TOTAL = "Total Emissions (tCO2e)"
+SCOPES = ["Scope 1 Emissions (tCO2e)", "Scope 2 Emissions (tCO2e)", "Scope 3 Emissions (tCO2e)"]
+LFL = "Emissions Change vs Prior Year (%)"
+CHANGE = "Emissions Change Including New Sites (tCO2e)"
+CHANGE_PCT = "Emissions Change Including New Sites (%)"
 YEAR = column("dim_date", "year", "Year")
+MONTH = column("dim_date", "date", "Month")
 COUNTRY = column("dim_site", "country", "Country")
 SITE = column("dim_site", "site_name", "Site")
+SCOPE = column("dim_source", "scope", "Scope")
+SOURCE = column("dim_source", "source_name", "Source")
+
+# Fixed colours, each set checked for colour-blind separation and contrast on white
+# (31 October 2026). A colour follows its scope, country or site on every page.
+ACCENT = "#1F6FA8"
+SCOPE_COLOURS = {1: "#1F6FA8", 2: "#C77A1A", 3: "#7A5BA6"}
+COUNTRY_COLOURS = {"Finland": "#2B7A3F", "Sweden": "#5B5FC7", "Estonia": "#C4502A"}
+# Three of the six site colours are below 3:1 contrast on white, so every chart that
+# uses them has a site table on the same page.
+SITE_COLOURS = {"Tampere Plant": "#2A78D6", "Helsinki Head Office": "#EB6834",
+                "Oulu Warehouse": "#1BAF7A", "Gothenburg Plant": "#EDA100",
+                "Tallinn Plant": "#E87BA4", "Tartu Warehouse": "#008300"}
+ENERGY = [("Natural Gas Used (kWh)", "#2A78D6"), ("Electricity Purchased (kWh)", "#EB6834"),
+          ("District Heating Purchased (kWh)", "#1BAF7A")]
+ACTIVITY_CARDS = ["Energy Used (kWh)", "Vehicle Fuel Used (litres)", "Refrigerant Leakage (kg)",
+                  "Business Flights (passenger-km)", "Waste to Landfill (tonnes)"]
+
+
+def header(title, note, slicers=(YEAR, COUNTRY)):
+    """Page title with the synthetic-data caveat, and the page's slicers top right."""
+    width = 1240 - 210 * len(slicers)
+    out = [textbox("title", 20, 10, width, 70, 0, [title, f"{note} {CAVEAT}".strip()])]
+    for i, field in enumerate(slicers):
+        out.append(slicer(f"slicer_{field[1]}", 20 + width + 20 + i * 210, 10, 190, 70,
+                          100 + i, field))
+    return out
+
+
+def single(colour=ACCENT):
+    return [(None, colour)]
 
 
 def overview():
-    cards = [TOTAL, "Scope 1 Emissions (tCO2e)", "Scope 2 Emissions (tCO2e)",
-             "Scope 3 Emissions (tCO2e)", "Emissions per FTE (tCO2e)"]
+    cards = [TOTAL, *SCOPES, "Emissions per FTE (tCO2e)"]
     return [
-        textbox("title", 20, 10, 820, 70, 0, ["Fjordvik Manufacturing Oy: emissions overview", CAVEAT]),
-        slicer("slicer_year", 860, 10, 190, 70, 100, YEAR),
-        slicer("slicer_country", 1070, 10, 190, 70, 200, COUNTRY),
+        *header("Fjordvik Manufacturing Oy: emissions overview", ""),
         *[card(f"card_{i}", 20 + i * 250, 95, 240, 110, 300 + i, m) for i, m in enumerate(cards)],
-        chart("lineChart", "line_total_by_month", 20, 220, 760, 480, 400,
-              column("dim_date", "date", "Month"), [measure(TOTAL)]),
+        chart("lineChart", "line_total_by_month", 20, 220, 760, 480, 400, MONTH, [measure(TOTAL)],
+              title="Total emissions by month (tCO2e)", colours=single()),
         chart("clusteredBarChart", "bar_total_by_site", 800, 220, 460, 480, 500,
-              SITE, [measure(TOTAL)], sort_by_value=True),
+              SITE, [measure(TOTAL)], sort_by_value=True, title="Emissions by site (tCO2e)",
+              colours=single(), labels=True),
+    ]
+
+
+def breakdown():
+    return [
+        *header("Emissions breakdown", "What the emissions are made of: scope, source and country."),
+        chart("columnChart", "column_scope_by_month", 20, 95, 760, 300, 300, MONTH,
+              [measure(m) for m in SCOPES], title="Emissions by scope and month (tCO2e)",
+              colours=[(for_measure(m), SCOPE_COLOURS[i + 1]) for i, m in enumerate(SCOPES)],
+              legend=True),
+        chart("donutChart", "donut_scope_share", 800, 95, 460, 300, 400, SCOPE, [measure(TOTAL)],
+              sort_by_value=True, title="Share of emissions by scope",
+              colours=[(for_value(SCOPE, s), c) for s, c in SCOPE_COLOURS.items()],
+              labels=True, legend=True),
+        chart("clusteredBarChart", "bar_by_source", 20, 410, 620, 300, 500, SOURCE,
+              [measure(TOTAL)], sort_by_value=True, title="Emissions by source (tCO2e)",
+              colours=single(), labels=True),
+        chart("clusteredColumnChart", "column_by_country", 660, 410, 600, 300, 600, COUNTRY,
+              [measure(TOTAL)], sort_by_value=True, title="Emissions by country (tCO2e)",
+              colours=[(for_value(COUNTRY, k), c) for k, c in COUNTRY_COLOURS.items()],
+              labels=True),
+    ]
+
+
+def intensity():
+    return [
+        *header("Intensity and growth",
+                "Is Fjordvik getting cleaner as it grows? Emissions per employee and per million euros."),
+        chart("lineChart", "line_per_fte_by_month", 20, 95, 620, 290, 300, MONTH,
+              [measure("Emissions per FTE (tCO2e)")], title="Emissions per FTE by month (tCO2e)",
+              colours=single()),
+        chart("lineChart", "line_per_meur_by_month", 660, 95, 600, 290, 400, MONTH,
+              [measure("Emissions per Million EUR (tCO2e)")],
+              title="Emissions per million euros of revenue by month (tCO2e)", colours=single()),
+        chart("clusteredColumnChart", "column_revenue_by_month", 20, 400, 400, 300, 500, MONTH,
+              [measure("Revenue (EUR)")], title="Revenue by month (EUR)",
+              colours=single("#7A5BA6")),
+        chart("lineChart", "line_fte_by_month", 440, 400, 400, 300, 600, MONTH,
+              [measure("Average FTE")], title="Headcount by month (FTE)", colours=single("#7A5BA6")),
+        chart("clusteredBarChart", "bar_lfl_change_by_site", 860, 400, 400, 300, 700, SITE,
+              [measure(LFL)], sort_by_value=True,
+              title="Like-for-like change on the prior year, by site (%)", colours=single(),
+              labels=True),
+    ]
+
+
+def energy():
+    return [
+        *header("Energy and activity",
+                "What the sites used, in their own units. Tampere's rooftop solar panels cut its "
+                "bought electricity from July 2024."),
+        *[card(f"card_{i}", 20 + i * 250, 95, 240, 100, 300 + i, m)
+          for i, m in enumerate(ACTIVITY_CARDS)],
+        chart("columnChart", "column_energy_by_month", 20, 210, 620, 260, 400, MONTH,
+              [measure(m) for m, _c in ENERGY], title="Energy used by month (kWh)",
+              colours=[(for_measure(m), c) for m, c in ENERGY], legend=True),
+        chart("lineChart", "line_electricity_by_site", 660, 210, 600, 260, 500, MONTH,
+              [measure("Electricity Purchased (kWh)")], series=SITE,
+              title="Electricity bought by site and month (kWh)",
+              colours=[(for_value(SITE, s), c) for s, c in SITE_COLOURS.items()], legend=True),
+        table("table_activity_by_site", 20, 485, 1240, 220, 600, [
+            SITE, COUNTRY, *[measure(m) for m in ACTIVITY_CARDS],
+            *[measure(m) for m, _c in ENERGY]], title="Activity by site, in the sites' own units"),
+    ]
+
+
+def changed():
+    return [
+        *header("What changed on the prior year",
+                "Like for like compares only site-months reported in both years. Including new "
+                "sites counts Tartu Warehouse's first year (opened July 2024) as an increase.",
+                slicers=(COUNTRY,)),
+        chart("clusteredColumnChart", "column_change_pct_by_year", 20, 95, 400, 300, 300, YEAR,
+              [measure(LFL), measure(CHANGE_PCT)],
+              title="Change on the prior year: like for like and including new sites (%)",
+              colours=[(for_measure(LFL), ACCENT), (for_measure(CHANGE_PCT), "#C77A1A")],
+              labels=True, legend=True),
+        chart("waterfallChart", "waterfall_2025_by_site", 440, 95, 820, 300, 400, SITE,
+              [measure(CHANGE)], sort_by_value=True, filter_year=2025,
+              title="What moved 2025 emissions: change by site against 2024 (tCO2e)", labels=True,
+              extra={"sentimentColors": [{"properties": {
+                  "increaseFill": fill("#C4502A"), "decreaseFill": fill("#2B7A3F"),
+                  "totalFill": fill(ACCENT)}}]}),
+        chart("clusteredBarChart", "bar_change_by_site_and_year", 20, 410, 620, 300, 500, SITE,
+              [measure(CHANGE)], series=YEAR, title="Change on the prior year by site (tCO2e)",
+              colours=[(for_value(YEAR, 2024), "#7A5BA6"), (for_value(YEAR, 2025), ACCENT)],
+              legend=True),
+        matrix("matrix_change_by_site_year", 660, 410, 600, 300, 600, [SITE], [YEAR],
+               [measure(CHANGE), measure(LFL)], title="Change by site and year"),
     ]
 
 
 def sites():
     return [
-        textbox("title", 20, 10, 820, 70, 0, ["Sites: emissions and intensity", CAVEAT]),
-        slicer("slicer_year", 860, 10, 190, 70, 100, YEAR),
+        *header("Sites: emissions and intensity", "", slicers=(YEAR,)),
         table("table_sites", 20, 95, 1240, 290, 200, [
             SITE, COUNTRY, column("dim_site", "site_type", "Site type"),
             measure(TOTAL), measure("Emissions per FTE (tCO2e)"),
-            measure("Emissions per Million EUR (tCO2e)"),
-            measure("Emissions Change vs Prior Year (%)")]),
-        chart("lineChart", "line_scope2_by_site", 20, 400, 1240, 300, 300,
-              column("dim_date", "date", "Month"), [measure("Scope 2 Emissions (tCO2e)")], series=SITE),
+            measure("Emissions per Million EUR (tCO2e)"), measure(LFL)],
+            title="Emissions and intensity by site"),
+        chart("lineChart", "line_scope2_by_site", 20, 400, 1240, 300, 300, MONTH,
+              [measure("Scope 2 Emissions (tCO2e)")], series=SITE,
+              title="Scope 2 emissions by site and month (tCO2e)",
+              colours=[(for_value(SITE, s), c) for s, c in SITE_COLOURS.items()], legend=True),
     ]
 
 
@@ -154,11 +351,14 @@ def data_quality():
         card("card_sites", 660, 95, 300, 110, 102, "Sites Reporting"),
         table("table_by_year", 20, 220, 1240, 200, 200, [
             YEAR, measure("Emission Rows"), measure("Sites Reporting"), measure(TOTAL),
-            measure("Recalculated Emissions (tCO2e)"), measure("Reconciliation Difference (tCO2e)")]),
+            measure("Recalculated Emissions (tCO2e)"), measure("Reconciliation Difference (tCO2e)")],
+            title="Reconciliation by year"),
     ]
 
 
-PAGES = [("overview", "Overview", overview), ("sites", "Sites", sites),
+PAGES = [("overview", "Overview", overview), ("breakdown", "Emissions breakdown", breakdown),
+         ("intensity", "Intensity and growth", intensity), ("energy", "Energy and activity", energy),
+         ("changed", "What changed", changed), ("sites", "Sites", sites),
          ("data_quality", "Data quality", data_quality)]
 
 

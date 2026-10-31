@@ -100,6 +100,74 @@ table _Measures
 		displayFolder: Data quality
 		lineageTag: 01975484-20ec-4e96-bcd0-90723b71461d
 
+	/// Natural gas, purchased electricity and district heating, the three sources reported in kWh, added together.
+	measure 'Energy Used (kWh)' = CALCULATE ( SUM ( fact_emissions[activity_amount] ), KEEPFILTERS ( fact_emissions[unit] = "kWh" ) )
+		formatString: #,0
+		displayFolder: Activity
+		lineageTag: f996e88e-97b8-44fe-9422-d57df63cc237
+
+	/// Natural gas burned on site (source S01). KEEPFILTERS means a filter on another source gives blank.
+	measure 'Natural Gas Used (kWh)' = CALCULATE ( SUM ( fact_emissions[activity_amount] ), KEEPFILTERS ( dim_source[source_id] = "S01" ) )
+		formatString: #,0
+		displayFolder: Activity
+		lineageTag: 79c59fa9-a266-4512-affd-c2a4fc4e11ae
+
+	/// Electricity bought from the grid (source S05). Tampere's rooftop solar from July 2024 shows as lower purchases. KEEPFILTERS means a filter on another source gives blank.
+	measure 'Electricity Purchased (kWh)' = CALCULATE ( SUM ( fact_emissions[activity_amount] ), KEEPFILTERS ( dim_source[source_id] = "S05" ) )
+		formatString: #,0
+		displayFolder: Activity
+		lineageTag: 12ad1e2e-69e6-4c1c-9626-fff49db8ffdb
+
+	/// Heat bought from a district heating network (source S06). KEEPFILTERS means a filter on another source gives blank.
+	measure 'District Heating Purchased (kWh)' = CALCULATE ( SUM ( fact_emissions[activity_amount] ), KEEPFILTERS ( dim_source[source_id] = "S06" ) )
+		formatString: #,0
+		displayFolder: Activity
+		lineageTag: 8317565c-d27d-41ca-9c22-8f2a99906750
+
+	/// Diesel and liquefied petroleum gas (sources S02 and S03), both reported in litres, added together.
+	measure 'Vehicle Fuel Used (litres)' = CALCULATE ( SUM ( fact_emissions[activity_amount] ), KEEPFILTERS ( fact_emissions[unit] = "litre" ) )
+		formatString: #,0
+		displayFolder: Activity
+		lineageTag: 020c4361-40d7-4ac6-9c84-7c6e5bb50183
+
+	/// Refrigerant lost from cooling equipment (source S04). KEEPFILTERS means a filter on another source gives blank.
+	measure 'Refrigerant Leakage (kg)' = CALCULATE ( SUM ( fact_emissions[activity_amount] ), KEEPFILTERS ( dim_source[source_id] = "S04" ) )
+		formatString: #,0.0
+		displayFolder: Activity
+		lineageTag: c8ac9655-f80a-44f1-9d10-a89029f3c238
+
+	/// Distance flown on business, in passenger-kilometres (source S07). KEEPFILTERS means a filter on another source gives blank.
+	measure 'Business Flights (passenger-km)' = CALCULATE ( SUM ( fact_emissions[activity_amount] ), KEEPFILTERS ( dim_source[source_id] = "S07" ) )
+		formatString: #,0
+		displayFolder: Activity
+		lineageTag: 3fbf2df9-515f-4b2b-8e88-39c7aaa12d27
+
+	/// Waste sent to landfill (source S08). KEEPFILTERS means a filter on another source gives blank.
+	measure 'Waste to Landfill (tonnes)' = CALCULATE ( SUM ( fact_emissions[activity_amount] ), KEEPFILTERS ( dim_source[source_id] = "S08" ) )
+		formatString: #,0.0
+		displayFolder: Activity
+		lineageTag: f0bf6c3c-9cdb-40c0-ad00-fc1d5d25cb6b
+
+	/// Plain change against the same months a year earlier, counting every site, so a new site's whole first year counts as an increase (Tartu, July 2024). Only months whose prior year is in the data count, so 2023 is blank. Sums across sites to the company change; set it beside the like-for-like Emissions Change vs Prior Year (%).
+	measure 'Emissions Change Including New Sites (tCO2e)' =
+			VAR AllKeys = ALL ( dim_date[date_key] )
+			VAR Months =
+				FILTER ( VALUES ( dim_date[date_key] ), ( dim_date[date_key] - 10000 ) IN AllKeys )
+			RETURN
+				IF (
+					NOT ISEMPTY ( Months ),
+					SUMX ( Months, CALCULATE ( [Total Emissions (tCO2e)] ) - CALCULATE ( [Emissions Prior Year (tCO2e)] ) )
+				)
+		formatString: #,0.0
+		displayFolder: Time comparison
+		lineageTag: 1da41663-4ba9-4467-a3a8-1c7ce3087448
+
+	/// Emissions Change Including New Sites (tCO2e) as a share of the prior year's emissions. Blank when nothing is comparable.
+	measure 'Emissions Change Including New Sites (%)' = DIVIDE ( [Emissions Change Including New Sites (tCO2e)], [Emissions Prior Year (tCO2e)] )
+		formatString: 0.0%
+		displayFolder: Time comparison
+		lineageTag: 040fc8ac-85e4-4fdc-8a56-b24dafdc4b4b
+
 	column Placeholder
 		dataType: string
 		isHidden

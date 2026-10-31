@@ -84,6 +84,29 @@ def like_for_like_change(year=None, site=None):
     return None if prior == 0 else current / prior - 1
 
 
+MONTHS = {int(r["date_key"]) for r in read("dim_date")}
+
+
+def activity(source=None, unit=None, year=None, site=None, country=None):
+    """Activity in the sites' own units, for one source or every source in one unit."""
+    return sum(float(r["activity_amount"]) for r in EM
+               if (source is None or r["source_id"] == source)
+               and (unit is None or r["unit"] == unit)
+               and (year is None or r["date_key"].startswith(str(year)))
+               and (site is None or r["site_id"] == site)
+               and (country is None or SITE[r["site_id"]]["country"] == country))
+
+
+def change_including_new_sites(year=None, site=None):
+    """Plain change against the same month a year earlier, every site counted, over the
+    months whose prior-year month is in the data (none in 2023, so None)."""
+    months = [m for m in MONTHS if (year is None or m // 10000 == year) and m - 10000 in MONTHS]
+    if not months:
+        return None
+    return sum(emissions(site=site, month_key=m) - emissions(site=site, month_key=m - 10000)
+               for m in months)
+
+
 def per_million_eur(**f):
     rev = revenue(**f)
     return None if rev == 0 else emissions(**f) / (rev / 1e6)
@@ -141,6 +164,37 @@ def cases():
         case("yoy_change_all_years", "Emissions Change vs Prior Year (%)",
              like_for_like_change(), tolerance=0.00001),
         case("yoy_change_2023_is_blank", "Emissions Change vs Prior Year (%)", None, year=2023),
+        # Activity in the sites' own units (added 31 October 2026).
+        case("energy_used_2025", "Energy Used (kWh)", activity(unit="kWh", year=2025),
+             year=2025, tolerance=0.01),
+        case("natural_gas_2024", "Natural Gas Used (kWh)", activity(source="S01", year=2024),
+             year=2024, tolerance=0.01),
+        case("electricity_fi01_2025", "Electricity Purchased (kWh)",
+             activity(source="S05", year=2025, site="FI01"), year=2025, site="FI01",
+             tolerance=0.01),
+        case("district_heating_2025", "District Heating Purchased (kWh)",
+             activity(source="S06", year=2025), year=2025, tolerance=0.01),
+        case("vehicle_fuel_2025", "Vehicle Fuel Used (litres)", activity(unit="litre", year=2025),
+             year=2025, tolerance=0.01),
+        case("refrigerant_all", "Refrigerant Leakage (kg)", activity(source="S04"),
+             tolerance=0.01),
+        case("flights_2025", "Business Flights (passenger-km)", activity(source="S07", year=2025),
+             year=2025, tolerance=0.01),
+        case("waste_estonia", "Waste to Landfill (tonnes)", activity(source="S08", country="Estonia"),
+             country="Estonia", tolerance=0.01),
+        # A source measure under a filter on another scope is blank, not that source's total.
+        case("electricity_under_scope1_is_blank", "Electricity Purchased (kWh)", None, scope=1),
+        # Change including new sites: Tartu's whole first year counts as an increase.
+        case("change_incl_new_2025", "Emissions Change Including New Sites (tCO2e)",
+             change_including_new_sites(year=2025), year=2025, tolerance=0.01),
+        case("change_incl_new_tartu_2024", "Emissions Change Including New Sites (tCO2e)",
+             change_including_new_sites(year=2024, site="EE02"), year=2024, site="EE02",
+             tolerance=0.01),
+        case("change_incl_new_2023_is_blank", "Emissions Change Including New Sites (tCO2e)",
+             None, year=2023),
+        case("change_incl_new_pct_2025", "Emissions Change Including New Sites (%)",
+             change_including_new_sites(year=2025) / emissions(year=2024), year=2025,
+             tolerance=0.00001),
         case("emission_rows_all", "Emission Rows", float(len(EM))),
         case("sites_reporting_2023", "Sites Reporting", 5.0, year=2023),
         case("sites_reporting_2025", "Sites Reporting", 6.0, year=2025),

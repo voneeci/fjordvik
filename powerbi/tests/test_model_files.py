@@ -97,7 +97,10 @@ def test_measure_has_description_format_and_folder(name):
 def test_measure_name_carries_its_unit(name):
     if name in UNITLESS:
         return
-    assert re.search(r"\((tCO2e|EUR|%)\)$", name), "unit missing from the name"
+    # Activity units added 31 October 2026 with the Activity measures (Energy Used (kWh) and
+    # others): each is the unit the sites report that source in, so the rule is unchanged.
+    assert re.search(r"\((tCO2e|EUR|%|kWh|litres|kg|passenger-km|tonnes)\)$", name), \
+        "unit missing from the name"
 
 
 @pytest.mark.parametrize("name", sorted(MEASURES))
@@ -144,17 +147,24 @@ def visuals():
         yield path, json.loads(path.read_text(encoding="utf-8"))
 
 
-def fields(node):
-    """Every {"Measure"|"Column": {... Entity ..., Property}} inside a visual."""
+def fields(node, aliases=None):
+    """Every {"Measure"|"Column": {... Entity ..., Property}} inside a visual. A filter
+    query names its tables once in "From" and refers to them by alias ("Source"), so
+    aliases are resolved to their table and those fields are checked too."""
+    aliases = dict(aliases or {})
     if isinstance(node, dict):
+        for item in node.get("From", []):
+            aliases[item["Name"]] = item["Entity"]
         for kind in ("Measure", "Column"):
             if kind in node and "Property" in node[kind]:
-                yield kind, node[kind]["Expression"]["SourceRef"]["Entity"], node[kind]["Property"]
+                ref = node[kind]["Expression"]["SourceRef"]
+                entity = ref["Entity"] if "Entity" in ref else aliases[ref["Source"]]
+                yield kind, entity, node[kind]["Property"]
         for value in node.values():
-            yield from fields(value)
+            yield from fields(value, aliases)
     elif isinstance(node, list):
         for value in node:
-            yield from fields(value)
+            yield from fields(value, aliases)
 
 
 def test_every_visual_field_exists_in_the_model():

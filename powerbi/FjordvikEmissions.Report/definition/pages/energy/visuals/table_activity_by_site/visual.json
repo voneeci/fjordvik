@@ -1,0 +1,188 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "table_activity_by_site",
+  "position": {
+    "x": 20,
+    "y": 485,
+    "z": 600,
+    "height": 220,
+    "width": 1240,
+    "tabOrder": 600
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_site"
+                    }
+                  },
+                  "Property": "site_name"
+                }
+              },
+              "queryRef": "dim_site.site_name",
+              "nativeQueryRef": "site_name",
+              "displayName": "Site"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_site"
+                    }
+                  },
+                  "Property": "country"
+                }
+              },
+              "queryRef": "dim_site.country",
+              "nativeQueryRef": "country",
+              "displayName": "Country"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Energy Used (kWh)"
+                }
+              },
+              "queryRef": "_Measures.Energy Used (kWh)",
+              "nativeQueryRef": "Energy Used (kWh)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Vehicle Fuel Used (litres)"
+                }
+              },
+              "queryRef": "_Measures.Vehicle Fuel Used (litres)",
+              "nativeQueryRef": "Vehicle Fuel Used (litres)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Refrigerant Leakage (kg)"
+                }
+              },
+              "queryRef": "_Measures.Refrigerant Leakage (kg)",
+              "nativeQueryRef": "Refrigerant Leakage (kg)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Business Flights (passenger-km)"
+                }
+              },
+              "queryRef": "_Measures.Business Flights (passenger-km)",
+              "nativeQueryRef": "Business Flights (passenger-km)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Waste to Landfill (tonnes)"
+                }
+              },
+              "queryRef": "_Measures.Waste to Landfill (tonnes)",
+              "nativeQueryRef": "Waste to Landfill (tonnes)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Natural Gas Used (kWh)"
+                }
+              },
+              "queryRef": "_Measures.Natural Gas Used (kWh)",
+              "nativeQueryRef": "Natural Gas Used (kWh)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Electricity Purchased (kWh)"
+                }
+              },
+              "queryRef": "_Measures.Electricity Purchased (kWh)",
+              "nativeQueryRef": "Electricity Purchased (kWh)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "District Heating Purchased (kWh)"
+                }
+              },
+              "queryRef": "_Measures.District Heating Purchased (kWh)",
+              "nativeQueryRef": "District Heating Purchased (kWh)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Activity by site, in the sites'' own units'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

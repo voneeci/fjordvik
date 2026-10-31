@@ -85,6 +85,25 @@ RETURN
 	DIVIDE ( CurrentYear - PriorYear, PriorYear )
 ```
 
+**Emissions Change Including New Sites (tCO2e)**: Plain change against the same months a year earlier, counting every site, so a new site's whole first year counts as an increase (Tartu, July 2024). Only months whose prior year is in the data count, so 2023 is blank. Sums across sites to the company change; set it beside the like-for-like Emissions Change vs Prior Year (%). Format: `#,0.0`.
+
+```dax
+VAR AllKeys = ALL ( dim_date[date_key] )
+VAR Months =
+	FILTER ( VALUES ( dim_date[date_key] ), ( dim_date[date_key] - 10000 ) IN AllKeys )
+RETURN
+	IF (
+		NOT ISEMPTY ( Months ),
+		SUMX ( Months, CALCULATE ( [Total Emissions (tCO2e)] ) - CALCULATE ( [Emissions Prior Year (tCO2e)] ) )
+	)
+```
+
+**Emissions Change Including New Sites (%)**: Emissions Change Including New Sites (tCO2e) as a share of the prior year's emissions. Blank when nothing is comparable. Format: `0.0%`.
+
+```dax
+DIVIDE ( [Emissions Change Including New Sites (tCO2e)], [Emissions Prior Year (tCO2e)] )
+```
+
 ### Data quality
 
 **Recalculated Emissions (tCO2e)**: Emissions worked out again row by row: activity times factor, divided by 1,000 to turn kilograms into tonnes. Format: `#,0.0`.
@@ -109,6 +128,56 @@ COUNTROWS ( fact_emissions )
 
 ```dax
 DISTINCTCOUNT ( fact_emissions[site_id] )
+```
+
+### Activity
+
+**Energy Used (kWh)**: Natural gas, purchased electricity and district heating, the three sources reported in kWh, added together. Format: `#,0`.
+
+```dax
+CALCULATE ( SUM ( fact_emissions[activity_amount] ), KEEPFILTERS ( fact_emissions[unit] = "kWh" ) )
+```
+
+**Natural Gas Used (kWh)**: Natural gas burned on site (source S01). KEEPFILTERS means a filter on another source gives blank. Format: `#,0`.
+
+```dax
+CALCULATE ( SUM ( fact_emissions[activity_amount] ), KEEPFILTERS ( dim_source[source_id] = "S01" ) )
+```
+
+**Electricity Purchased (kWh)**: Electricity bought from the grid (source S05). Tampere's rooftop solar from July 2024 shows as lower purchases. KEEPFILTERS means a filter on another source gives blank. Format: `#,0`.
+
+```dax
+CALCULATE ( SUM ( fact_emissions[activity_amount] ), KEEPFILTERS ( dim_source[source_id] = "S05" ) )
+```
+
+**District Heating Purchased (kWh)**: Heat bought from a district heating network (source S06). KEEPFILTERS means a filter on another source gives blank. Format: `#,0`.
+
+```dax
+CALCULATE ( SUM ( fact_emissions[activity_amount] ), KEEPFILTERS ( dim_source[source_id] = "S06" ) )
+```
+
+**Vehicle Fuel Used (litres)**: Diesel and liquefied petroleum gas (sources S02 and S03), both reported in litres, added together. Format: `#,0`.
+
+```dax
+CALCULATE ( SUM ( fact_emissions[activity_amount] ), KEEPFILTERS ( fact_emissions[unit] = "litre" ) )
+```
+
+**Refrigerant Leakage (kg)**: Refrigerant lost from cooling equipment (source S04). KEEPFILTERS means a filter on another source gives blank. Format: `#,0.0`.
+
+```dax
+CALCULATE ( SUM ( fact_emissions[activity_amount] ), KEEPFILTERS ( dim_source[source_id] = "S04" ) )
+```
+
+**Business Flights (passenger-km)**: Distance flown on business, in passenger-kilometres (source S07). KEEPFILTERS means a filter on another source gives blank. Format: `#,0`.
+
+```dax
+CALCULATE ( SUM ( fact_emissions[activity_amount] ), KEEPFILTERS ( dim_source[source_id] = "S07" ) )
+```
+
+**Waste to Landfill (tonnes)**: Waste sent to landfill (source S08). KEEPFILTERS means a filter on another source gives blank. Format: `#,0.0`.
+
+```dax
+CALCULATE ( SUM ( fact_emissions[activity_amount] ), KEEPFILTERS ( dim_source[source_id] = "S08" ) )
 ```
 
 ## Tables
