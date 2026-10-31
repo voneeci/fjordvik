@@ -26,9 +26,9 @@ December 2025.
 Each folder has its own README with the problem, approach, architecture, test evidence
 and limitations. [docs/learning-guide.md](docs/learning-guide.md) sets out the business
 need and the data, then explains how each part was built and why each main decision was
-made. [docs/process-map.html](docs/process-map.html) maps the whole monthly process, from
-energy being used to the Power BI report, with the owner, tool, data and checks for each
-step (download it and open it in a browser).
+made. The [process map](https://voneeci.github.io/fjordvik/docs/process-map.html) shows the
+whole monthly process, from energy being used to the Power BI report, with the owner,
+tool, data and checks for each step (source: [docs/process-map.html](docs/process-map.html)).
 
 ## How the parts fit
 

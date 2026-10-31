@@ -115,7 +115,7 @@ Microsoft 365 tenant. The dataset in `data/data` stands in for the central Emiss
 so Power BI and the connector read it directly. The intake tests prove the link: loading
 the six clean December files onto the earlier months rebuilds that dataset exactly.
 
-The [process map](process-map.html) (download it and open it in a browser) shows all 23
+The [process map](https://voneeci.github.io/fjordvik/docs/process-map.html) shows all 23
 steps, from energy being used at a site to the figures on the Power BI report,
 with the owner, tool, data and checks for each, and which steps are built, designed or
 outside the project.
