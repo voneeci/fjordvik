@@ -3,7 +3,7 @@
 After loading, the database can no longer touch the file system or the network
 (`enable_external_access = false`), and that setting is locked so SQL cannot
 switch it back on. Combined with the SELECT-only check in queries.py, the
-run_sql tool can read the 21 tables and the all_emissions view, and nothing else.
+run_sql tool can read the 22 tables and the all_emissions view, and nothing else.
 """
 
 import os
@@ -80,6 +80,9 @@ SCHEMA = {
                        "net_sales_eur": "DECIMAL(18,2)", "activity_amount": "DECIMAL(18,2)",
                        "unit": "VARCHAR", "emission_factor": "DECIMAL(12,3)",
                        "tco2e": "DECIMAL(18,6)"},
+    "fact_budget": {"date_key": "INTEGER", "site_id": "VARCHAR", "product_group": "VARCHAR",
+                    "region_id": "VARCHAR", "budget_units": "INTEGER",
+                    "budget_net_sales_eur": "DECIMAL(18,2)", "budget_margin_eur": "DECIMAL(18,2)"},
 }
 
 # The tables that make up the location-based inventory. Market-based scope 2

@@ -252,3 +252,35 @@ def test_a_missing_line_does_not_reconcile(pipeline):
     _tmp, change, run = pipeline
     change(*TAMPERE_2025_02, lambda rows: rows[1:])
     assert "reconciles_to_finance" in failed(run)
+
+
+def test_budget_has_one_row_per_sales_cell_and_every_key_joins(tables):
+    """One plan figure per month, shipping site, product group and region with sales."""
+    group_of = {r["product_id"]: r["product_group"] for r in tables["dim_product"]}
+    sales_cells = {(r["date_key"], r["site_id"], group_of[r["product_id"]], r["region_id"])
+                   for r in tables["fact_sales"]}
+    keys = [(r["date_key"], r["site_id"], r["product_group"], r["region_id"])
+            for r in tables["fact_budget"]]
+    assert len(keys) == len(set(keys))
+    assert set(keys) == sales_cells
+    dates = {r["date_key"] for r in tables["dim_date"]}
+    sites = {r["site_id"] for r in tables["dim_site"]}
+    regions = {r["region_id"] for r in tables["dim_region"]}
+    for r in tables["fact_budget"]:
+        assert r["date_key"] in dates and r["site_id"] in sites and r["region_id"] in regions
+        assert int(r["budget_units"]) >= 0 and int(r["budget_net_sales_eur"]) >= 0
+
+
+def test_budget_variance_by_family_and_year_follows_the_plan(tables):
+    """Actual against budget for each family and year lands on Fjordvik's planned
+    variance; monthly timing noise (3%) averages out to well under a point."""
+    group_of = {r["product_id"]: r["product_group"] for r in tables["dim_product"]}
+    family_of = {r["product_group"]: r["product_family"] for r in tables["dim_product_group"]}
+    actual, plan = defaultdict(float), defaultdict(float)
+    for r in tables["fact_sales"]:
+        actual[(family_of[group_of[r["product_id"]]], int(r["date_key"][:4]))] += float(r["net_sales_eur"])
+    for r in tables["fact_budget"]:
+        plan[(family_of[r["product_group"]], int(r["date_key"][:4]))] += float(r["budget_net_sales_eur"])
+    for (family, year), value in actual.items():
+        variance = value / plan[(family, year)] - 1
+        assert abs(variance - c.PLAN_SALES_VARIANCE[family][year]) < 0.01, (family, year, variance)

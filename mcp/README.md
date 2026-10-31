@@ -93,7 +93,7 @@ refused call says which roles can use the tool.
 | `scope3_inventory` | All 15 scope 3 categories with status, reason and tCO2e for a year or the whole period |
 | `sales_summary` | Units, net sales, margin and margin % from the cleaned ERP sales, by year, quarter, site, family, group, product or region |
 | `data_quality_report` | Fifteen checks (the last: sales reconcile to finance): unique keys, joins, the tCO2e formula, no negatives, one unit per source, complete monthly grid, emissions and metrics covering the same site-months; for the value-chain tables, keys, joins, formula, market-based kWh matching location-based kWh, the freight payer split, and a reason for every scope 3 category |
-| `run_sql` | Any single read-only `SELECT` against the 21 tables and the `all_emissions` view |
+| `run_sql` | Any single read-only `SELECT` against the 22 tables and the `all_emissions` view |
 
 Resources: `fjordvik://schema` (tables, grain and joins) and `fjordvik://source` (the
 data's manifest: dataset version, period, row counts and SHA-256 checksums).

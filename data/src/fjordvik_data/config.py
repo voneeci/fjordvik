@@ -426,6 +426,28 @@ MISSING_CURRENCY = (date(2025, 3, 1), "FJV SE Gothenburg")
 USE_PHASE_GRID_FACTOR = {"NOR": 0.060, "BAL": 0.400, "WEU": 0.250}
 
 # ---------------------------------------------------------------------------
+# Sales plan (budget), Fjordvik's own input (synthetic). Each family's plan for a
+# year, as how far the actuals ended up from it: +0.04 means actual net sales were
+# 4% above plan. Margin has its own variance, because price and cost move apart
+# from volume. Monthly timing differences between plan and actual are seeded noise
+# of PLAN_MONTHLY_NOISE (standard deviation, as a share). The budget table is the
+# plan; actuals stay as they are.
+# ---------------------------------------------------------------------------
+PLAN_SALES_VARIANCE = {
+    "Industrial process pumps": {2023: 0.02, 2024: -0.03, 2025: 0.04},
+    "Water and wastewater pumps": {2023: -0.01, 2024: 0.02, 2025: -0.02},
+    "Pump packages and controls": {2023: 0.03, 2024: 0.01, 2025: -0.05},
+    "Spare parts and service": {2023: -0.02, 2024: -0.01, 2025: 0.03},
+}
+PLAN_MARGIN_VARIANCE = {
+    "Industrial process pumps": {2023: 0.01, 2024: -0.05, 2025: 0.06},
+    "Water and wastewater pumps": {2023: -0.03, 2024: 0.01, 2025: -0.04},
+    "Pump packages and controls": {2023: 0.02, 2024: -0.01, 2025: -0.07},
+    "Spare parts and service": {2023: 0.00, 2024: 0.02, 2025: 0.05},
+}
+PLAN_MONTHLY_NOISE = 0.03
+
+# ---------------------------------------------------------------------------
 # Quarterly portfolio scorecard. Criteria from Cooper and Edgett (Stage-Gate
 # International, 2022). No source publishes weights, so these are Fjordvik's
 # own stated choice (client input). Ratings 1 to 10 come from each quarter's

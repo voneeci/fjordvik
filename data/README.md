@@ -51,6 +51,7 @@ files have not been edited by hand.
 | Product specification | Rated power, yearly electricity use and lifetime of each model | Product Managers, from engineering | Product data sheets | When a model changes | `dim_product` |
 | Exchange rates | ECB monthly average EUR/SEK reference rates | Group Financial Controller | ECB Data Portal (published) | Monthly | `reference/ecb_eur_sek_monthly.csv`, used by the SQL |
 | Scorecard ratings and weights | Each quarter's 1 to 10 rating per product group and criterion; the weight of each criterion | Portfolio governance, with Product Managers | Quarterly review record | Quarterly; weights yearly | `fact_product_rating`, `dim_score_criterion` |
+| Sales plan (budget) | Planned units, net sales and margin by month, shipping site, product group and region | Group Financial Controller, with Product Managers | Planning file or the planning module of the ERP, loaded once a year and on each reforecast | Yearly, before the year starts | `fact_budget` |
 
 **The ERP extract in `erp-extract/` is simulated.** It follows the shape of Oracle's Data
 Extraction tool, which Oracle's documentation calls the long-term replacement for its BI
@@ -121,7 +122,7 @@ flowchart LR
         E["Oracle ERP sales extract<br/>erp-extract/, simulated"]
     end
     F["SQL pipeline<br/>sql/: check, clean,<br/>map, reconcile"]
-    G[("Governed dataset<br/>tables/: 21 CSV files<br/>+ manifest.json")]
+    G[("Governed dataset<br/>tables/: 22 CSV files<br/>+ manifest.json")]
     subgraph OUT["Read by"]
         direction TB
         H["Power BI report<br/>powerbi/"]
@@ -138,7 +139,7 @@ flowchart LR
     G --> J
 ```
 
-In this repository, `tables/` holds the dataset as 21 CSV files and their manifest,
+In this repository, `tables/` holds the dataset as 22 CSV files and their manifest,
 with synthetic figures in exactly the shape the central list and the finance, HR, ERP,
 transport and contract exports would produce.
 
@@ -222,6 +223,7 @@ quarantined for portfolio governance. All four planted issues appear in `fact_da
 | fact_use_phase | 1,940 |
 | dim_score_criterion | 6 |
 | fact_product_rating | 720 |
+| fact_budget | 1,368 |
 
 Total emissions (illustrative, location-based):
 
@@ -259,10 +261,12 @@ them against the SHA-256 checksums in `tables/manifest.json`.
 
 ```
 python -m pytest -q
-58 passed in 4.23s
+60 passed
 ```
 
-(31 October 2026; raw output in `evidence/pytest-portfolio-2026-10-31.txt`.)
+(31 October 2026; raw output in `evidence/pytest-budget-2026-10-31.txt`. The two newest
+tests check `fact_budget`: one row per sales cell with every key joining, and each
+family's actual against budget landing on Fjordvik's planned variance.)
 
 | Test file | What it proves |
 | --- | --- |

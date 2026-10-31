@@ -109,7 +109,7 @@ def test_describe_lists_sites_with_first_month(wh):
     assert sites["EE02"]["first_month"] == "2024-07"
     assert sites["FI01"]["first_month"] == "2023-01"
     assert d["row_counts"]["fact_emissions"] == 1422
-    assert len(d["row_counts"]) == 21
+    assert len(d["row_counts"]) == 22   # 22 since fact_budget was added (31 October 2026)
     assert any("illustrative" in c for c in d["caveats"])
 
 

@@ -20,7 +20,7 @@ from pathlib import Path
 from fjordvik_data import config as c
 from fjordvik_data import portfolio
 
-GENERATOR_VERSION = "1.2.0"
+GENERATOR_VERSION = "1.3.0"
 
 COLUMNS = {
     "dim_date": ["date_key", "date", "year", "quarter", "month", "month_name"],
@@ -57,6 +57,8 @@ COLUMNS = {
                         "detail", "line_count", "amount_eur", "status", "action"],
     "fact_use_phase": ["date_key", "site_id", "source_id", "product_id", "region_id", "units",
                        "net_sales_eur", "activity_amount", "unit", "emission_factor", "tco2e"],
+    "fact_budget": ["date_key", "site_id", "product_group", "region_id", "budget_units",
+                    "budget_net_sales_eur", "budget_margin_eur"],
 }
 
 # Reference lists the pipeline reads (data/reference). The ECB rates there are
@@ -430,6 +432,7 @@ def write_all(out_dir: Path) -> dict:
     for name in ("dim_product_code", "fact_sales", "fact_data_issue"):
         tables[name] = published[name]
     tables["fact_use_phase"] = portfolio.build_fact_use_phase(published["fact_sales"])
+    tables["fact_budget"] = portfolio.build_fact_budget(published["fact_sales"], rng_for)
     manifest = {
         "dataset": "Fjordvik Manufacturing Oy (synthetic)",
         "generator_version": GENERATOR_VERSION,

@@ -41,6 +41,8 @@ EXPECTED = {
                         "detail", "line_count", "amount_eur", "status", "action"],
     "fact_use_phase": ["date_key", "site_id", "source_id", "product_id", "region_id", "units",
                        "net_sales_eur", "activity_amount", "unit", "emission_factor", "tco2e"],
+    "fact_budget": ["date_key", "site_id", "product_group", "region_id", "budget_units",
+                    "budget_net_sales_eur", "budget_margin_eur"],
 }
 
 

@@ -76,6 +76,8 @@ fact_sales(date_key, site_id, product_id, region_id, units, net_sales_eur,
   grain: month, shipping site, product, region; cleaned by SQL from a simulated Oracle extract
 fact_data_issue(issue_id, date_key, site_id, business_unit, issue_type, detail, line_count,
                 amount_eur, status, action): problems found in the extract, for the data owner
+fact_budget(date_key, site_id, product_group, region_id, budget_units, budget_net_sales_eur,
+            budget_margin_eur): Fjordvik's sales plan; grain month, shipping site, product group, region
 fact_use_phase(date_key, site_id, source_id, product_id, region_id, units, net_sales_eur,
                activity_amount (lifetime kWh), unit, emission_factor, tco2e)
   scope 3 category 11 (S14): units x lifetime x yearly kWh x grid factor; no Rest of world rows
@@ -240,7 +242,7 @@ def build_server(warehouse: Warehouse | None = None, http_url: str | None = None
 
     @server.tool(annotations=READ_ONLY)
     def run_sql(query: str, max_rows: int = 200) -> dict[str, Any]:
-        """Run one read-only DuckDB SELECT against the 21 tables and the
+        """Run one read-only DuckDB SELECT against the 22 tables and the
         all_emissions view (see the
         fjordvik://schema resource). Only a single SELECT statement is accepted;
         files and the network are blocked. max_rows: 1 to 1000."""

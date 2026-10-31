@@ -322,6 +322,32 @@ def build_fact_use_phase(fact_sales: list[dict]) -> list[dict]:
     return rows
 
 
+def build_fact_budget(fact_sales: list[dict], rng_for) -> list[dict]:
+    """The sales plan by month, shipping site, product group and region: the actuals
+    of each cell worked back through Fjordvik's planned variance for that family and
+    year, with monthly timing noise. Units and euros are whole numbers, as plans are."""
+    group_of = {p[0]: p[2] for p in c.PRODUCTS}
+    family_of = dict(c.PRODUCT_GROUPS)
+    cells: dict[tuple, list[float]] = defaultdict(lambda: [0, 0.0, 0.0])
+    for s in fact_sales:
+        key = (s["date_key"], s["site_id"], group_of[s["product_id"]], s["region_id"])
+        cell = cells[key]
+        cell[0] += int(s["units"])
+        cell[1] += float(s["net_sales_eur"])
+        cell[2] += float(s["margin_eur"])
+    rows = []
+    for (date_key, site, group, region), (units, sales, margin) in sorted(cells.items()):
+        family, year = family_of[group], int(str(date_key)[:4])
+        timing = rng_for("budget", str(date_key), site, group, region).gauss(1.0, c.PLAN_MONTHLY_NOISE)
+        plan_sales = timing / (1 + c.PLAN_SALES_VARIANCE[family][year])
+        plan_margin = timing / (1 + c.PLAN_MARGIN_VARIANCE[family][year])
+        rows.append({"date_key": date_key, "site_id": site, "product_group": group,
+                     "region_id": region, "budget_units": round(units * plan_sales),
+                     "budget_net_sales_eur": round(sales * plan_sales),
+                     "budget_margin_eur": round(margin * plan_margin)})
+    return rows
+
+
 def build_dim_score_criterion() -> list[dict]:
     return [{"criterion_id": i, "criterion_name": n, "weight": w,
              "source": "Criterion: Cooper and Edgett (Stage-Gate International, 2022). "

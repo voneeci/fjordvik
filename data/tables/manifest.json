@@ -1,6 +1,6 @@
 {
   "dataset": "Fjordvik Manufacturing Oy (synthetic)",
-  "generator_version": "1.2.0",
+  "generator_version": "1.3.0",
   "seed": 20230101,
   "period": "2023-01-01 to 2025-12-01",
   "emission_factors": "illustrative, not for real reporting",
@@ -109,6 +109,11 @@
       "file": "fact_use_phase.csv",
       "rows": 1940,
       "sha256": "50f7facc1eb1e33ed191c2b92418733120a5251cf95b6022289a50539ca4b8af"
+    },
+    "fact_budget": {
+      "file": "fact_budget.csv",
+      "rows": 1368,
+      "sha256": "5ef0713734d6f9c0b8ba2ed6f9b206f6c5938bb236571a218621b225856d5acf"
     }
   }
 }
