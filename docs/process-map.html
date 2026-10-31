@@ -29,7 +29,8 @@
 
 body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.55;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 56px; }
-.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 28px; }
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
+.wrap > * { min-width: 0; }
 h1, h2, h3 { font-family: var(--display); font-weight: 700; letter-spacing: .01em; text-wrap: balance; margin: 0; line-height: 1.1; }
 h1 { font-size: clamp(30px, 5vw, 44px); }
 h2 { font-size: 26px; }
@@ -90,7 +91,8 @@ svg.edges text { font-family: var(--body); font-size: 11px; fill: var(--muted); 
 
 /* Step cards */
 .phase-block { display: grid; gap: 12px; }
-.phase-block > p { color: var(--muted); }
+.phase-block > p { color: var(--muted); font-size: 15.5px; }
+.card .lead { font-size: 15.5px; max-width: 72ch; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px 18px; display: grid; gap: 12px; min-width: 0; scroll-margin-top: 16px; transition: background .6s; }
 .card.flash { background: var(--flash); }
 .card-head { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline; }
@@ -387,18 +389,32 @@ const STEPS = [
     project: "Outside the project. The report and checks it relies on are built." }
 ];
 
-const EDGES = [
-  [1, 2], [2, 3], [3, 4], [4, 6], [5, 4, "chase missing sites"], [6, 8], [7, 8], [8, 9],
-  [9, 10, "all rules pass"], [9, 11, "any rule fails", -8], [9, 12, "technical failure", 0, true],
-  [11, 13, "email lists fixes", -26], [13, 4, "corrected file"], [12, 14, "", -28, true],
-  [10, 15, "", -10], [14, 15, "", 0, true], [15, 17, "", -14], [16, 17], [17, 18], [17, 19, "", -8],
-  [18, 20], [18, 22, "", -10], [19, 22], [15, 21, "same data", -2, true], [20, 23], [22, 23]
-];
-
 // Geometry
 const LABEL_W = 150, PAD = 22, PITCH = 190, CW = 150, CH = 72, HEAD = 56;
 let y = HEAD; const laneTop = {};
 LANES.forEach(l => { laneTop[l.id] = y; y += l.h; });
+// The thin gap between the two rows of the automated lane, where short labels fit.
+const GAPY = laneTop.das + 18 + CH + 11;
+
+// Edges. mode "vh" leaves from the bottom and turns right; dx shifts an elbow's vertical
+// run within the gap between columns; lab places the label by hand so none crosses a card.
+const EDGES = [
+  { a: 1, b: 2 }, { a: 2, b: 3 }, { a: 3, b: 4 }, { a: 4, b: 6 },
+  { a: 5, b: 4, label: "reminder", lab: A => [A.x + CW / 2 + 6, laneTop.das + 58, "start"] },
+  { a: 6, b: 8 }, { a: 7, b: 8 }, { a: 8, b: 9 },
+  { a: 9, b: 10, label: "pass", lab: (A, B) => [(A.x + CW + B.x) / 2, A.y + CH / 2 - 7, "middle"] },
+  { a: 9, b: 11, label: "fail", dx: -8, lab: (A, B, mx) => [mx + 4, GAPY, "start"] },
+  { a: 9, b: 12, label: "error", dashed: true, lab: A => [A.x + CW / 2 - 6, GAPY, "end"] },
+  { a: 11, b: 13, label: "fixes needed", lab: (A, B, mx) => [mx - 6, laneTop.das + 4, "end"] },
+  { a: 13, b: 4, label: "corrected file", lab: (A, B, mx, ry) => [(A.x + B.x + CW) / 2, ry - 4, "middle"] },
+  { a: 12, b: 14, mode: "vh", dashed: true },
+  { a: 10, b: 15, dx: -12 }, { a: 14, b: 15, dashed: true },
+  { a: 15, b: 17, dx: -14 }, { a: 16, b: 17 },
+  { a: 17, b: 18 }, { a: 17, b: 19, mode: "vh" },
+  { a: 18, b: 20 }, { a: 18, b: 22, dx: -10 }, { a: 19, b: 22 },
+  { a: 15, b: 21, label: "same data", dashed: true, dx: -2, lab: (A, B, mx) => [mx + 5, (A.y + B.y + CH) / 2, "start"] },
+  { a: 20, b: 23 }, { a: 22, b: 23 }
+];
 const MAP_H = y, MAP_W = LABEL_W + PAD + 13 * PITCH;
 const pos = s => {
   const l = LANES.find(x => x.id === s.lane);
@@ -416,24 +432,27 @@ PHASES.forEach(p => {
 });
 const S = Object.fromEntries(STEPS.map(s => [s.n, s]));
 let svg = `<svg class="edges" width="${MAP_W}" height="${MAP_H}" viewBox="0 0 ${MAP_W} ${MAP_H}" aria-hidden="true"><defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--muted);stroke:none"></path></marker></defs>`;
-EDGES.forEach(([a, b, label = "", dx = 0, dashed = false]) => {
-  const A = pos(S[a]), B = pos(S[b]);
-  let d, lx, ly;
-  if (S[a].col === S[b].col) {
+EDGES.forEach(e => {
+  const A = pos(S[e.a]), B = pos(S[e.b]);
+  let d, mx = null, ry = null;
+  if (e.mode === "vh") {
+    d = `M${A.x + CW / 2},${A.y + CH} V${B.y + CH / 2} H${B.x}`;
+  } else if (S[e.a].col === S[e.b].col) {
     const x = A.x + CW / 2;
-    if (A.y > B.y) { d = `M${x},${A.y} V${B.y + CH}`; ly = (A.y + B.y + CH) / 2; }
-    else { d = `M${x},${A.y + CH} V${B.y}`; ly = (A.y + CH + B.y) / 2; }
-    lx = x + 6;
+    d = A.y > B.y ? `M${x},${A.y} V${B.y + CH}` : `M${x},${A.y + CH} V${B.y}`;
   } else if (B.x > A.x) {
     const ay = A.y + CH / 2, by = B.y + CH / 2;
-    if (Math.abs(ay - by) < 1) { d = `M${A.x + CW},${ay} H${B.x}`; lx = A.x + CW + 4; ly = ay - 6; }
-    else { const mx = B.x - 20 + dx; d = `M${A.x + CW},${ay} H${mx} V${by} H${B.x}`; lx = mx + 5; ly = (ay + by) / 2; }
+    if (Math.abs(ay - by) < 1) d = `M${A.x + CW},${ay} H${B.x}`;
+    else { mx = B.x - 20 + (e.dx || 0); d = `M${A.x + CW},${ay} H${mx} V${by} H${B.x}`; }
   } else {
-    const ry = Math.min(A.y, B.y) - 12, ax = A.x + CW / 2, bx = B.x + CW / 2;
-    d = `M${ax},${A.y} V${ry} H${bx} V${B.y}`; lx = (ax + bx) / 2 - 30; ly = ry - 4;
+    ry = Math.min(A.y, B.y) - 12;
+    d = `M${A.x + CW / 2},${A.y} V${ry} H${B.x + CW / 2} V${B.y}`;
   }
-  svg += `<path d="${d}" marker-end="url(#arr)"${dashed ? ' class="dashed"' : ""}></path>`;
-  if (label) svg += `<text x="${lx}" y="${ly}">${label}</text>`;
+  svg += `<path d="${d}" marker-end="url(#arr)"${e.dashed ? ' class="dashed"' : ""}></path>`;
+  if (e.label) {
+    const [lx, ly, anchor] = e.lab(A, B, mx, ry);
+    svg += `<text x="${lx}" y="${ly}" text-anchor="${anchor}">${e.label}</text>`;
+  }
 });
 svg += "</svg>";
 html += svg;
@@ -454,17 +473,43 @@ document.getElementById("owners").innerHTML = OWNERS.map(([n, t]) => `<div class
 // Step cards, grouped by phase
 const STATUS_LABEL = { built: "Built and tested", designed: "Designed, tested offline", outside: "Outside the project" };
 const PHASE_NOTE = [
-  "Emissions happen at the sites. Nothing is recorded yet.",
-  "Each site turns its evidence into one workbook and uploads it; a day-5 reminder chases late sites.",
-  "The intake flow checks every file against ten rules as soon as it is uploaded. Exceptions loop back to the site or to the data owner.",
-  "The model refreshes from the central data, the measures calculate, security applies and the report shows the figures.",
-  "The year's figures are signed off for the annual sustainability report."
+  "Every Fjordvik site uses energy and materials throughout the month: natural gas for heating and production, diesel and liquefied petroleum gas for vehicles and forklifts, electricity and district heating, and refrigerant in its cooling equipment. Staff also fly on business, and the sites send waste to landfill. These activities create the company's greenhouse gas emissions across scopes 1, 2 and 3. Nothing is measured yet: the amounts only become numbers when invoices, meter readings and contractor reports arrive early the next month.",
+  "In the first days of the next month, each site's Site Energy Coordinator turns the month's invoices, meter readings and reports into one monthly amount per emission source. They enter the amounts in a standard workbook, one row per source, and upload it to SharePoint. On day 5 an automated reminder chases any site that still has no accepted file, and sends the Group Sustainability Manager a summary.",
+  "The upload starts the intake flow straight away. It looks up the site's reference data and checks the file against ten written rules. A file that passes is loaded whole into the central Emissions list, with emissions worked out from each amount and its factor. A file that fails loads nothing and goes back to the site with a list of fixes, and a run that breaks is undone and reported to the data owner. Revenue and headcount join the central data from finance and HR.",
+  "Once the month's data is in, the Power BI model refreshes and its measures work out totals, intensities and like-for-like change. Security roles limit each country manager to their own sites. The Group Sustainability Manager checks the Data quality page before the figures are used, and managers read the dashboard or ask Claude follow-up questions from the same data.",
+  "After December's files are accepted, the year's figures are complete. The Group Sustainability Manager checks that every month is in for every open site and that the data quality checks are clean, then signs off the annual figures for the sustainability report, with group management's approval."
 ];
+const SUMMARY = {
+  1: "Throughout the month each site burns gas and fuel, buys electricity and heat, services its cooling equipment, sends staff on flights and sends waste to landfill. Each of these creates greenhouse gas emissions. Nothing is written down yet: the amounts show up later on invoices, meters and reports.",
+  2: "Early the next month, the Site Energy Coordinator gathers the paperwork that shows how much of each source the site used: invoices, meter readings, fuel card statements and contractor reports. They turn each one into a single monthly figure in the right unit.",
+  3: "The coordinator types those figures into the site's monthly workbook: one row per source, with the site, month, amount and unit. The file is named after the site and the month, so the flow can tell what it is.",
+  4: "The coordinator uploads the workbook to the Incoming folder on the Fjordvik Sustainability SharePoint site. The upload is what starts the automated checks; nothing else needs to be sent.",
+  5: "On the fifth of the month a second flow checks which sites still have no accepted file. It emails each of those sites a reminder and sends the Group Sustainability Manager one summary, so nobody has to chase by hand.",
+  6: "As soon as a file lands in Incoming, the intake flow starts on its own. It reads the rows in the workbook and works out the site and the month from the file name.",
+  7: "The Group Sustainability Manager keeps the reference lists the flow relies on: the sites and their contacts, the emission sources and their units, and the emission factor for each source in each country. Only they change these lists, so a factor cannot be edited by accident.",
+  8: "The flow looks up everything it needs to judge the file: the site's country and contact, the expected units, the right emission factors, and what the site reported last month and in the same month last year.",
+  9: "The flow checks the file against ten written rules, such as the right units, no duplicate rows, no missing sources, and amounts within a sensible range of last year. Every failure is noted with its detail. The same rules run every month, whoever is on duty.",
+  10: "If every rule passes, the flow writes the whole file into the central Emissions list and works out the tonnes of carbon dioxide equivalent for each row from its amount and factor. It logs the run and moves the file to Processed.",
+  11: "If any rule fails, the flow loads nothing. It emails the site a plain list of what to fix, logs the reasons and moves the file to Rejected.",
+  12: "If the flow itself breaks, for example because SharePoint is unavailable, it removes any rows it had already written, so nothing is half loaded. It logs the failure and alerts the Group Sustainability Manager.",
+  13: "The coordinator corrects the workbook using the list in the email and uploads it again. The flow checks the new file from the start, just like the first one.",
+  14: "The Group Sustainability Manager looks into failed runs and fixes their cause. If a month that was already accepted turns out to be wrong, they remove that site-month's rows so the corrected file can be loaded, because the flow never loads a month twice.",
+  15: "The central Emissions list is the single record of every site's monthly emissions, one row per month, site and source. Every report and every answer from Claude comes from here.",
+  16: "Revenue and headcount come from finance and HR, not from the sites' workbooks. They let the report show emissions per employee and per million euros, so the business can see whether it is getting cleaner as it grows. This feed is not built in the project.",
+  17: "The Power BI model pulls in the latest emissions, revenue and headcount and arranges them as five linked tables. Today the refresh runs in Power BI Desktop; in production it would run in the Power BI Service after each accepted file.",
+  18: "The model's 14 measures work out the figures people read: totals by scope, emissions per employee and per million euros, and change on the year compared like for like. Each one is tested against an independent calculation.",
+  19: "Security roles make sure each country manager sees only their own country's sites. The rule sits in the model, so every page and every number respects it.",
+  20: "Once the month's files are in, the Group Sustainability Manager checks the Data quality page: the recalculated emissions should match the stored ones exactly, and every open site should be reporting. Anything wrong goes back for correction.",
+  21: "Managers can ask Claude questions the dashboard was not built for, in plain language. Claude answers through a read-only connector that reads the same data and uses tested logic for the calculations that are easy to get wrong.",
+  22: "The report shows the month's figures on three pages: an overview, a page comparing sites, and a data quality page. Country managers see their own sites; the Group Sustainability Manager sees all six.",
+  23: "After December, the Group Sustainability Manager checks that all twelve months are in and clean, then signs off the year's figures for the annual sustainability report, with group management's approval."
+};
 document.getElementById("steps").innerHTML = PHASES.map((p, i) => {
   const steps = STEPS.filter(s => s.phase === i);
   return `<section class="phase-block"><div class="eyebrow">${p.name}</div><h2>${p.note}</h2><p>${PHASE_NOTE[i]}</p>` +
     steps.map(s => `<article class="card" id="step-${s.n}">
       <div class="card-head"><span class="n">Step ${s.n}</span><h3>${s.name}</h3><span class="badge ${s.status}">${STATUS_LABEL[s.status]}</span>${s.auto ? '<span class="badge auto">Automated</span>' : ""}</div>
+      <p class="lead">${SUMMARY[s.n]}</p>
       <dl class="kv">
         <dt>Owner</dt><dd>${s.owner}</dd>
         <dt>Tool</dt><dd>${s.tool}</dd>
