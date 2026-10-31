@@ -1,7 +1,8 @@
 # Fjordvik emissions reporting: how it was built
 
 Fjordvik Manufacturing Oy needs one set of monthly greenhouse gas figures that it can
-trust, explain and show to the right people. This project delivers that in four parts:
+trust, explain and show to the right people, and its customers now ask for the whole
+footprint, including what it buys and ships. This project delivers that in four parts:
 Power Automate flows that collect and check each site's monthly file, a governed dataset,
 a Power BI model and report for management and country managers, and a Claude connector
 that answers plain-language questions from the same data. This guide sets out the business
@@ -13,7 +14,10 @@ need, what the data is, and how and why each part was built.
 
 ## The business
 
-Fjordvik Manufacturing Oy is a manufacturer with six sites in three countries:
+Fjordvik Manufacturing Oy makes electric pumps and pump systems for water utilities,
+industry and buildings ([company profile](company-profile.md)): industrial process pumps
+in Tampere, water and wastewater pumps in Gothenburg, and pump packages and controls in
+Tallinn. It has six sites in three countries:
 
 | Site | Country | Type |
 | --- | --- | --- |
@@ -26,8 +30,10 @@ Fjordvik Manufacturing Oy is a manufacturer with six sites in three countries:
 
 The sites burn gas and fuel, buy electricity and district heating, and lose some
 refrigerant from cooling equipment. Staff fly on business, and the sites send waste to
-landfill. Each of these produces greenhouse gas emissions, which the company reports
-every month and in its annual sustainability report.
+landfill. Beyond its own sites, Fjordvik buys castings, machined parts, motors and
+services, and pays carriers to move materials and pumps. Each of these produces
+greenhouse gas emissions, which the company reports every month and in its annual
+sustainability report.
 
 The Group Sustainability Manager owns the figures. Country managers in Finland, Sweden and
 Estonia are responsible for their own sites and should see only those. Over the three
@@ -62,18 +68,25 @@ equivalent employees (FTE).
 | Scope | What it covers | Sources at Fjordvik |
 | --- | --- | --- |
 | 1 | Direct emissions from fuel the company burns or gas it releases | Natural gas, diesel, liquefied petroleum gas (LPG), refrigerant leakage |
-| 2 | Emissions from the energy it buys, using the average factor of the grid or heat network in each site's country (location-based) | Purchased electricity, district heating |
-| 3 | Other emissions in its value chain | Business flights, waste to landfill |
+| 2, location-based | Emissions from the energy it buys, at the average factor of the grid or heat network in each site's country | Purchased electricity, district heating |
+| 2, market-based | The same kWh at the factor of the contract each site buys under: zero where guarantees of origin cover it, the country's residual mix for the rest | Gothenburg's hydro contract, Tampere's wind contract from 2025 |
+| 3 | Other emissions in its value chain, in the Greenhouse Gas (GHG) Protocol's 15 categories | Purchased goods and services (1), upstream fuels and grid losses (3), freight (4 and 9), waste to landfill (5), business flights (6) |
+
+Every scope 3 category not calculated is listed with its reason, as the GHG Protocol
+Scope 3 Standard requires. Use of sold products (category 11) is likely the largest for
+a pump maker and needs product and sales data, so it is "not yet calculated".
 
 Emissions in tonnes of carbon dioxide equivalent (tCO2e) are worked out as activity
 amount × emission factor ÷ 1,000, with the factor in kilograms per unit. Revenue and FTE
 turn totals into intensities, emissions per million euros and per employee, so a growing
 business can see whether it is getting cleaner as well as bigger.
 
-The dataset covers 36 months, January 2023 to December 2025: 1,422 monthly emission rows
-and 198 rows of revenue and FTE. Illustrative totals are 9,454.0 tCO2e in 2023, 10,158.2
-in 2024 and 10,921.8 in 2025. Tallinn Plant is the largest emitter, because Estonia's
-illustrative grid factor is the highest.
+The dataset covers 36 months, January 2023 to December 2025: 1,422 monthly rows the
+sites report, 198 rows of revenue and FTE, and 2,802 value-chain rows. Illustrative
+location-based totals are 61,421.3 tCO2e in 2023, 63,780.3 in 2024 and 66,622.5 in 2025,
+of which purchased goods and services is 77% in 2025. Market-based scope 2 is 7,383.5
+tCO2e in 2025 against 6,243.6 location-based: residual mixes are higher than grid
+averages, so only the guarantees of origin bring it down.
 
 ## Why automate the intake, and why Power BI
 
@@ -89,7 +102,7 @@ is logged, and a second flow chases sites with no accepted file on day 5.
 - One set of tested measures (totals, emissions per FTE and per million euros, change on
   the year) means every page and every user sees the same answer.
 - Year-on-year change compares like for like: only site-months reported in both years.
-  For 2025 that gives +2.9% for the company instead of a misleading +7.5%.
+  For 2025 that gives +3.5% for the company instead of a misleading +4.5%.
 - Row-level security (RLS) gives each country manager their own sites only.
 - The model is saved as text in git, so every change can be reviewed, and a certification
   checklist sets out what is checked before the report is endorsed.
@@ -117,7 +130,7 @@ the shape the central Emissions list and the finance and HR exports would have. 
 tests prove the link: loading the six clean December files onto the earlier months
 rebuilds that dataset exactly.
 
-The [process map](https://voneeci.github.io/fjordvik/docs/process-map.html) shows all 23
+The [process map](https://voneeci.github.io/fjordvik/docs/process-map.html) shows all 27
 steps, from energy being used at a site to the figures on the Power BI report,
 with the owner, tool, data and checks for each, and which steps are built, designed or
 outside the project.
@@ -126,19 +139,19 @@ outside the project.
 
 | Part | What it does for the business | Built | Tests |
 | --- | --- | --- | --- |
-| [`data`](../data) | The governed dataset: five tables with fixed names, checksums and quality tests | 12 October 2026 | 24 |
-| [`mcp`](../mcp) | A Model Context Protocol (MCP) server that lets Claude answer questions from the data, read-only | 12 October 2026 | 48 |
-| [`powerbi`](../powerbi) | The Power BI model and report, with every measure reconciled against an independent calculation | 12 to 31 October 2026 | 153 |
+| [`data`](../data) | The governed dataset: twelve tables with fixed names, checksums and quality tests | 12 to 31 October 2026 | 38 |
+| [`mcp`](../mcp) | A Model Context Protocol (MCP) server that lets Claude answer questions from the data, read-only | 12 to 31 October 2026 | 56 |
+| [`powerbi`](../powerbi) | The Power BI model and report, with every measure reconciled against an independent calculation | 12 to 31 October 2026 | 225 |
 | [`power-automate`](../power-automate) | The flows that take in, check and chase the monthly site files, designed and tested offline | 12 October 2026 | 26 |
 
-All 251 tests passed on 31 October 2026, including the 44 Power BI tests that run live
+All 345 tests passed on 31 October 2026, including the 68 Power BI tests that run live
 Data Analysis Expressions (DAX) queries against the open model. The raw output is saved
 in each folder's `evidence/` folder.
 
 ## The order of the build
 
 ```
-1. data             the contract: five tables, fixed names, checksums
+1. data             the contract: twelve tables, fixed names, checksums
       │
       ├──> 2. mcp             Claude asks questions of the data
       ├──> 3. powerbi         dashboards and governed measures
@@ -153,12 +166,13 @@ checksums in `data/tables/manifest.json` before relying on it.
 ## 1. The governed dataset (`data`)
 
 **What it is.** The one dataset every report reads: 36 months (January 2023 to December
-2025) of emissions by site and source, with each site's revenue and headcount, as a
-five-table star schema: three dimensions (date, site, source) and two fact tables
-(emissions, site metrics). Each month it is filled from three places: the site workbooks,
-through the intake flow into the central Emissions list; the reference lists of sites,
-sources and emission factors; and monthly exports of revenue from finance and headcount
-from HR. The [data README](../data/README.md) sets out each source, its owner and system.
+2025) of emissions by site and source, with each site's revenue and headcount and the
+value chain, as a twelve-table star schema. Each month it is filled from the site
+workbooks, through the intake flow into the central Emissions list; the reference lists
+of sites, sources, emission factors and scope 3 categories; monthly exports of revenue
+from finance and headcount from HR; the purchase ledger from the enterprise resource
+planning (ERP) system; freight from the transport management system; and, yearly, the
+energy contracts and their guarantees of origin. The [data README](../data/README.md) sets out each source, its owner and system.
 
 **Key decisions.**
 
@@ -169,6 +183,9 @@ from HR. The [data README](../data/README.md) sets out each source, its owner an
 | Zeros | A row with 0 | No row | A missing row could mean "nothing to report" or "forgot to report" |
 | History | A site's figures start in its first month | Backfilled estimates | No figure is invented for months before a site opened |
 | Proof the files are unedited | Checksums in a manifest, checked by every part's tests | Trust | Anyone can prove the data was not edited by hand |
+| Market-based scope 2 | Its own table, same kWh, contract or residual-mix factor | A method column with two rows per source | Every existing total, the intake flow and the connector stay as they were; nothing can double count |
+| Scope 3 data | One table per data source (purchases, freight, upstream energy) | One wide value-chain table | Each table has one owner and one collection routine, and no half-empty columns |
+| Scope 3 coverage | All 15 categories listed, each with a status and reason | Only the categories counted | The GHG Protocol requires every exclusion to be listed and justified |
 
 **What happened in the period,** which the dashboards and Claude should find: winter
 heating peaks, a July slowdown at the plants, rooftop solar at Tampere Plant from July
@@ -182,7 +199,7 @@ business event shows in the data, and that the files match their manifest.
 
 **What it is.** An MCP server that lets Claude answer plain-language questions such as
 "which site had the highest emissions per million euros of revenue in 2025?". Claude
-calls five read-only tools; the server answers from an in-memory DuckDB database (a
+calls six read-only tools; the server answers from an in-memory DuckDB database (a
 file-based analytics database).
 
 **Key decisions.**
@@ -190,7 +207,7 @@ file-based analytics database).
 | Choice | Picked | Over | Why |
 | --- | --- | --- | --- |
 | Database | DuckDB in memory | SQLite, pandas, a server database | Built for analytics, exact decimal sums, and a setting that locks off file and network access |
-| Tools | Four purpose-built tools plus a guarded SQL tool | SQL only | Purpose-built tools carry tested logic; SQL alone lets the model get the grain wrong |
+| Tools | Five purpose-built tools plus a guarded SQL tool | SQL only | Purpose-built tools carry tested logic; SQL alone lets the model get the grain wrong |
 | Filter values | Bound parameters | Text pasted into SQL | Input can never change the query (no SQL injection) |
 | Errors | Clear messages for input mistakes, a generic message for crashes | Show every error | Claude gets what it can fix; internal details stay on the server |
 | Transport | Local stdio (standard input and output) | Remote HTTP | Simplest for one person on one machine; the remote version is the next step |
@@ -209,7 +226,7 @@ emissions per FTE twelve times too small.
 
 **What it is.** A Power BI Project (PBIP): the model in Tabular Model Definition Language
 (TMDL) and the report in the Power BI enhanced report format (PBIR), all as text files in
-git. It has 24 measures, three row-level security (RLS) roles and an eight-page report,
+git. It has 36 measures, three row-level security (RLS) roles and a ten-page report,
 opening on an Introduction page that explains the company and what each page answers.
 
 **Key decisions.**
@@ -219,8 +236,9 @@ opening on an Introduction page that explains the company and what each page ans
 | File format | Power BI Project (text files) | A single `.pbix` file | A `.pbix` is a binary file: git can store it but cannot show what changed |
 | Report pages | Generated by a Python script | Hand-edited JSON (JavaScript Object Notation) | One definition, consistent names, and a test proves every visual's fields exist |
 | Prior year | Shift the month key in DAX | `SAMEPERIODLASTYEAR` | A monthly date table cannot be marked as a date table, which those functions need |
-| Year-on-year change | Like-for-like site-months | Total against total | A new site inflates the change: +136.5% against +10.7% for Tartu Warehouse in 2025 |
-| Testing | DAX queries against Desktop's own engine | Checking visuals by eye | 44 exact comparisons in seconds, rerun after every change |
+| Year-on-year change | Like-for-like site-months | Total against total | A new site inflates the change: +138.3% against +13.2% for Tartu Warehouse in 2025 |
+| Testing | DAX queries against Desktop's own engine | Checking visuals by eye | 68 exact comparisons in seconds, rerun after every change |
+| Market-based total | Total minus location-based scope 2 plus market-based scope 2 | A second copy of every measure | One extra measure; scopes 1 and 3 are the same in both totals by construction |
 | Security | Three static country roles | Dynamic roles by email | Simple to test locally; dynamic security needs users in the Power BI Service |
 
 **How the measures are proved.** Each measure is run as a DAX query against the model
@@ -278,8 +296,9 @@ is the step-by-step guide for building them in a Microsoft 365 trial tenant.
 
 ## Limitations
 
-- Illustrative emission factors, one per source for the whole period, and location-based
-  scope 2 only.
+- Illustrative emission factors, one per source for the whole period.
+- Scope 3 is incomplete: categories 2, 7, 11 and 12 are not yet calculated, category 1 is
+  spend-based, and category 3(b) waits for a Nordic and Baltic factor source.
 - Monthly grain, with smooth seasonal and growth patterns.
 - The Power BI model is not published, so scheduled refresh, endorsement and RLS
   membership in the Power BI Service are described rather than shown.
@@ -293,4 +312,5 @@ is the step-by-step guide for building them in a Microsoft 365 trial tenant.
 - A remote MCP server with OAuth sign-in, and a tool that runs DAX against the published
   model, so Claude and the dashboards answer from the same measures.
 - Build the Power Automate flows in a trial tenant and save their exports and screenshots.
-- Market-based scope 2 and yearly factor versions in the dataset.
+- Product and sales data, then category 11 (use of sold products) from units sold.
+- Yearly factor versions in the dataset.

@@ -128,7 +128,10 @@ footer { font-size: 13px; color: var(--muted); display: grid; gap: 6px; }
   <header>
     <div class="eyebrow">Fjordvik Manufacturing Oy · monthly emissions reporting</div>
     <h1>Fjordvik Reporting Process Map</h1>
-    <p>How one month's emissions travel from a site's boilers, meters and invoices to the Power BI report:
+    <p>Fjordvik Manufacturing Oy makes electric pumps and pump systems for water utilities, industry and
+      buildings, from six sites in Finland, Sweden and Estonia.</p>
+    <p>How one month's emissions travel from a site's boilers, meters and invoices, and from the purchase
+      ledger, freight data and energy contracts, to the Power BI report:
       every step, the job title that owns it, the tool it uses and the data it needs. The map shows the
       process as Fjordvik would run it, and marks what this project has built, what is designed and tested
       offline, and what sits outside the project.</p>
@@ -159,7 +162,7 @@ footer { font-size: 13px; color: var(--muted); display: grid; gap: 6px; }
     <span>Sources: the project's own documents, read 31 October 2026: <code>power-automate/docs/flow-design.md</code>,
       <code>sharepoint-lists.md</code>, <code>intake-rules.md</code>, <code>run-statuses.md</code>, the Power BI model in
       <code>powerbi/</code>, the MCP server in <code>mcp/</code> and the dataset in <code>data/tables</code>.</span>
-    <span>Typical source evidence (step 2) and revenue and headcount feeds (step 16) describe common practice; the project does not model them.</span>
+    <span>Typical source evidence (step 2), the revenue and headcount feeds (step 16), the purchase ledger and freight exports (steps 16a and 16b) and the contract register (step 16c) describe common practice; the project holds synthetic data in their shape but does not design the feeds.</span>
   </footer>
 </div>
 
@@ -168,8 +171,9 @@ const LANES = [
   { id: "ops", name: "Site Manager", note: "Runs each site's operations", h: 110 },
   { id: "sec", name: "Site Energy Coordinator", note: "One per site; the site contact", h: 110 },
   { id: "das", name: "Data and AI Specialist", note: "Technical owner: flows, model, connector", h: 200 },
-  { id: "gsm", name: "Group Sustainability Manager", note: "Business and data owner", h: 110 },
+  { id: "gsm", name: "Group Sustainability Manager", note: "Business and data owner", h: 200 },
   { id: "fin", name: "Group Financial Controller, HR Manager", note: "Revenue and headcount", h: 110 },
+  { id: "vc", name: "Procurement Manager, Logistics Manager", note: "Purchase ledger and freight", h: 200 },
   { id: "mgr", name: "Country Managers", note: "Finland, Sweden, Estonia; and group management", h: 110 }
 ];
 const PHASES = [
@@ -183,8 +187,9 @@ const OWNERS = [
   ["Site Manager", "Runs the site. Owns the activity itself: fuel burnt, energy bought, equipment serviced, waste sent."],
   ["Site Energy Coordinator", "Collects the month's evidence, fills the submission workbook, uploads it, and fixes rejected files. Named as the site contact in the Sites list."],
   ["Data and AI Specialist", "Technical owner. Builds and runs the two flows, the Power BI model and report, row-level security and the Claude connector. Owns every automated step."],
-  ["Group Sustainability Manager", "Business and data owner. Owns the reference lists and factors, the central Emissions list and the rules, handles failed runs and corrections, reviews data quality, signs off the year."],
+  ["Group Sustainability Manager", "Business and data owner. Owns the reference lists and factors, the central Emissions list and the rules, the energy contracts and guarantees of origin, the list of scope 3 categories and the reason for each one left out; handles failed runs and corrections, reviews data quality, signs off the year."],
   ["Group Financial Controller and HR Manager", "Supply each site's monthly revenue and full-time equivalent (FTE) headcount for the intensity measures."],
+  ["Procurement Manager and Logistics Manager", "Export the purchase ledger from the enterprise resource planning (ERP) system and the freight shipments from the transport management system, for scope 3 categories 1, 4 and 9."],
   ["Country Managers", "Read the report for their own country's sites only, and ask follow-up questions through Claude."]
 ];
 
@@ -334,34 +339,65 @@ const STEPS = [
     checks: "The head office books no revenue, so its emissions per euro must be blank, not an error.",
     timing: "Monthly, after the finance close.",
     project: "<strong>A gap.</strong> The finance and HR exports are not designed yet. The governed dataset already holds synthetic revenue and headcount in the shape they would produce." },
+  { n: "16a", name: "Purchase ledger export", lane: "vc", row: 0, col: 8, status: "outside", phase: 2,
+    owner: "Procurement Manager", tool: "Enterprise resource planning (ERP) system: the purchase ledger",
+    dataIn: "Supplier invoices booked to the ledger: supplier, spend category, site and euros.",
+    dataOut: "<code>dim_supplier</code> and <code>fact_purchases</code>: one row per month, site and supplier, 864 rows. Scope 3 category 1, spend-based.",
+    checks: ul(["Every purchase joins to a known supplier, and its spend category matches the supplier's", "<code>tco2e</code> equals euros × factor ÷ 1,000 (data tests and the connector's quality report)"]),
+    timing: "Monthly, after the finance close.",
+    project: "<strong>A gap.</strong> The ERP export is not designed yet. The governed dataset holds synthetic purchases in the shape it would produce." },
+  { n: "16b", name: "Freight data export", lane: "vc", row: 1, col: 8, status: "outside", phase: 2,
+    owner: "Logistics Manager", tool: "Transport management system and the carriers' freight invoices; the Incoterms on each order say who pays",
+    dataIn: "Shipments: tonnes, origin, destination, mode and payer.",
+    dataOut: "<code>fact_freight</code>: one row per month, site, direction, mode and payer, 666 rows, in tonne-kilometres. Inbound freight and outbound freight Fjordvik pays for are scope 3 category 4; outbound freight customers pay for is category 9.",
+    checks: "Tonne-kilometres equal tonnes × distance, and customer-paid outbound freight is always category 9 (data tests and the connector's quality report).",
+    timing: "Monthly.",
+    project: "<strong>A gap.</strong> The transport system export is not designed yet. The governed dataset holds synthetic freight in the shape it would produce." },
+  { n: "16c", name: "Record energy contracts", lane: "gsm", row: 1, col: 8, status: "outside", phase: 2,
+    owner: "Group Sustainability Manager", tool: "Contract register, from the electricity suppliers' contracts and guarantee of origin cancellation statements; the governed dataset build works out market-based scope 2 from it",
+    dataIn: "Each contract's site, supplier, instrument, share of kWh covered and dates, and the kWh in the central Emissions list (step 15).",
+    dataOut: "<code>dim_contract</code> (2 contracts) and, with each country's residual mix, <code>fact_scope2_market</code>: 444 rows of market-based scope 2, the same kWh as location-based.",
+    checks: "Market-based scope 2 covers exactly the location-based kWh for every site-month (data tests and the connector's quality report).",
+    timing: "The register changes yearly or when a contract starts or ends; market-based scope 2 is worked out monthly with the site data.",
+    project: "<strong>Outside the project</strong> as a routine. The calculation is <strong>built and tested</strong> in <code>data</code>, with two synthetic contracts: Gothenburg's hydro guarantees of origin from 2023 and Tampere's wind guarantees of origin from 2025." },
+  { n: "16d", name: "Work out upstream energy emissions", lane: "das", row: 1, col: 8, status: "built", auto: true, phase: 2,
+    owner: "Data and AI Specialist", tool: "The governed dataset build in <code>data</code>",
+    dataIn: "The fuel and kWh in the central Emissions list (step 15). Nothing new is collected.",
+    dataOut: "<code>fact_energy_upstream</code>: 828 rows of scope 3 category 3, parts (a) upstream of purchased fuels and (c) transmission and distribution losses.",
+    checks: "Every fuel, electricity and heat row has exactly one upstream row with the same amount and unit (data tests).",
+    timing: "Monthly, with the site data.",
+    project: "<strong>Built and tested</strong> in <code>data</code>. Part (b), upstream of the fuels burnt to generate bought electricity and heat, is not calculated: no factor source for Finland, Sweden or Estonia has been found." },
   { n: 17, name: "Refresh the Power BI model", lane: "das", row: 0, col: 9, status: "built", auto: true, phase: 3,
     owner: "Data and AI Specialist", tool: "Power BI semantic model (Power BI Project, TMDL), Power Query. Today: Power BI Desktop reading the CSV files through the <code>DataFolder</code> parameter. Target: a published model reading the central list, refreshed after each accepted run.",
-    dataIn: "The central data (step 15) and revenue and headcount (step 16).",
+    dataIn: "The central data (step 15), revenue and headcount (step 16), purchases and freight (steps 16a and 16b), market-based scope 2 (step 16c) and upstream energy (step 16d).",
     dataOut: table(["Table", "Grain", "Rows"], [
       ["<code>dim_date</code>", "One row per month", "36"], ["<code>dim_site</code>", "One row per site", "6"],
-      ["<code>dim_source</code>", "One row per emission source", "8"], ["<code>fact_emissions</code>", "Month, site and source", "1,422"],
-      ["<code>fact_site_metrics</code>", "Month and site", "198"]
+      ["<code>dim_source</code>", "One row per emission source", "13"], ["<code>dim_scope3_category</code>", "One row per scope 3 category", "15"],
+      ["<code>dim_contract</code>", "One row per energy contract", "2"], ["<code>dim_supplier</code>", "One row per supplier", "14"],
+      ["<code>fact_emissions</code>", "Month, site and source", "1,422"], ["<code>fact_site_metrics</code>", "Month and site", "198"],
+      ["<code>fact_scope2_market</code>", "Month, site, source and instrument", "444"], ["<code>fact_energy_upstream</code>", "Month, site and parent source", "828"],
+      ["<code>fact_purchases</code>", "Month, site and supplier", "864"], ["<code>fact_freight</code>", "Month, site, direction, mode and payer", "666"]
     ], [2]),
     checks: "Each part's tests check the data files against their SHA-256 checksums before relying on them.",
     timing: "Today on demand; target after each accepted file.",
     project: "<strong>Built</strong> in Power BI Desktop. <code>scripts/run_dax_table.ps1 -Refresh</code> refreshes with no clicks. Publishing and scheduled refresh are next steps." },
   { n: 18, name: "Calculate the measures", lane: "das", row: 0, col: 10, status: "built", auto: true, phase: 3,
-    owner: "Data and AI Specialist", tool: "24 Data Analysis Expressions (DAX) measures in the <code>_Measures</code> table",
+    owner: "Data and AI Specialist", tool: "36 Data Analysis Expressions (DAX) measures in the <code>_Measures</code> table",
     dataIn: "The refreshed model.",
-    dataOut: ul(["Emissions: Total, Scope 1, Scope 2, Scope 3 (tCO2e)", "Intensity: Revenue (EUR), Average FTE, Emissions per FTE, Emissions per Million EUR", "Activity, in the sites' own units: Energy Used, Natural Gas Used, Electricity Purchased and District Heating Purchased (kWh), Vehicle Fuel Used (litres), Refrigerant Leakage (kg), Business Flights (passenger-km), Waste to Landfill (tonnes)", "Time comparison: Emissions Prior Year, Emissions Change vs Prior Year (%) like for like, Emissions Change Including New Sites (tCO2e and %)", "Data quality: Recalculated Emissions, Reconciliation Difference, Emission Rows, Sites Reporting"]),
-    checks: ul(["44 live tests compare every measure with an independent Python calculation", "No typed-in rates; every division uses <code>DIVIDE()</code>"]),
+    dataOut: ul(["Emissions: Total (location-based), Scope 1, Scope 2, Scope 3 (tCO2e)", "Market-based scope 2: Scope 2 Market-based Emissions, Total Emissions Market-based (tCO2e), Electricity with Guarantees of Origin (kWh and %)", "Value chain: Purchased Goods and Services, Fuel and Energy Related, Upstream Transport and Downstream Transport Emissions (tCO2e), Purchased Spend (EUR), Freight Transport (tonne-km), Purchased Goods Emissions per Thousand EUR (tCO2e)", "Intensity: Revenue (EUR), Average FTE, Emissions per FTE, Emissions per Million EUR", "Activity, in the sites' own units: Energy Used, Natural Gas Used, Electricity Purchased and District Heating Purchased (kWh), Vehicle Fuel Used (litres), Refrigerant Leakage (kg), Business Flights (passenger-km), Waste to Landfill (tonnes)", "Time comparison: Emissions Prior Year, Emissions Change vs Prior Year (%) like for like, Emissions Change Including New Sites (tCO2e and %)", "Data quality: Recalculated Emissions, Reconciliation Difference, Market-based Reconciliation Difference, Emission Rows, Sites Reporting"]),
+    checks: ul(["68 live tests compare every measure with an independent Python calculation", "No typed-in rates; every division uses <code>DIVIDE()</code>"]),
     timing: "When a report page is opened.",
-    project: "<strong>Built and tested.</strong> 44 of 44 live tests passed on 31 October 2026 (<code>powerbi/evidence/live-measures-2026-10-31-dashboard.txt</code>)." },
+    project: "<strong>Built and tested.</strong> 68 of 68 live tests passed on 31 October 2026 (<code>powerbi/evidence/live-measures-2026-10-31-value-chain.txt</code>)." },
   { n: 19, name: "Apply row-level security", lane: "das", row: 1, col: 11, status: "built", auto: true, phase: 3,
     owner: "Data and AI Specialist; the Group Sustainability Manager decides who sees what", tool: "Power BI roles <em>Finland</em>, <em>Sweden</em>, <em>Estonia</em>",
     dataIn: "The viewer's role.",
-    dataOut: "Each role filters <code>dim_site[country]</code>, and the filter flows to both fact tables.",
-    checks: "Tested live: the Finland totals and sites, Estonia's sites in 2023, and that the Sweden role sees nothing when filtered to Finland.",
+    dataOut: "Each role filters <code>dim_site[country]</code>, and the filter flows to every fact table.",
+    checks: "Tested live: the Finland totals and sites, Estonia's sites in 2023, that the Sweden role sees nothing when filtered to Finland, and the Finland and Estonia roles on market-based scope 2 and purchases.",
     timing: "Every query.",
     project: "<strong>Roles built and tested.</strong> Assigning people to roles needs the Power BI Service, a next step." },
   { n: 20, name: "Review the Data quality page", lane: "gsm", col: 10, status: "built", phase: 3,
     owner: "Group Sustainability Manager", tool: "Power BI report, Data quality page",
-    dataIn: "Reconciliation Difference (tCO2e), Emission Rows and Sites Reporting, by year.",
+    dataIn: "Reconciliation Difference and Market-based Reconciliation Difference (tCO2e), Emission Rows and Sites Reporting, by year.",
     dataOut: "Confirmation that the month's figures can be used, or a correction (step 14).",
     checks: "The reconciliation difference (stored tCO2e against activity × factor) should be zero, and every open site should be reporting.",
     timing: "After each month's files are in.",
@@ -369,24 +405,26 @@ const STEPS = [
   { n: 21, name: "Ask Claude about the figures", lane: "mgr", col: 10, status: "built", phase: 3,
     owner: "Country Managers and group management; connector run by the Data and AI Specialist", tool: "Claude Desktop with the Fjordvik Model Context Protocol (MCP) connector",
     dataIn: "A plain-language question, for example \"which site had the highest emissions per million euros of revenue in 2025?\"",
-    dataOut: "An answer from five read-only tools: <code>describe_dataset</code>, <code>emissions_total</code>, <code>emissions_intensity</code>, <code>data_quality_report</code>, <code>run_sql</code>.",
+    dataOut: "An answer from six read-only tools: <code>describe_dataset</code>, <code>emissions_total</code> (location-based or market-based scope 2), <code>emissions_intensity</code>, <code>scope3_inventory</code>, <code>data_quality_report</code>, <code>run_sql</code>.",
     checks: ul(["Read-only; one <code>SELECT</code> only; file and network access locked off; 1,000-row cap", "FTE averaged over months, never summed"]),
     timing: "Any time.",
-    project: "<strong>Built</strong> (48 tests) and registered in Claude Desktop on 31 October 2026. It reads the same <code>data/tables</code> files. Next steps: a remote server with sign-in, and a tool that queries the published model's DAX measures." },
+    project: "<strong>Built</strong> (56 tests) and registered in Claude Desktop on 31 October 2026. It reads the same <code>data/tables</code> files. Next steps: a remote server with sign-in, and a tool that queries the published model's DAX measures." },
   { n: 22, name: "The dashboard shows the figures", lane: "mgr", col: 11, status: "built", phase: 3,
-    owner: "Country Managers (own sites) and the Group Sustainability Manager (all sites)", tool: "Power BI report: eight pages, 58 visuals",
+    owner: "Country Managers (own sites) and the Group Sustainability Manager (all sites)", tool: "Power BI report: ten pages, 83 visuals",
     dataIn: "The measures (step 18), filtered by the viewer's role (step 19).",
     dataOut: table(["Page", "Shows"], [
       ["Introduction", "The company and its sites, who owns the figures, what each page answers, how to read the figures; a button for every page"],
       ["Overview", "Total and scope 1, 2 and 3 emissions, emissions per FTE, monthly trend, emissions by site"],
       ["Emissions breakdown", "Scopes stacked by month, each scope's share, emissions by source and by country"],
+      ["Value chain (scope 3)", "Each scope 3 category counted, purchases by spend category, freight by mode and payer, and all 15 categories with status and reason"],
+      ["Scope 2 methods", "Location-based against market-based scope 2 by year and site, both totals, guarantee of origin coverage and the contracts"],
       ["Intensity and growth", "Emissions per FTE and per million euros by month, revenue and headcount, like-for-like change by site"],
       ["Energy and activity", "Energy, fuel, refrigerant, flights and waste in their own units; electricity by site, where Tampere's solar panels show"],
       ["What changed", "Like-for-like change against change including new sites; a 2025 waterfall of change by site"],
       ["Sites", "Per site: emissions, per FTE, per million euros, like-for-like change; scope 2 by month and site"],
-      ["Data quality", "Reconciliation difference, row count and sites reporting, by year"]
+      ["Data quality", "Reconciliation difference (both scope 2 methods), row count and sites reporting, by year"]
     ]),
-    checks: "Like-for-like change: for 2025 the company shows +2.9%, where a plain comparison of totals would show +7.5%.",
+    checks: "Like-for-like change: for 2025 the company shows +3.5%, where a plain comparison of totals would show +4.5%.",
     timing: "Whenever opened, after each refresh.",
     project: "<strong>Built</strong> in Power BI Desktop. Publishing the report to a workspace is a next step." },
   { n: 23, name: "Year-end sign-off", lane: "gsm", col: 12, status: "outside", phase: 4,
@@ -419,6 +457,8 @@ const EDGES = [
   { a: 12, b: 14, mode: "vh", dashed: true },
   { a: 10, b: 15, dx: -12 }, { a: 14, b: 15, dashed: true },
   { a: 15, b: 17, dx: -14 }, { a: 16, b: 17 },
+  { a: 15, b: "16d" }, { a: "16d", b: 17, dx: -4 },
+  { a: "16a", b: 17, dx: -8 }, { a: "16b", b: 17, dx: -10 }, { a: "16c", b: 15 },
   { a: 17, b: 18 }, { a: 17, b: 19, mode: "vh" },
   { a: 18, b: 20 }, { a: 18, b: 22, dx: -10 }, { a: 19, b: 22 },
   { a: 15, b: 21, label: "same data", dashed: true, dx: -2, lab: (A, B, mx) => [mx + 5, (A.y + B.y + CH) / 2, "start"] },
@@ -482,10 +522,10 @@ document.getElementById("owners").innerHTML = OWNERS.map(([n, t]) => `<div class
 // Step cards, grouped by phase
 const STATUS_LABEL = { built: "Built and tested", designed: "Designed, tested offline", outside: "Outside the project" };
 const PHASE_NOTE = [
-  "Every Fjordvik site uses energy and materials throughout the month: natural gas for heating and production, diesel and liquefied petroleum gas for vehicles and forklifts, electricity and district heating, and refrigerant in its cooling equipment. Staff also fly on business, and the sites send waste to landfill. These activities create the company's greenhouse gas emissions across scopes 1, 2 and 3. Nothing is measured yet: the amounts only become numbers when invoices, meter readings and contractor reports arrive early the next month.",
+  "Every Fjordvik site uses energy and materials throughout the month, and the company buys castings, parts, motors and services and pays carriers to move them: natural gas for heating and production, diesel and liquefied petroleum gas for vehicles and forklifts, electricity and district heating, and refrigerant in its cooling equipment. Staff also fly on business, and the sites send waste to landfill. These activities create the company's greenhouse gas emissions across scopes 1, 2 and 3. Nothing is measured yet: the amounts only become numbers when invoices, meter readings and contractor reports arrive early the next month.",
   "In the first days of the next month, each site's Site Energy Coordinator turns the month's invoices, meter readings and reports into one monthly amount per emission source. They enter the amounts in a standard workbook, one row per source, and upload it to SharePoint. On day 5 an automated reminder chases any site that still has no accepted file, and sends the Group Sustainability Manager a summary.",
-  "The upload starts the intake flow straight away. It looks up the site's reference data and checks the file against ten written rules. A file that passes is loaded whole into the central Emissions list, with emissions worked out from each amount and its factor. A file that fails loads nothing and goes back to the site with a list of fixes, and a run that breaks is undone and reported to the data owner. Revenue and headcount join the central data from finance and HR.",
-  "Once the month's data is in, the Power BI model refreshes and its measures work out totals, intensities and like-for-like change. Security roles limit each country manager to their own sites. The Group Sustainability Manager checks the Data quality page before the figures are used, and managers read the dashboard or ask Claude follow-up questions from the same data.",
+  "The upload starts the intake flow straight away. It looks up the site's reference data and checks the file against ten written rules. A file that passes is loaded whole into the central Emissions list, with emissions worked out from each amount and its factor. A file that fails loads nothing and goes back to the site with a list of fixes, and a run that breaks is undone and reported to the data owner. Revenue and headcount join the central data from finance and HR, purchases from the ERP system's purchase ledger and freight from the transport system, and the upstream emissions of the fuel and energy used are worked out from the site data.",
+  "Once the month's data is in, with market-based scope 2 worked out from the energy contracts, the Power BI model refreshes and its measures work out totals, intensities and like-for-like change. Security roles limit each country manager to their own sites. The Group Sustainability Manager checks the Data quality page before the figures are used, and managers read the dashboard or ask Claude follow-up questions from the same data.",
   "After December's files are accepted, the year's figures are complete. The Group Sustainability Manager checks that every month is in for every open site and that the data quality checks are clean, then signs off the annual figures for the sustainability report, with group management's approval."
 ];
 const SUMMARY = {
@@ -505,12 +545,16 @@ const SUMMARY = {
   14: "The Group Sustainability Manager looks into failed runs and fixes their cause. If a month that was already accepted turns out to be wrong, they remove that site-month's rows so the corrected file can be loaded, because the flow never loads a month twice.",
   15: "The central Emissions list is the single record of every site's monthly emissions, one row per month, site and source. Every report and every answer from Claude comes from here.",
   16: "Revenue and headcount come from finance and HR, not from the sites' workbooks. They let the report show emissions per employee and per million euros, so the business can see whether it is getting cleaner as it grows. This feed is not built in the project.",
-  17: "The Power BI model pulls in the latest emissions, revenue and headcount and arranges them as five linked tables. Today the refresh runs in Power BI Desktop; in production it would run in the Power BI Service after each accepted file.",
-  18: "The model's 24 measures work out the figures people read: totals by scope, emissions per employee and per million euros, and change on the year compared like for like. Each one is tested against an independent calculation.",
+  "16a": "The Procurement Manager exports the month's purchase ledger from the ERP system: what was bought, from which supplier, for which site, and for how many euros. Each euro is turned into emissions with a factor for its spend category, the simplest scope 3 method and the usual first step.",
+  "16b": "The Logistics Manager exports the month's shipments from the transport management system: tonnes, distance and mode for each lane, and who pays. Freight Fjordvik pays for counts in category 4 and freight its customers pay for in category 9.",
+  "16c": "The Group Sustainability Manager keeps a register of which electricity is covered by guarantees of origin, updated each year and whenever a contract changes. Each month the covered kWh count at zero and the rest at the country's residual mix, which gives the market-based scope 2 figure reported beside the location-based one.",
+  "16d": "The upstream emissions of the fuel and energy the sites use, from producing and transporting fuel and from losses in the grid and heat networks, are worked out from the amounts the sites already report. Nothing new has to be collected.",
+  17: "The Power BI model pulls in the latest emissions, revenue, headcount and value-chain data and arranges them as twelve linked tables. Today the refresh runs in Power BI Desktop; in production it would run in the Power BI Service after each accepted file.",
+  18: "The model's 36 measures work out the figures people read: totals by scope and scope 3 category, scope 2 by both methods, emissions per employee and per million euros, and change on the year compared like for like. Each one is tested against an independent calculation.",
   19: "Security roles make sure each country manager sees only their own country's sites. The rule sits in the model, so every page and every number respects it.",
   20: "Once the month's files are in, the Group Sustainability Manager checks the Data quality page: the recalculated emissions should match the stored ones exactly, and every open site should be reporting. Anything wrong goes back for correction.",
   21: "Managers can ask Claude questions the dashboard was not built for, in plain language. Claude answers through a read-only connector that reads the same data and uses tested logic for the calculations that are easy to get wrong.",
-  22: "The report shows the month's figures on eight pages, opening on an Introduction that explains the company and what each page answers. Country managers see their own sites; the Group Sustainability Manager sees all six.",
+  22: "The report shows the month's figures on ten pages, opening on an Introduction that explains the company and what each page answers. Country managers see their own sites; the Group Sustainability Manager sees all six.",
   23: "After December, the Group Sustainability Manager checks that all twelve months are in and clean, then signs off the year's figures for the annual sustainability report, with group management's approval."
 };
 document.getElementById("steps").innerHTML = PHASES.map((p, i) => {
