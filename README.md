@@ -23,16 +23,15 @@ were built, in order, and why each main decision was made.
 ```
 data/ ──generator──> data/data/*.csv + manifest.json (SHA-256 checksums)
                           │
-          scripts/sync_data.py in each folder (refuses files that fail their checksum)
-                          │
         ┌─────────────────┼──────────────────┐
         ▼                 ▼                  ▼
-  mcp/data/         powerbi/data/     power-automate/data/
+       mcp/            powerbi/        power-automate/
 ```
 
-The three consumers each keep a checked copy of the dataset, so each folder runs and
-tests on its own. To refresh a copy after a data change, run
-`python scripts\sync_data.py` from that folder; it reads `..\data` by default.
+The other three parts all read the one shared dataset in `data/data/`, so they always
+show the same numbers. Each part's tests check the files against the checksums in
+`data/data/manifest.json` before relying on them. After a data change, regenerate in
+`data` and rerun every part's tests.
 
 ## How to run
 
@@ -59,5 +58,5 @@ original commit keeps its hash. The old repositories are archived on GitHub.
 
 ## Licence
 
-Code: MIT. Data: Creative Commons Attribution 4.0 (CC BY 4.0). See the `LICENSE` and
-`LICENSE-DATA.md` files in each folder.
+Code: MIT (the `LICENSE` file in each folder). Data: Creative Commons Attribution 4.0
+(CC BY 4.0) ([data/LICENSE-DATA.md](data/LICENSE-DATA.md)).

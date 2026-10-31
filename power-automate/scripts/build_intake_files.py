@@ -1,6 +1,6 @@
 """Build the site submission workbooks, the SharePoint seed workbooks and the expected results.
 
-  intake/clean/      one workbook per site for December 2025, copied from fjordvik-data
+  intake/clean/      one workbook per site for December 2025, from the shared data
   intake/problems/   the same month with planted problems (see PROBLEMS below)
   sharepoint/seed/   workbooks to create the SharePoint lists from (Sites, Sources,
                      EmissionFactors, and Emissions for January 2023 to November 2025)

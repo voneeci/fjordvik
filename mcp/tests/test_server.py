@@ -82,7 +82,7 @@ def test_resources_are_readable(wh):
             return schema.contents[0].text, source.contents[0].text
     schema, source = run(go())
     assert "fact_emissions" in schema and "illustrative" in schema
-    assert json.loads(source)["source_repository"] == "fjordvik-data"
+    assert json.loads(source)["tables"]["fact_emissions"]["rows"] == 1422
 
 
 def test_server_runs_over_stdio_like_claude_desktop():

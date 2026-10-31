@@ -49,7 +49,7 @@ see what, and is it documented well enough to certify?
 ## Architecture
 
 ```
-fjordvik-data (tagged release) ──sync_data.py──> data/*.csv  (checksums verified)
+checksums checked by tests/test_data.py ──> ../data/data/*.csv  (the shared dataset)
                                                     │  Power Query, en-US locale
                                                     ▼
 FjordvikEmissions.SemanticModel/definition/   TMDL: tables, relationships, measures, roles
@@ -73,7 +73,7 @@ You need Power BI Desktop (free, Microsoft Store) and Python 3.10 or newer with 
 1. Clone the repository. If it is not at `C:\Users\reece\Projects\fjordvik` (this folder is `powerbi`),
    change the `DataFolder` value in
    `FjordvikEmissions.SemanticModel/definition/expressions.tmdl` (or in Desktop:
-   **Transform data > Edit parameters**) to your `data` folder.
+   **Transform data > Edit parameters**) to your clone's shared `data\data` folder.
 2. Open `FjordvikEmissions.pbip` in Power BI Desktop. It opens without data; select
    **Refresh now** on the yellow bar.
 3. Run the tests:
@@ -101,7 +101,7 @@ python -m pytest -q
 | --- | --- |
 | `test_measures_live.py` (31) | Every measure, run as DAX against the open model, matches an independent Python calculation from the CSVs: totals by year, scope, site and country; the scope measures under a conflicting filter (blank); reconciliation; revenue, average FTE and both intensities; blank per-euro intensity for the head office; prior year (blank for 2023); like-for-like change for the company, for Tartu and across all years; row and site counts; and each security role, including that the Sweden role sees nothing when filtered to Finland |
 | `test_model_files.py` (66) | Table and column names match the shared schema; every measure has a description, format string and display folder, carries its unit in its name, divides with `DIVIDE()`, and contains no typed-in rates (only unit conversions and the date-key shift); three country roles; every field used by a visual exists in the model; page and visual names follow the PBIR rules; the report files are exactly what `build_report.py` writes |
-| `test_docs.py`, `test_data.py` (3) | The data dictionary matches the model; the data matches the fjordvik-data checksums |
+| `test_docs.py`, `test_data.py` (3) | The data dictionary matches the model; the shared data matches its manifest's checksums, and `DataFolder` points at it |
 
 The tests were checked by planting mistakes: a typed-in factor (`* 0.95`) in a measure and
 a misspelt measure name in a visual were both caught. Writing the like-for-like test
@@ -124,7 +124,8 @@ exposed a real fault in the first version of the change measure, which compared 
   shows what would be reviewed.
 - **Local file source.** The data comes from CSV files through a folder parameter. A
   production model would read a database or lakehouse, with a gateway for refresh.
-- **Monthly grain** and illustrative emission factors (see fjordvik-data).
+- **Monthly grain** and illustrative emission factors (see the
+  [data README](../data/README.md)).
 - **Live tests need Desktop open.** In a team, the same DAX queries would run in CI
   (continuous integration) against a published model through the XMLA endpoint.
 - Report layout is functional rather than polished; formatting is left at defaults.
@@ -135,9 +136,8 @@ exposed a real fault in the first version of the change measure, which compared 
   XMLA endpoint.
 - Add a Power Automate flow that refreshes the model after each monthly data load
   (the `power-automate` folder).
-- Re-pin the data to the fjordvik-data `v1.0.0` tag once it is created.
 
 ## Licence
 
 Code: MIT ([LICENSE](LICENSE)). Data: Creative Commons Attribution 4.0 (CC BY 4.0)
-([data/LICENSE-DATA.md](data/LICENSE-DATA.md)).
+([data/LICENSE-DATA.md](../data/LICENSE-DATA.md)).

@@ -1,9 +1,0 @@
-source_id,source_name,scope,category
-S01,Natural gas,1,Stationary combustion
-S02,Diesel,1,Mobile combustion
-S03,Liquefied petroleum gas (LPG),1,Mobile combustion
-S04,Refrigerant leakage,1,Fugitive emissions
-S05,Purchased electricity,2,Purchased electricity
-S06,District heating,2,Purchased heat
-S07,Business flights,3,Business travel
-S08,Waste to landfill,3,Waste generated in operations

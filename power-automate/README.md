@@ -60,7 +60,7 @@ Details: [flow design](docs/flow-design.md), [SharePoint lists](docs/sharepoint-
 
 | Folder | Holds |
 | --- | --- |
-| `intake/clean/` | December 2025 file for each of the six sites, copied from fjordvik-data |
+| `intake/clean/` | December 2025 file for each of the six sites, built from the shared data in `../data/data` |
 | `intake/problems/` | The same month with planted problems: Tampere's electricity in MWh, Oulu's district heating left out, Gothenburg's diesel entered twice, and no file from Tartu |
 | `sharepoint/seed/` | Workbooks to create the Sites, Sources, EmissionFactors and Emissions lists (Emissions: January 2023 to November 2025) |
 | `expected/` | What the flows must produce for every file |
@@ -73,8 +73,8 @@ The offline part needs Python 3.10 or newer with pytest and openpyxl.
 python -m pytest
 ```
 
-To rebuild the test files after a data change: `python scripts/sync_data.py`, then
-`python scripts/build_intake_files.py`. Building the flows: [docs/tenant-setup.md](docs/tenant-setup.md).
+The rules read the repository's shared `../data/data` folder. To rebuild the test files
+after a data change: `python scripts/build_intake_files.py`. Building the flows: [docs/tenant-setup.md](docs/tenant-setup.md).
 
 ## Test evidence
 
@@ -86,9 +86,9 @@ python -m pytest -q
 
 | Test file | What it proves |
 | --- | --- |
-| `test_intake.py` (21) | Clean files are accepted; each problem file fails exactly its planned rules; loading the six clean December files on top of the seeded list reproduces all 1,422 fjordvik-data rows exactly; a second load of a month is refused; each remaining rule catches its own problem; refrigerant is exempt from the change check; the missing-submission logic lists the right sites; every workbook holds one named table |
+| `test_intake.py` (21) | Clean files are accepted; each problem file fails exactly its planned rules; loading the six clean December files on top of the seeded list reproduces all 1,422 shared emission rows exactly; a second load of a month is refused; each remaining rule catches its own problem; refrigerant is exempt from the change check; the missing-submission logic lists the right sites; every workbook holds one named table |
 | `test_docs.py` (3) | Every rule is documented; the documented row counts and columns match the seed workbooks |
-| `test_data.py` (2) | The data matches the fjordvik-data checksums |
+| `test_data.py` (2) | The shared data matches its manifest's checksums, and the rules read that folder |
 
 The flows will be checked against `expected/expected_results.json` in nine test runs
 (tenant-setup.md, Part D).
@@ -109,10 +109,10 @@ The flows will be checked against `expected/expected_results.json` in nine test 
 
 - Build and test the flows in the trial (tenant-setup.md), export them to `flows/`, add
   screenshots and the evidence test.
-- Point Power BI at the Emissions list instead of the CSV copy, and refresh it at the end
+- Point Power BI at the Emissions list instead of the CSV files, and refresh it at the end
   of each accepted run.
 
 ## Licence
 
 Code: MIT ([LICENSE](LICENSE)). Data: Creative Commons Attribution 4.0 (CC BY 4.0)
-([data/LICENSE-DATA.md](data/LICENSE-DATA.md)).
+([data/LICENSE-DATA.md](../data/LICENSE-DATA.md)).

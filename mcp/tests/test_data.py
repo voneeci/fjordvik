@@ -1,10 +1,15 @@
-"""The bundled data is an unedited copy of a known fjordvik-data commit."""
+"""The server reads the repository's shared data folder, and that data is unedited."""
 
 import hashlib
 import json
+from pathlib import Path
+
+from fjordvik_mcp import db
+
+SHARED = Path(__file__).resolve().parents[2] / "data" / "data"
 
 
-def test_bundled_files_match_manifest_checksums(data_dir):
+def test_shared_files_match_manifest_checksums(data_dir):
     manifest = json.loads((data_dir / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["emission_factors"] == "illustrative, not for real reporting"
     for info in manifest["tables"].values():
@@ -12,7 +17,6 @@ def test_bundled_files_match_manifest_checksums(data_dir):
         assert digest == info["sha256"], info["file"]
 
 
-def test_source_commit_is_recorded(data_dir):
-    source = json.loads((data_dir / "SOURCE.json").read_text(encoding="utf-8"))
-    assert source["source_repository"] == "fjordvik-data"
-    assert len(source["commit"]) == 40
+def test_server_defaults_to_the_shared_data_folder():
+    assert db.DEFAULT_DATA_DIR == SHARED
+    assert (SHARED / "manifest.json").exists()

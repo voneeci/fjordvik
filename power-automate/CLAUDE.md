@@ -19,8 +19,10 @@ power-automate. Permanent rules in
   appears.
 - Statuses: Accepted, Rejected, Failed. Changing one by hand does nothing; see
   docs/run-statuses.md. Keep that page current if a status changes.
-- Planted problems live only in `intake/problems/`; the clean files must reproduce
-  fjordvik-data exactly.
+- Planted problems live only in `intake/problems/`; the clean files must reproduce the
+  shared data in `..\data\data` exactly.
+- The data is the repository's shared `..\data\data` folder (`intake_rules.DATA`). Never
+  edit it from here; after a data change, rebuild the intake files and rerun the tests.
 - Power Automate facts in the docs come from Microsoft Learn pages read on 12 October
   2026; mark anything unconfirmed as "to check during the build".
 - Writing: no em dashes, Australian spelling, spell out acronyms on first use.
@@ -28,7 +30,6 @@ power-automate. Permanent rules in
 ## Commands
 
 ```bash
-python scripts/sync_data.py ..\data            # refresh data (checksums verified)
 python scripts/build_intake_files.py           # rebuild intake, seed and expected files
 python -m pytest -q                            # 26 tests
 ```

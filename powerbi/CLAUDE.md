@@ -9,7 +9,8 @@ power-automate. Permanent rules in
 
 - Synthetic data only. Emission factors are illustrative, not cited (Reece's one-off
   exception for the Fjordvik project, 12 October 2026). Every page and doc says so.
-- Never edit `data/` by hand: `python scripts/sync_data.py` verifies checksums.
+- The `DataFolder` parameter points at the repository's shared `data\data` folder; never
+  edit that folder from here. `tests/test_data.py` checks its checksums and the parameter.
 - Report JSON is generated: edit `scripts/build_report.py`, never the visual.json files.
   The rebuild test compares JSON content (not bytes), so a Desktop save that changes
   nothing passes; a Desktop save that changes report settings means updating the

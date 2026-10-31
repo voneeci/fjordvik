@@ -1,10 +1,15 @@
-"""The bundled data is an unedited copy of a known fjordvik-data commit."""
+"""The model reads the repository's shared data folder, and that data is unedited."""
 
 import hashlib
 import json
+import re
+from pathlib import Path
+
+EXPRESSIONS = (Path(__file__).resolve().parents[1] / "FjordvikEmissions.SemanticModel"
+               / "definition" / "expressions.tmdl")
 
 
-def test_bundled_files_match_manifest_checksums(data_dir):
+def test_shared_files_match_manifest_checksums(data_dir):
     manifest = json.loads((data_dir / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["emission_factors"] == "illustrative, not for real reporting"
     for info in manifest["tables"].values():
@@ -12,7 +17,7 @@ def test_bundled_files_match_manifest_checksums(data_dir):
         assert digest == info["sha256"], info["file"]
 
 
-def test_source_commit_is_recorded(data_dir):
-    source = json.loads((data_dir / "SOURCE.json").read_text(encoding="utf-8"))
-    assert source["source_repository"] == "fjordvik-data"
-    assert len(source["commit"]) == 40
+def test_data_folder_parameter_points_at_the_shared_folder():
+    text = EXPRESSIONS.read_text(encoding="utf-8")
+    folder = re.search(r'expression DataFolder = "([^"]+)"', text).group(1)
+    assert folder.endswith(r"\data\data"), folder

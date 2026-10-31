@@ -1,0 +1,6 @@
+﻿Refresh before the live tests, 31 October 2026 (shared data folder)
+DataFolder = C:\Users\reece\Projects\fjordvik\data\data (powerbi\data copy removed)
+Command: scripts\run_dax_table.ps1 -QueryFile <empty query list> -Port 63345 -Refresh
+Output:
+refreshed database 9d26f0b1-1856-4c70-b11c-ff1be9f3da3b
+

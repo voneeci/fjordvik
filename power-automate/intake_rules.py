@@ -11,7 +11,7 @@ import csv
 from collections import defaultdict
 from pathlib import Path
 
-DATA = Path(__file__).resolve().parent / "data"
+DATA = Path(__file__).resolve().parents[1] / "data" / "data"  # the repository's shared data
 
 COLUMNS = ["site_id", "month", "source_id", "activity_amount", "unit"]
 REPORTING_MONTH = "2025-12"

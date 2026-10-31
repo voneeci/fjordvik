@@ -50,14 +50,17 @@ drift, and nobody can tell which version a dashboard was built on.
 ## Architecture
 
 ```
-config.py ──> generate.py ──> data/*.csv + manifest.json ──> tagged release
+config.py ──> generate.py ──> data/*.csv + manifest.json ──> read directly by
  (sites,       (builds the       (five tables, row counts,      │
   sources,      five tables)      SHA-256 checksums)            ├─> mcp/
   factors,                                                      ├─> powerbi/
   story)                                                        └─> power-automate/
 ```
 
-Shared schema (names are a contract; the other repositories depend on them):
+This `data/data` folder is the project's one copy of the dataset: the other three parts
+read it in place and check it against `manifest.json` in their own tests.
+
+Shared schema (names are a contract; the other three parts depend on them):
 
 | Table | Columns | Grain |
 | --- | --- | --- |
@@ -110,8 +113,9 @@ Without installing, from the repository folder in PowerShell:
 $env:PYTHONPATH = "src"; python -m fjordvik_data --out data
 ```
 
-To use the data elsewhere, take the CSV files from a tagged release and check them against
-the SHA-256 checksums in `data/manifest.json`.
+To use the data elsewhere, take the CSV files from `data/` at a known commit and check
+them against the SHA-256 checksums in `data/manifest.json`. After any change, rerun the
+tests of every part, because they all read this folder.
 
 ## Test evidence
 
@@ -144,7 +148,6 @@ python -m pytest -q
 
 ## Next steps
 
-- Tag release `v1.0.0` and pin the other three folders to it.
 - Add market-based scope 2 if the schema is ever extended.
 - Add yearly factor versions to show how restating a factor changes past totals.
 

@@ -1,0 +1,5 @@
+﻿pytest -q in mcp, 31 October 2026 (shared data folder; powerbi live tests are in live-measures-2026-10-31.txt)
+
+................................................                         [100%]
+48 passed in 2.69s
+

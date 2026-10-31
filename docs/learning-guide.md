@@ -34,9 +34,9 @@ in each folder's `evidence/` folder.
 ```
 
 The data came first because the other three parts depend on its table and column names.
-Each consumer keeps its own copy of the data and checks every file against the SHA-256
-checksums in `data/data/manifest.json`, so all three always show the same numbers and
-each folder runs and tests on its own.
+The other three parts read the one shared dataset in `data/data/` directly, so they
+always show the same numbers. Each part's tests check every file against the SHA-256
+checksums in `data/data/manifest.json` before relying on it.
 
 ## 1. The dataset (`data`)
 

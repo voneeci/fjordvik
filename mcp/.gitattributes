@@ -1,5 +1,5 @@
-# Keep data files byte-for-byte identical on every machine, so the SHA-256
-# checksums in data/manifest.json stay valid after a clone on Windows.
+# Keep files byte-for-byte identical on every machine, whatever line endings
+# Git for Windows would otherwise check out.
 *.csv  text eol=lf
 *.json text eol=lf
 *.py   text eol=lf

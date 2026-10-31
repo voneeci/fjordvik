@@ -3,8 +3,8 @@
 A Model Context Protocol (MCP) server that lets Claude answer questions about the
 emissions of Fjordvik Manufacturing Oy, a **fictional** manufacturer with six sites in
 Finland, Sweden and Estonia. Claude calls five read-only tools; the server answers from
-a locked-down DuckDB database (a file-based analytics database) built from the shared
-[fjordvik-data](../data) dataset.
+a locked-down DuckDB database (a file-based analytics database) built from the
+repository's shared dataset in [`data/data`](../data).
 
 > **Synthetic data only.** No real company, client or person is described. The emission
 > factors are **illustrative**, not cited, and must not be used for real reporting.
@@ -49,7 +49,7 @@ Claude Desktop ──stdio──> fjordvik-mcp server (Python, MCP SDK 2.x)
                               │  queries.py  SQL with bound parameters, guard for run_sql
                               │  db.py       loads CSVs, then locks the database
                               ▼
-                          DuckDB in memory  <── data/*.csv (copied from fjordvik-data,
+                          DuckDB in memory  <── ../data/data/*.csv (the shared dataset,
                                                  checked against SHA-256 checksums)
 ```
 
@@ -62,7 +62,7 @@ Claude Desktop ──stdio──> fjordvik-mcp server (Python, MCP SDK 2.x)
 | `run_sql` | Any single read-only `SELECT` against the five tables |
 
 Resources: `fjordvik://schema` (tables, grain and joins) and `fjordvik://source` (the
-fjordvik-data commit the bundled data came from).
+data's manifest: generator version, seed, period, row counts and SHA-256 checksums).
 
 ## How to run
 
@@ -103,14 +103,11 @@ Try:
   and why might that be?"
 - "Run the data quality report and summarise it."
 
-### Refresh the data
+### Where the data comes from
 
-```bash
-python scripts/sync_data.py ..\data
-```
-
-The script refuses files whose checksum does not match the fjordvik-data manifest, and
-records the source commit in `data/SOURCE.json`.
+The server reads the repository's shared `..\data\data` folder, so there is nothing to
+refresh here: a data change in `data` reaches the server the next time it starts. To
+point it somewhere else, set `FJORDVIK_DATA_DIR` (see [.env.example](.env.example)).
 
 ## Test evidence
 
@@ -126,7 +123,7 @@ records the source commit in `data/SOURCE.json`.
 | `test_sql_guard.py` | `SELECT` and `WITH` work; `DROP`, `DELETE`, `INSERT`, `UPDATE`, `CREATE`, `SET`, `ATTACH`, `COPY`, `INSTALL` and multiple statements are refused; a `SELECT` cannot read local files |
 | `test_quality.py` | All eight checks pass on clean data, and each catches a planted problem: a duplicate row, a missing month, a unit error (kWh entered as MWh), an unknown site, a negative value |
 | `test_server.py` | Over the MCP protocol: five tools, all read-only; allowed values appear in the tool schema; results come back as structured content; errors carry a usable message; resources are readable; the server works as a real subprocess over stdio, as Claude Desktop runs it |
-| `test_data.py` | The bundled CSVs match the fjordvik-data checksums, and the source commit is recorded |
+| `test_data.py` | The shared CSVs match their manifest's checksums, and the server reads the shared data folder by default |
 
 The safety tests were checked by breaking the code on purpose. With the database lock
 removed, the three local-file tests fail. With the error wrapper removed, the two
@@ -144,11 +141,11 @@ tests.
 - **Answers are only as good as Claude's reading of them.** The tools return correct
   numbers, but Claude still chooses which tool to call and how to explain the result.
   Check important answers against the Power BI model.
-- Illustrative emission factors and location-based scope 2 only (see fjordvik-data).
+- Illustrative emission factors and location-based scope 2 only (see the
+  [data README](../data/README.md)).
 
 ## Next steps
 
-- Re-pin the data to the fjordvik-data `v1.0.0` tag once it is created.
 - A remote version (Streamable HTTP transport) with OAuth sign-in, as an organisation
   would deploy it.
 - A tool that runs Data Analysis Expressions (DAX) queries against the published Power
@@ -157,4 +154,4 @@ tests.
 ## Licence
 
 Code: MIT ([LICENSE](LICENSE)). Data: Creative Commons Attribution 4.0 (CC BY 4.0)
-([data/LICENSE-DATA.md](data/LICENSE-DATA.md)).
+([data/LICENSE-DATA.md](../data/LICENSE-DATA.md)).

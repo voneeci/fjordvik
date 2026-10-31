@@ -13,9 +13,11 @@ One portfolio project in four parts over the synthetic Fjordvik dataset, one fol
   are parts of it (Reece, 31 October 2026). On a CV it is a "portfolio project", never
   client work.
 - The shared schema in `data` is a contract the other three folders depend on.
-- Each consumer keeps its own checksum-verified copy of the data (Reece's choice, 30
-  October 2026). Refresh with `python scripts/sync_data.py` from that folder (default
-  source `..\data`); never edit a `data/` folder by hand.
+- One shared copy of the data: mcp, powerbi and power-automate read `data/data/`
+  directly, and each part's `tests/test_data.py` checks it against `manifest.json`
+  (Reece's choice, 31 October 2026, replacing the per-folder copies of 30 October).
+  Never edit `data/data/` by hand; change it only through the generator in `data`, then
+  rerun every part's tests.
 - One virtual environment per folder (`<folder>\.venv`); run each folder's tests from
   that folder.
 - Combined from four repositories on 30 October 2026 with `git subtree`, so the original

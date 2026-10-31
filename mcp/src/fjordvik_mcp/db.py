@@ -11,7 +11,8 @@ from pathlib import Path
 
 import duckdb
 
-DEFAULT_DATA_DIR = Path(__file__).resolve().parents[2] / "data"
+# The shared data folder of the fjordvik repository: fjordvik/data/data.
+DEFAULT_DATA_DIR = Path(__file__).resolve().parents[3] / "data" / "data"
 
 # Explicit types, so nothing depends on DuckDB guessing them.
 # DECIMAL keeps sums exact: 0.1 + 0.2 is 0.3, not 0.30000000000000004.
@@ -31,7 +32,7 @@ SCHEMA = {
 
 
 def data_dir() -> Path:
-    """FJORDVIK_DATA_DIR overrides the bundled copy (see .env.example)."""
+    """FJORDVIK_DATA_DIR overrides the shared data folder (see .env.example)."""
     return Path(os.environ.get("FJORDVIK_DATA_DIR") or DEFAULT_DATA_DIR)
 
 

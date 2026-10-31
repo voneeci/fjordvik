@@ -9,7 +9,7 @@ would require and where the evidence for each item is.
 | # | Requirement | Evidence in this repository | Status |
 | --- | --- | --- | --- |
 | 1 | A named business owner and a named technical owner | README, "Ownership" | Fictional owners named |
-| 2 | Source data is identified and pinned to a version | `data/SOURCE.json` (fjordvik-data commit), checksums in `data/manifest.json` | Done |
+| 2 | Source data is identified and pinned to a version | The shared `data/data` folder of the repository, at a known git commit; SHA-256 checksums in `data/data/manifest.json`, checked by `tests/test_data.py` | Done |
 | 3 | Every measure reconciles with an independent calculation | `tests/test_measures_live.py`: 31 cases against plain Python sums | Run before each release |
 | 4 | Totals reconcile across routes inside the model | `Reconciliation Difference (tCO2e)` measure: stored tCO2e against activity times factor | Shown on the Data quality page |
 | 5 | Naming conventions followed | `docs/naming-conventions.md`, checked by `tests/test_model_files.py` | Done |

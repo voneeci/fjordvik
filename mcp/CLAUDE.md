@@ -11,8 +11,9 @@ powerbi, power-automate. Permanent rules in
   is git-ignored.
 - Emission factors are illustrative, not cited (Reece's one-off exception for the
   Fjordvik project, 12 October 2026). Every doc says so.
-- Never edit `data/` by hand. Refresh it with `python scripts/sync_data.py`, which
-  verifies checksums and records the source commit.
+- The server reads the repository's shared `..\data\data` folder (`db.DEFAULT_DATA_DIR`;
+  `FJORDVIK_DATA_DIR` overrides it). Never edit that folder from here;
+  `tests/test_data.py` checks it against its manifest.
 - Every tool stays read-only. `run_sql` keeps all three guards: one SELECT only,
   locked external access, capped rows. Removing a guard needs Reece's yes.
 - MCP SDK is 2.x: `from mcp.server.mcpserver import MCPServer` (FastMCP was renamed),

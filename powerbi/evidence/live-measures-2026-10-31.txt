@@ -1,0 +1,40 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.7, pytest-9.2.0, pluggy-1.7.0 -- C:\Users\reece\Projects\fjordvik\powerbi\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\reece\Projects\fjordvik\powerbi
+collecting ... collected 31 items
+
+tests/test_measures_live.py::test_measure_matches_python[total_all] PASSED [  3%]
+tests/test_measures_live.py::test_measure_matches_python[total_2023] PASSED [  6%]
+tests/test_measures_live.py::test_measure_matches_python[total_2024] PASSED [  9%]
+tests/test_measures_live.py::test_measure_matches_python[total_2025] PASSED [ 12%]
+tests/test_measures_live.py::test_measure_matches_python[scope1_2025] PASSED [ 16%]
+tests/test_measures_live.py::test_measure_matches_python[scope2_2025] PASSED [ 19%]
+tests/test_measures_live.py::test_measure_matches_python[scope3_2025] PASSED [ 22%]
+tests/test_measures_live.py::test_measure_matches_python[scope1_under_scope2_filter] PASSED [ 25%]
+tests/test_measures_live.py::test_measure_matches_python[total_fi01_2024] PASSED [ 29%]
+tests/test_measures_live.py::test_measure_matches_python[total_estonia] PASSED [ 32%]
+tests/test_measures_live.py::test_measure_matches_python[recalculated_all] PASSED [ 35%]
+tests/test_measures_live.py::test_measure_matches_python[reconciliation_difference_all] PASSED [ 38%]
+tests/test_measures_live.py::test_measure_matches_python[revenue_2025] PASSED [ 41%]
+tests/test_measures_live.py::test_measure_matches_python[average_fte_2024] PASSED [ 45%]
+tests/test_measures_live.py::test_measure_matches_python[per_fte_2024] PASSED [ 48%]
+tests/test_measures_live.py::test_measure_matches_python[per_meur_ee01_2025] PASSED [ 51%]
+tests/test_measures_live.py::test_measure_matches_python[per_meur_head_office_is_blank] PASSED [ 54%]
+tests/test_measures_live.py::test_measure_matches_python[prior_year_of_2025] PASSED [ 58%]
+tests/test_measures_live.py::test_measure_matches_python[prior_year_of_2023_is_blank] PASSED [ 61%]
+tests/test_measures_live.py::test_measure_matches_python[prior_year_se01_march_2025] PASSED [ 64%]
+tests/test_measures_live.py::test_measure_matches_python[yoy_change_2025] PASSED [ 67%]
+tests/test_measures_live.py::test_measure_matches_python[yoy_change_tartu_2025] PASSED [ 70%]
+tests/test_measures_live.py::test_measure_matches_python[yoy_change_all_years] PASSED [ 74%]
+tests/test_measures_live.py::test_measure_matches_python[yoy_change_2023_is_blank] PASSED [ 77%]
+tests/test_measures_live.py::test_measure_matches_python[emission_rows_all] PASSED [ 80%]
+tests/test_measures_live.py::test_measure_matches_python[sites_reporting_2023] PASSED [ 83%]
+tests/test_measures_live.py::test_measure_matches_python[sites_reporting_2025] PASSED [ 87%]
+tests/test_measures_live.py::test_measure_matches_python[rls_finland_total] PASSED [ 90%]
+tests/test_measures_live.py::test_measure_matches_python[rls_finland_sites] PASSED [ 93%]
+tests/test_measures_live.py::test_measure_matches_python[rls_estonia_sites_2023] PASSED [ 96%]
+tests/test_measures_live.py::test_measure_matches_python[rls_sweden_cannot_see_finland] PASSED [100%]
+
+============================= 31 passed in 2.01s ==============================
+

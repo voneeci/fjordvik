@@ -1,5 +1,5 @@
 """The intake rules accept clean files, reject each planted problem, and reproduce
-fjordvik-data exactly when the December files are loaded."""
+the shared data exactly when the December files are loaded."""
 
 import json
 import sys
