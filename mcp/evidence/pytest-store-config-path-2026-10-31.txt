@@ -1,0 +1,5 @@
+﻿add_to_claude_desktop.py now resolves CONFIG to: C:\Users\reece\AppData\Local\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\claude_desktop_config.json
+
+................................................                         [100%]
+48 passed in 2.65s
+

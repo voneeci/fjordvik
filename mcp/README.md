@@ -88,7 +88,9 @@ is running is lost. Make the change with the app fully closed:
    python scripts\add_to_claude_desktop.py
    ```
 
-   It backs up `%APPDATA%\Claude\claude_desktop_config.json`, adds the `fjordvik`
+   It finds `claude_desktop_config.json` (in
+   `%LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude` for the Microsoft Store
+   version, otherwise `%APPDATA%\Claude`), backs it up, adds the `fjordvik`
    entry shown in [claude_desktop_config.example.json](claude_desktop_config.example.json),
    and keeps every other setting. `--remove` takes it out again.
 3. Open Claude Desktop. "fjordvik" appears under **+ > Connectors** in a chat.

@@ -20,8 +20,21 @@ from datetime import datetime
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-CONFIG = Path(os.environ["APPDATA"]) / "Claude" / "claude_desktop_config.json"
 PYTHON = REPO / ".venv" / "Scripts" / "python.exe"
+
+
+def config_path() -> Path:
+    # The Microsoft Store install keeps its settings in its package folder;
+    # %APPDATA%\Claude is only the installer version's home.
+    packages = Path(os.environ["LOCALAPPDATA"]) / "Packages"
+    for package in sorted(packages.glob("Claude_*")):
+        store = package / "LocalCache" / "Roaming" / "Claude"
+        if store.is_dir():
+            return store / "claude_desktop_config.json"
+    return Path(os.environ["APPDATA"]) / "Claude" / "claude_desktop_config.json"
+
+
+CONFIG = config_path()
 
 
 def claude_running() -> bool:
@@ -52,7 +65,9 @@ def main() -> int:
     else:
         servers["fjordvik"] = {"command": str(PYTHON), "args": ["-m", "fjordvik_mcp"]}
 
+    CONFIG.parent.mkdir(parents=True, exist_ok=True)
     CONFIG.write_text(json.dumps(config, indent=2), encoding="utf-8")
+    print(f"Config: {CONFIG}")
     check = json.loads(CONFIG.read_text(encoding="utf-8"))
     print(f"Done. MCP servers now in the config: {list(check.get('mcpServers', {}))}")
     print("Open Claude Desktop again; fjordvik should appear under Connectors.")
