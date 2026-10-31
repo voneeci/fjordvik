@@ -75,7 +75,7 @@ equivalent employees (FTE).
 
 Every scope 3 category not calculated is listed with its reason, as the GHG Protocol
 Scope 3 Standard requires. Use of sold products (category 11), the lifetime electricity of
-the pumps sold, is 97% of the 2025 total; sales to Rest of world are left out because no
+the pumps sold, is 95% of the 2025 total; sales to Rest of world are left out because no
 grid factor source has been identified.
 
 Emissions in tonnes of carbon dioxide equivalent (tCO2e) are worked out as activity
@@ -85,8 +85,8 @@ business can see whether it is getting cleaner as well as bigger.
 
 The dataset covers 36 months, January 2023 to December 2025: 1,422 monthly rows the
 sites report, 198 rows of revenue and FTE, 2,802 value-chain rows, 3,379 rows of sales
-and 1,940 rows of category 11. Illustrative location-based totals are 2,372,794.0 tCO2e in
-2023, 2,384,992.1 in 2024 and 2,328,686.6 in 2025. Market-based scope 2 is 7,383.5
+and 1,940 rows of category 11. Illustrative location-based totals are 1,448,328.1 tCO2e in
+2023, 1,456,602.1 in 2024 and 1,423,966.5 in 2025. Market-based scope 2 is 7,383.5
 tCO2e in 2025 against 6,243.6 location-based: residual mixes are higher than grid
 averages, so only the guarantees of origin bring it down.
 
@@ -104,7 +104,7 @@ is logged, and a second flow chases sites with no accepted file on day 5.
 - One set of tested measures (totals, emissions per FTE and per million euros, change on
   the year) means every page and every user sees the same answer.
 - Year-on-year change compares like for like: only site-months reported in both years.
-  For 2025 that gives -2.4% for the company (the sales mix moved to smaller pumps, which
+  For 2025 that gives -2.3% for the company (the sales mix moved to smaller pumps, which
   use less electricity in service); for Tartu Warehouse it gives +13.2% instead of a
   misleading +138.3%.
 - Row-level security (RLS) gives each country manager their own sites only.

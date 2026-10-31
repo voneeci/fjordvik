@@ -21,7 +21,7 @@ utilities, industry and buildings, from six sites in Finland, Sweden and Estonia
 
 Every product is driven by an electric motor, so its energy use over its working life (scope 3
 category 11, use of sold products) is by far the largest part of Fjordvik's carbon
-footprint: 97% of the 2025 total, worked out from units sold and each model's yearly
+footprint: 95% of the 2025 total, worked out from units sold and each model's yearly
 electricity use and lifetime. Sales to Rest of world are left out until a grid factor
 source for that region is found.
 

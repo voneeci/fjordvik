@@ -67,6 +67,24 @@ units in Western Europe in March 2025: 3 × 20 years × 640,000 kWh = 38,400,000
 0.250 kg ÷ 1,000 = 9,600 tCO2e, as stored. Its 2025 price effect: (41,373.24 −
 39,765.87) × 104 units = EUR 167,166.
 
+## Addendum: pump yearly kWh lowered (Reece's decision, 31 October 2026)
+
+Reece chose to lower the category 11 scale. Every product's `kwh_per_year` in
+`data/src/fjordvik_data/config.py` was multiplied by 0.6 (rounded to the nearest 100 kWh):
+expected use in service is below rated power because pumps run part-loaded. Only
+`dim_product.csv`, `fact_use_phase.csv` and the manifest changed; sales, margins and
+every other emission source are unchanged.
+
+| Year | Total emissions (tCO2e) | Of which category 11 |
+| --- | --- | --- |
+| 2023 | 1,448,328.1 | 1,386,906.8 |
+| 2024 | 1,456,602.1 | 1,392,821.8 |
+| 2025 | 1,423,966.5 | 1,357,344.0 |
+
+Category 11 is now 95% of the 2025 total, inside the plan's 1.3 to 1.6 million range.
+Like-for-like change 2025: -2.3%. The figure tables above are the earlier run.
+Evidence: `*/evidence/pytest-lower-kwh-2026-10-31.txt`.
+
 ## Test results (each from its own folder and `.venv`)
 
 | Part | Result | Evidence |

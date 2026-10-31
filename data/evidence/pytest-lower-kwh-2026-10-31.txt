@@ -1,0 +1,4 @@
+pytest -q in data, 31 October 2026 (pump yearly kWh lowered by 40%, Reece's decision)
+
+..........................................................               [100%]
+58 passed in 6.82s

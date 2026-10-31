@@ -73,7 +73,7 @@
     "dim_product": {
       "file": "dim_product.csv",
       "rows": 24,
-      "sha256": "88dfcabfd8bac1f3f0317cb484948e51eb59f396e061b44761fc5f15d5f21771"
+      "sha256": "44d81bf920d09d4e59e275bd3cf110fc49c2d45d1fd1da62d74a0b3724de45e3"
     },
     "dim_region": {
       "file": "dim_region.csv",
@@ -108,7 +108,7 @@
     "fact_use_phase": {
       "file": "fact_use_phase.csv",
       "rows": 1940,
-      "sha256": "516cfc16327dec793ec6a4d67d8d9ae4770c8577c7de79f673db697c7bfe10f5"
+      "sha256": "50f7facc1eb1e33ed191c2b92418733120a5251cf95b6022289a50539ca4b8af"
     }
   }
 }

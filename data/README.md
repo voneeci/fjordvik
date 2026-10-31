@@ -213,11 +213,11 @@ Total emissions (illustrative, location-based):
 
 | Year | Scope 1 | Scope 2 location-based | Scope 3 | Total | Scope 2 market-based |
 | --- | --- | --- | --- | --- | --- |
-| 2023 | 3,482.8 | 5,294.0 | 2,364,017.1 | 2,372,794.0 | 8,003.2 |
-| 2024 | 3,745.2 | 5,718.1 | 2,375,528.8 | 2,384,992.1 | 8,437.6 |
-| 2025 | 3,948.6 | 6,243.6 | 2,318,494.4 | 2,328,686.6 | 7,383.5 |
+| 2023 | 3,482.8 | 5,294.0 | 1,439,551.2 | 1,448,328.1 | 8,003.2 |
+| 2024 | 3,745.2 | 5,718.1 | 1,447,138.7 | 1,456,602.1 | 8,437.6 |
+| 2025 | 3,948.6 | 6,243.6 | 1,413,774.3 | 1,423,966.5 | 7,383.5 |
 
-Use of sold products (category 11), the lifetime electricity of the pumps sold, is 97% of
+Use of sold products (category 11), the lifetime electricity of the pumps sold, is 95% of
 the 2025 total; purchased goods and services comes next. Sales: EUR 137.4 million in
 2023, 146.2 million in 2024 and 154.7 million in 2025, at a margin of 39.0%, 39.7% and
 40.2%. Market-based scope 2 is higher
