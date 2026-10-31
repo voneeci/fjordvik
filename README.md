@@ -18,7 +18,7 @@ December 2025.
 
 | Folder | What it shows | Tests |
 | --- | --- | --- |
-| [`data`](data) | The dataset: a seeded Python generator, a five-table star schema and its quality tests | 24 |
+| [`data`](data) | The governed dataset: a five-table star schema with fixed names, checksums and quality tests | 24 |
 | [`mcp`](mcp) | A Model Context Protocol (MCP) server that gives Claude five read-only tools over the data (Python, DuckDB) | 48 |
 | [`powerbi`](powerbi) | A Power BI Project: semantic model in Tabular Model Definition Language (TMDL), 24 Data Analysis Expressions (DAX) measures, row-level security, an eight-page report | 153 (44 need Power BI Desktop open) |
 | [`power-automate`](power-automate) | Power Automate intake and reminder flows with ten written rules, designed and tested offline | 26 |
@@ -33,17 +33,22 @@ tool, data and checks for each step (source: [docs/process-map.html](docs/proces
 ## How the parts fit
 
 ```
-data/ ──generator──> data/tables/*.csv + manifest.json (SHA-256 checksums)
-                          │
-        ┌─────────────────┼──────────────────┐
-        ▼                 ▼                  ▼
-       mcp/            powerbi/        power-automate/
+Site workbooks ──> Power Automate intake flow (power-automate/) ──> central Emissions list
+Reference lists (sites, sources, factors), finance (revenue), HR (headcount) ──┐     │
+                                                                               ▼     ▼
+                          governed dataset: five tables + manifest.json (data/tables/)
+                                                    │
+                              ┌─────────────────────┴─────────────────────┐
+                              ▼                                           ▼
+                  Power BI report (powerbi/)                Claude connector (mcp/)
 ```
 
-The other three parts all read the one shared dataset in `data/tables/`, so they always
-show the same numbers. Each part's tests check the files against the checksums in
-`data/tables/manifest.json` before relying on them. After a data change, regenerate in
-`data` and rerun every part's tests.
+Each month every site uploads a workbook of what it used. The intake flow checks it
+against ten written rules and adds it to the central Emissions list, which joins the
+reference lists and the finance and HR figures in one governed dataset. The Power BI
+report and the Claude connector both read that dataset, so they always show the same
+numbers, and each part's tests check the files against the checksums in
+`data/tables/manifest.json` before relying on them.
 
 ## How to run
 

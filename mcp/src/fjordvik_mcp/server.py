@@ -129,8 +129,8 @@ def build_server(warehouse: Warehouse | None = None) -> MCPServer:
         return SCHEMA_DOC
 
     @server.resource("fjordvik://source", name="source", mime_type="application/json",
-                     description="The manifest of the loaded data: generator version, "
-                                 "seed, period, row counts and SHA-256 checksums")
+                     description="The manifest of the loaded data: dataset version, "
+                                 "period, row counts and SHA-256 checksums")
     def source() -> str:
         path = db.data_dir() / "manifest.json"
         return path.read_text(encoding="utf-8") if path.exists() else json.dumps({})

@@ -1,0 +1,5 @@
+﻿pytest -q in mcp, 31 October 2026, after describing real-world data collection in the docs
+
+................................................                         [100%]
+48 passed in 4.31s
+

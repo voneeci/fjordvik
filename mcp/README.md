@@ -65,7 +65,7 @@ Claude Desktop ──stdio──> fjordvik-mcp server (Python, MCP SDK 2.x)
 | `run_sql` | Any single read-only `SELECT` against the five tables |
 
 Resources: `fjordvik://schema` (tables, grain and joins) and `fjordvik://source` (the
-data's manifest: generator version, seed, period, row counts and SHA-256 checksums).
+data's manifest: dataset version, period, row counts and SHA-256 checksums).
 
 ## How to run
 

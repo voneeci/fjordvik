@@ -1,0 +1,5 @@
+﻿pytest -q in data, 31 October 2026, after describing real-world data collection in the docs
+
+........................                                                 [100%]
+24 passed in 0.22s
+

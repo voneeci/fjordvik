@@ -56,7 +56,8 @@ predictable failures:
 ## What the data is
 
 Each month, each site reports how much of each emission source it used (its activity
-data), plus its revenue and its headcount as full-time equivalent employees (FTE).
+data). Finance supplies each site's monthly revenue, and HR its headcount as full-time
+equivalent employees (FTE).
 
 | Scope | What it covers | Sources at Fjordvik |
 | --- | --- | --- |
@@ -111,9 +112,10 @@ Site spreadsheet ──upload──> SharePoint ──> Power Automate intake fl
 ```
 
 In this portfolio version, the flows are designed and tested offline, ready to build in a
-Microsoft 365 tenant. The dataset in `data/tables` stands in for the central Emissions list,
-so Power BI and the connector read it directly. The intake tests prove the link: loading
-the six clean December files onto the earlier months rebuilds that dataset exactly.
+Microsoft 365 tenant, and the governed dataset in `data/tables` holds synthetic figures in
+the shape the central Emissions list and the finance and HR exports would have. The intake
+tests prove the link: loading the six clean December files onto the earlier months
+rebuilds that dataset exactly.
 
 The [process map](https://voneeci.github.io/fjordvik/docs/process-map.html) shows all 23
 steps, from energy being used at a site to the figures on the Power BI report,
@@ -148,30 +150,33 @@ The other three parts read the one shared dataset in `data/tables/` directly, so
 always show the same numbers. Each part's tests check every file against the SHA-256
 checksums in `data/tables/manifest.json` before relying on it.
 
-## 1. The dataset (`data`)
+## 1. The governed dataset (`data`)
 
-**What it is.** A Python generator that writes 36 months (January 2023 to December 2025)
-of monthly emissions and site metrics for six sites in Finland, Sweden and Estonia, as a
+**What it is.** The one dataset every report reads: 36 months (January 2023 to December
+2025) of emissions by site and source, with each site's revenue and headcount, as a
 five-table star schema: three dimensions (date, site, source) and two fact tables
-(emissions, site metrics).
+(emissions, site metrics). Each month it is filled from three places: the site workbooks,
+through the intake flow into the central Emissions list; the reference lists of sites,
+sources and emission factors; and monthly exports of revenue from finance and headcount
+from HR. The [data README](../data/README.md) sets out each source, its owner and system.
 
 **Key decisions.**
 
 | Choice | Picked | Over | Why |
 | --- | --- | --- | --- |
-| How the data is made | A generator script | A hand-made spreadsheet | Rebuildable, reviewable in git, and a change is one line of configuration |
-| Randomness | A fixed seed, one random stream per site and source | One stream for everything | The same output on every run; adding a site never shifts other sites' numbers |
 | Shape | Star schema | One wide table | What Power BI is designed for: simpler DAX, faster filters, no double counting |
+| Copies | One shared dataset, read in place by every part | A copy per part | One place to change, nothing to keep in step |
 | Zeros | A row with 0 | No row | A missing row could mean "nothing to report" or "forgot to report" |
-| Proof the files match the code | Checksums in a manifest and a regenerate-and-compare test | Trust | Anyone can prove the data was not edited by hand |
+| History | A site's figures start in its first month | Backfilled estimates | No figure is invented for months before a site opened |
+| Proof the files are unedited | Checksums in a manifest, checked by every part's tests | Trust | Anyone can prove the data was not edited by hand |
 
-**A story in the data,** so the dashboards and Claude have something to find: winter
-heating peaks, a July slowdown, rooftop solar at Tampere Plant from July 2024, a new
-Tartu Warehouse from July 2024 with no backfilled history, and a head office with no
-revenue (so emissions per euro must be blank, not an error).
+**What happened in the period,** which the dashboards and Claude should find: winter
+heating peaks, a July slowdown at the plants, rooftop solar at Tampere Plant from July
+2024, Tartu Warehouse opening in July 2024, and a head office with no revenue (so its
+emissions per euro must be blank, not an error).
 
-**How it is tested.** The tests check the schema, the data quality rules, that each story
-event is visible in the data, and that regenerating gives byte-identical files.
+**How it is tested.** The tests check the schema, the data quality rules, that each
+business event shows in the data, and that the files match their manifest.
 
 ## 2. The Claude connector (`mcp`)
 
