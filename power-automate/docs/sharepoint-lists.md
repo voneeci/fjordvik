@@ -25,6 +25,11 @@ Each file holds one Excel table named `Submission` with the columns `site_id`, `
 | Sources | source_id (text, unique), source_name (text), scope (number), category (text), unit (text) | 8 | `sharepoint/seed/Sources.xlsx` |
 | EmissionFactors | source_id (text), country (text), emission_factor (number, kg CO2e per unit, illustrative) | 24 (8 sources, 3 countries) | `sharepoint/seed/EmissionFactors.xlsx` |
 
+The Sources list holds only the eight sources the sites report. The value-chain sources
+(S09 to S13: upstream fuels and grid losses, purchases, freight) come from the purchase
+ledger, the transport system and the energy contracts, not from site workbooks, so the
+intake flow never sees them.
+
 `contact_email` is left blank in the seed. In the demo, fill it with your own trial
 account's address so every email comes to you; a real deployment holds each site's
 contact.

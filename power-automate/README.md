@@ -1,7 +1,8 @@
 # Fjordvik Power Automate: monthly site file intake
 
 Every month, each of Fjordvik Manufacturing Oy's six sites in Finland, Sweden and Estonia
-sends the sustainability team a spreadsheet of the fuel, energy, refrigerant, flights and
+(a maker of electric pumps and pump systems; see the
+[company profile](../docs/company-profile.md)) sends the sustainability team a spreadsheet of the fuel, energy, refrigerant, flights and
 waste it used. These two Power Automate cloud flows take over that routine: they collect
 each file, check it against ten written rules, load accepted files into a central list,
 tell sites what to fix, and chase sites that have not sent a file.

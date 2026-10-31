@@ -109,7 +109,10 @@ def main():
     write_table(seed / "Sites.xlsx", "Sites", "Sites",
                 ["site_id", "site_name", "country", "site_type", "contact_email"],
                 [{**s, "contact_email": ""} for s in ref.sites.values()])
-    sources = {r["source_id"]: r for r in __import__("intake_rules").read_csv("dim_source")}
+    # Only the sources the sites report in their workbooks. The value-chain sources (S09 to
+    # S13) come from the purchase ledger, freight and energy data, never from a site file.
+    sources = {r["source_id"]: r for r in __import__("intake_rules").read_csv("dim_source")
+               if r["source_id"] in ref.units}
     write_table(seed / "Sources.xlsx", "Sources", "Sources",
                 ["source_id", "source_name", "scope", "category", "unit"],
                 [{**s, "scope": int(s["scope"]), "unit": ref.units[k]} for k, s in sources.items()])
