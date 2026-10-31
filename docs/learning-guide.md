@@ -117,20 +117,41 @@ the calculations that are easy to get wrong.
 
 ## How it fits together
 
+```mermaid
+flowchart LR
+    subgraph IN["1. Where the data comes from"]
+        direction TB
+        A["Site workbooks<br/>energy, fuel, waste"]
+        B["Finance and HR<br/>revenue, headcount"]
+        C["ERP and contracts<br/>purchases, freight, energy"]
+        D["Oracle ERP sales extract<br/>simulated"]
+    end
+    subgraph CHECK["2. Checks on the way in"]
+        direction TB
+        E["Intake flow<br/>ten written rules"]
+        F["SQL pipeline<br/>clean, map, reconcile"]
+    end
+    G[("3. One governed dataset<br/>21 tables + checksums")]
+    subgraph OUT["4. Who reads it"]
+        direction TB
+        H["Power BI report<br/>16 pages"]
+        I["Claude connector<br/>7 read-only tools"]
+    end
+    A --> E --> G
+    B --> G
+    C --> G
+    D --> F --> G
+    G --> H
+    G --> I
 ```
-Site spreadsheet ──upload──> SharePoint ──> Power Automate intake flow (ten rules)
-                                               │ accepted              │ rejected
-                                               ▼                       ▼
-                                      central Emissions list   email to the site
-                                               │
-                             ┌─────────────────┴─────────────────┐
-                             ▼                                   ▼
-                  Power BI model and report         Claude connector (MCP)
-```
+
+A rejected site file goes back to the site with a list of fixes and loads nothing; an
+ERP extract that fails a SQL check loads nothing either.
 
 In this portfolio version, the flows are designed and tested offline, ready to build in a
 Microsoft 365 tenant, and the governed dataset in `data/tables` holds synthetic figures in
-the shape the central Emissions list and the finance and HR exports would have. The intake
+the shape the central Emissions list and the finance, HR, ERP and contract exports would
+have; the ERP sales extract is simulated. The intake
 tests prove the link: loading the six clean December files onto the earlier months
 rebuilds that dataset exactly.
 
@@ -207,7 +228,7 @@ business event shows in the data, and that the files match their manifest.
 
 **What it is.** An MCP server that lets Claude answer plain-language questions such as
 "which site had the highest emissions per million euros of revenue in 2025?". Claude
-calls six read-only tools; the server answers from an in-memory DuckDB database (a
+calls seven read-only tools; the server answers from an in-memory DuckDB database (a
 file-based analytics database).
 
 **Key decisions.**
@@ -215,7 +236,7 @@ file-based analytics database).
 | Choice | Picked | Over | Why |
 | --- | --- | --- | --- |
 | Database | DuckDB in memory | SQLite, pandas, a server database | Built for analytics, exact decimal sums, and a setting that locks off file and network access |
-| Tools | Five purpose-built tools plus a guarded SQL tool | SQL only | Purpose-built tools carry tested logic; SQL alone lets the model get the grain wrong |
+| Tools | Six purpose-built tools plus a guarded SQL tool | SQL only | Purpose-built tools carry tested logic; SQL alone lets the model get the grain wrong |
 | Filter values | Bound parameters | Text pasted into SQL | Input can never change the query (no SQL injection) |
 | Errors | Clear messages for input mistakes, a generic message for crashes | Show every error | Claude gets what it can fix; internal details stay on the server |
 | Transport | Local stdio (standard input and output) | Remote HTTP | Simplest for one person on one machine; the remote version is the next step |

@@ -110,21 +110,35 @@ The figures carry the business's own events, which the report and Claude should 
 
 ## Architecture
 
-```
-Site workbooks ──> Power Automate intake flow (ten rules) ──> central Emissions list ──┐
-Reference lists: sites, sources, emission factors, scope 3 categories ────────────────┤
-Finance (revenue) and HR (headcount) ─────────────────────────────────────────────────┤
-ERP purchase ledger, transport system, energy contracts ─────────────────────────────┤
-                                                                                      ▼
-                          governed dataset: twelve tables + manifest.json (SHA-256 checksums)
-                                                       │
-                                  ┌────────────────────┼────────────────────┐
-                                  ▼                    ▼                    ▼
-                         Power BI report      Claude connector     intake checks (last
-                           (powerbi/)              (mcp/)          month, last year)
+```mermaid
+flowchart LR
+    subgraph IN["Sources, each month"]
+        direction TB
+        A["Site workbooks<br/>via the intake flow"]
+        B["Reference lists<br/>sites, sources, factors"]
+        C["Finance and HR<br/>revenue, headcount"]
+        D["ERP and contracts<br/>purchases, freight, energy"]
+        E["Oracle ERP sales extract<br/>erp-extract/, simulated"]
+    end
+    F["SQL pipeline<br/>sql/: check, clean,<br/>map, reconcile"]
+    G[("Governed dataset<br/>tables/: 21 CSV files<br/>+ manifest.json")]
+    subgraph OUT["Read by"]
+        direction TB
+        H["Power BI report<br/>powerbi/"]
+        I["Claude connector<br/>mcp/"]
+        J["Intake checks<br/>power-automate/"]
+    end
+    A --> G
+    B --> G
+    C --> G
+    D --> G
+    E --> F --> G
+    G --> H
+    G --> I
+    G --> J
 ```
 
-In this repository, `tables/` holds the dataset as twelve CSV files and their manifest,
+In this repository, `tables/` holds the dataset as 21 CSV files and their manifest,
 with synthetic figures in exactly the shape the central list and the finance, HR, ERP,
 transport and contract exports would produce.
 

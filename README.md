@@ -41,43 +41,134 @@ tool, data and checks for each step (source: [docs/process-map.html](docs/proces
 
 ## How the parts fit
 
+```mermaid
+flowchart LR
+    subgraph IN["1. Where the data comes from"]
+        direction TB
+        A["Site workbooks<br/>energy, fuel, waste"]
+        B["Finance and HR<br/>revenue, headcount"]
+        C["ERP and contracts<br/>purchases, freight, energy"]
+        D["Oracle ERP sales extract<br/>simulated"]
+    end
+    subgraph CHECK["2. Checks on the way in"]
+        direction TB
+        E["Intake flow<br/>ten written rules<br/>power-automate/"]
+        F["SQL pipeline<br/>clean, map, reconcile<br/>data/sql/"]
+    end
+    G[("3. One governed dataset<br/>21 tables + checksums<br/>data/tables/")]
+    subgraph OUT["4. Who reads it"]
+        direction TB
+        H["Power BI report<br/>16 pages, 7 roles<br/>powerbi/"]
+        I["Claude connector<br/>7 read-only tools<br/>mcp/"]
+    end
+    A --> E --> G
+    B --> G
+    C --> G
+    D --> F --> G
+    G --> H
+    G --> I
 ```
-Site workbooks ──> Power Automate intake flow (power-automate/) ──> central Emissions list
-Reference lists (sites, sources, factors), finance (revenue), HR (headcount) ──┐     │
-ERP purchase ledger, transport system, energy contracts ───────────────────────┤     │
-Oracle ERP sales extract ──SQL (data/sql): check, clean, map, reconcile ───────┤     │
-                                                                               ▼     ▼
-                          governed dataset: 21 tables + manifest.json (data/tables/)
-                                                    │
-                              ┌─────────────────────┴─────────────────────┐
-                              ▼                                           ▼
-                  Power BI report (powerbi/)                Claude connector (mcp/)
-```
 
-Each month every site uploads a workbook of what it used. The intake flow checks it
-against ten written rules and adds it to the central Emissions list, which joins the
-reference lists, the finance and HR figures, and the purchase, freight and energy
-contract exports in one governed dataset. The Power BI
-report and the Claude connector both read that dataset, so they always show the same
-numbers, and each part's tests check the files against the checksums in
-`data/tables/manifest.json` before relying on them.
+| Step | What happens | Where |
+| --- | --- | --- |
+| 1. Data arrives | Each month, sites upload a workbook of what they used; finance, HR, purchasing, logistics and the ERP send their exports | Described in [data/README.md](data/README.md) |
+| 2. Checks | Site files pass ten written rules before they are loaded; the ERP sales extract is cleaned by SQL and must add up to finance revenue to the cent | [power-automate](power-automate), [data/sql](data/sql) |
+| 3. One dataset | Everything lands in 21 tables with fixed names, and a manifest of checksums proves nobody edited them by hand | [data/tables](data/tables) |
+| 4. Reading it | The Power BI report and the Claude connector read the same files, so they always show the same numbers | [powerbi](powerbi), [mcp](mcp) |
 
-## How to run
+## How to run it on your own computer
 
-You need Python 3.10 or newer. Each folder has its own virtual environment. In
-PowerShell, from the folder:
+Everything in this repository runs on a normal Windows laptop, with free software, and
+no account or company system. The data is synthetic, so nothing needs a login.
+
+### 1. What you need
+
+| Software | Needed for | Where to get it |
+| --- | --- | --- |
+| Python 3.10 or newer | The tests and the data generator in every folder | [python.org](https://www.python.org/downloads/) (tick **Add python.exe to PATH** when installing) |
+| Git (optional) | Downloading with `git clone` | [git-scm.com](https://git-scm.com/downloads), or use Download ZIP instead |
+| Power BI Desktop (optional, free) | Opening the report and running the live measure tests | Microsoft Store |
+| Claude Desktop (optional) | Asking Claude questions through the connector | [claude.ai/download](https://claude.ai/download) |
+
+### 2. Download the project
+
+Either clone it with Git:
 
 ```powershell
+git clone https://github.com/voneeci/fjordvik.git
+cd fjordvik
+```
+
+Or, without Git: on the [repository page](https://github.com/voneeci/fjordvik) select
+**Code**, then **Download ZIP**, unzip it, and open PowerShell in the unzipped `fjordvik`
+folder.
+
+### 3. Run each part's tests
+
+Each of the four folders has its own Python virtual environment, so they never interfere.
+Open PowerShell in the folder, then run its block. The first run downloads the packages
+it needs; after that, only the last line is needed.
+
+**data** (the dataset, the SQL and the generator):
+
+```powershell
+cd data
 python -m venv .venv
-.venv\Scripts\python -m pip install -e ".[dev]"     # data and mcp
-.venv\Scripts\python -m pip install pytest           # powerbi
-.venv\Scripts\python -m pip install pytest openpyxl  # power-automate
+.venv\Scripts\python -m pip install -e ".[dev]"
 .venv\Scripts\python -m pytest -q
 ```
 
-Power BI Desktop (free) is needed to open `powerbi/FjordvikEmissions.pbip` and run the
-live measure tests. Claude Desktop is needed to use the MCP server; see
-[mcp/README.md](mcp/README.md).
+**mcp** (the Claude connector):
+
+```powershell
+cd mcp
+python -m venv .venv
+.venv\Scripts\python -m pip install -e ".[dev]"
+.venv\Scripts\python -m pytest -q
+```
+
+**powerbi** (the report's model and measures):
+
+```powershell
+cd powerbi
+python -m venv .venv
+.venv\Scripts\python -m pip install pytest
+.venv\Scripts\python -m pytest -q
+```
+
+**power-automate** (the intake rules):
+
+```powershell
+cd power-automate
+python -m venv .venv
+.venv\Scripts\python -m pip install pytest openpyxl
+.venv\Scripts\python -m pytest -q
+```
+
+Each should end with a line such as `58 passed`: 58 for data, 59 for mcp, 26 for
+power-automate, and 262 for powerbi (with 109 skipped until Power BI Desktop is open).
+On macOS or Linux, use `.venv/bin/python` in place of `.venv\Scripts\python`.
+
+### 4. Open the Power BI report
+
+1. Open `powerbi\FjordvikEmissions.pbip` in Power BI Desktop.
+2. The report reads the CSV files through a parameter that points at the author's folder.
+   Select **Transform data**, then **Edit parameters**, and set **DataFolder** to your
+   copy's `data\tables` folder, for example `C:\Users\you\fjordvik\data\tables` (no
+   backslash at the end).
+3. Select **Refresh** on the Home tab. The Introduction page explains every page.
+4. With the report open and refreshed, run the powerbi tests again: the 109 live tests now
+   run too, comparing every measure with an independent Python calculation.
+5. Close Power BI Desktop with **Don't save** if you only wanted to look; saving rewrites
+   the project files.
+
+### 5. Optional: regenerate the data, or use Claude
+
+- To rebuild the synthetic data, extract and SQL output from the settings in
+  `data/src/fjordvik_data/config.py`, run `.venv\Scripts\python -m fjordvik_data --out tables`
+  in the `data` folder ([data/README.md](data/README.md) explains it).
+- To ask Claude questions about the data, follow
+  [mcp/README.md](mcp/README.md#connect-it-to-claude-desktop).
 
 ## History
 
