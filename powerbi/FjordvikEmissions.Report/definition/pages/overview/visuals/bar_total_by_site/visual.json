@@ -145,7 +145,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Emissions by site, including use of the products each plant made (tCO2e)'"
+                  "Value": "'Emissions by site, with use of the products made (tCO2e)'"
                 }
               }
             }

@@ -390,7 +390,7 @@ ACTIVITY_CARDS = [("Energy Used (kWh)", "Energy Used Context", 1000000),
                   ("Business Flights (passenger-km)", "Business Flights Context", 1000000),
                   ("Waste to Landfill (tonnes)", "Waste Context", None)]
 
-TOP, CONTENT, FOOTER = 4, 104, 694
+TOP, CONTENT, FOOTER = 4, 104, 691
 
 
 def frame(title, message, slicers=(), defaults=None):
@@ -402,8 +402,8 @@ def frame(title, message, slicers=(), defaults=None):
     out = [page_navigator("page_buttons", 20, TOP, 1240, 30, 0),
            textbox("title", 20, 38, width, 26, 1, [title], size="12pt", first_bold=True),
            words("message", 20, 62, width, 36, 2, message, size=13, colour="#252423", bold=True),
-           textbox("footer_note", 20, FOOTER, 820, 24, 900, [f"{CAVEAT} {OWNER}"], size="8pt"),
-           words("footer_data", 850, FOOTER, 410, 24, 901, "Report Footer", size=8)]
+           textbox("footer_note", 20, FOOTER, 820, 29, 900, [f"{CAVEAT} {OWNER}"], size="8pt"),
+           words("footer_data", 850, FOOTER, 410, 29, 901, "Report Footer", size=8)]
     for i, field in enumerate(slicers):
         out.append(slicer(f"slicer_{field[1]}", 20 + width + 20 + i * 160, 38, 140, 58,
                           100 + i, field, defaults.get(field[1])))
@@ -484,8 +484,8 @@ def emissions_introduction():
             "Like-for-like change compares only site-months reported in both years, so a new "
             "site does not inflate growth.",
         ]),
-        textbox("footer_note", 20, FOOTER, 820, 24, 900, [f"{CAVEAT} {OWNER}"], size="8pt"),
-        words("footer_data", 850, FOOTER, 410, 24, 901, "Report Footer", size=8),
+        textbox("footer_note", 20, FOOTER, 820, 29, 900, [f"{CAVEAT} {OWNER}"], size="8pt"),
+        words("footer_data", 850, FOOTER, 410, 29, 901, "Report Footer", size=8),
     ]
 
 
@@ -501,7 +501,7 @@ def overview():
               title="Total emissions by month, all three years (tCO2e)", colours=single()),
         chart("clusteredBarChart", "bar_total_by_site", 800, 200, 460, 236, 500,
               SITE, [measure(TOTAL)], sort_by_value=True,
-              title="Emissions by site, including use of the products each plant made (tCO2e)",
+              title="Emissions by site, with use of the products made (tCO2e)",
               colours=single(), extra={**LABELS_K, **WIDE_NAMES}),
         chart("clusteredBarChart", "bar_operational_by_site", 800, 448, 460, 236, 600,
               SITE, [measure(OPERATIONAL)], sort_by_value=True,
@@ -763,8 +763,8 @@ def portfolio_introduction():
             "Products sold in only one of the two years are shown apart as not comparable.",
             "K means thousands, M millions.",
         ]),
-        textbox("footer_note", 20, FOOTER, 820, 24, 900, [f"{CAVEAT} {OWNER}"], size="8pt"),
-        words("footer_data", 850, FOOTER, 410, 24, 901, "Report Footer", size=8),
+        textbox("footer_note", 20, FOOTER, 820, 29, 900, [f"{CAVEAT} {OWNER}"], size="8pt"),
+        words("footer_data", 850, FOOTER, 410, 29, 901, "Report Footer", size=8),
     ]
 
 

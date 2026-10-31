@@ -44,9 +44,11 @@ tool, data and checks for each step (source: [docs/process-map.html](docs/proces
 
 Every page title is a sentence worked out from the data, every headline number sits beside
 last year (and budget, for the portfolio), and each page opens on the latest full year.
-**[See all 17 pages, full size](powerbi/docs/report-pages.md).**
+**[See all 17 pages, full size](powerbi/docs/report-pages.md).** Every DAX measure behind
+them is explained in the [measure guide](powerbi/docs/measure-guide.md): what it is, its
+formula, where it is shown and an example value.
 
-[![The Price, volume and mix page: a waterfall from last year's margin to this year's](powerbi/docs/images/pages/portfolio-03-price-volume-mix.jpg)](powerbi/docs/report-pages.md)
+[![The Price, volume and mix page: a waterfall from last year's margin to this year's](powerbi/docs/images/pages/portfolio-03-price-volume-mix.png)](powerbi/docs/report-pages.md)
 
 ## How the parts fit
 

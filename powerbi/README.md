@@ -20,7 +20,7 @@ Project (PBIP): plain text files in git, written in Tabular Model Definition Lan
 > portfolio project. No real company, client or person is described. The emission factors
 > are **illustrative**, not cited, and must not be used for real reporting.
 
-![Overview page of the emissions report](docs/images/overview.jpg)
+![Overview page of the emissions report](docs/images/pages/emissions-02-overview.png)
 
 **[See all 17 pages of both reports, full size](docs/report-pages.md).**
 
@@ -105,16 +105,18 @@ check.
 - **In-model reconciliation.** `Reconciliation Difference (tCO2e)` compares stored tCO2e
   with activity times factor, row by row, on the Data quality page.
 - **Governance documents:** [naming conventions](docs/naming-conventions.md), a generated
-  [data dictionary](docs/data-dictionary.md), and a
+  [data dictionary](docs/data-dictionary.md), a generated [guide to every measure](docs/measure-guide.md)
+  (what it is, its DAX, where the reports show it, which measures use it, and an example
+  value), and a
   [certification checklist](docs/certification-checklist.md).
 
-![Portfolio overview page](docs/images/portfolio-overview.jpg)
+![Portfolio overview page](docs/images/pages/portfolio-02-overview.png)
 
-![Price, volume and mix page, with the margin waterfall](docs/images/price-volume-mix.jpg)
+![Price, volume and mix page, with the margin waterfall](docs/images/pages/portfolio-03-price-volume-mix.png)
 
-![Portfolio balance page](docs/images/portfolio-balance.jpg)
+![Portfolio balance page](docs/images/pages/portfolio-04-balance.png)
 
-![Quarterly scorecard page](docs/images/scorecard.jpg)
+![Quarterly scorecard page](docs/images/pages/portfolio-05-scorecard.png)
 
 ## Architecture
 
@@ -182,8 +184,9 @@ python -m pytest
 The offline tests always run. The 154 live measure tests run when Power BI Desktop has the
 model open and refreshed (either report); otherwise they are skipped.
 
-To change either report, edit `scripts/build_report.py` and run it; to refresh the data
-dictionary after a model change, run `scripts/build_data_dictionary.py`. Close Desktop
+To change either report, edit `scripts/build_report.py` and run it; after a model change,
+run `scripts/build_data_dictionary.py` and `scripts/build_measure_guide.py` (add `--capture`
+with Desktop open and refreshed to refresh the guide's example values). Close Desktop
 **without saving** before regenerating files it has open.
 
 ## Test evidence
@@ -209,9 +212,9 @@ commas (thousands and millions are now divided first), and `Before` is a reserve
 exposed a fault in the first version of the change measure, which compared Tartu's
 12 months of 2025 with its 6 months of 2024.
 
-![Data quality page](docs/images/data-quality.jpg)
+![Data quality page](docs/images/pages/emissions-10-data-quality.png)
 
-![Classification and data quality page](docs/images/classification.jpg)
+![Classification and data quality page](docs/images/pages/portfolio-07-classification.png)
 
 ## Ownership
 

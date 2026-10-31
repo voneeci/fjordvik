@@ -1,0 +1,558 @@
+{
+  "Total Emissions (tCO2e)": {
+    "context": "year 2025",
+    "value": 1423966.52703
+  },
+  "Scope 1 Emissions (tCO2e)": {
+    "context": "year 2025",
+    "value": 3948.607213
+  },
+  "Scope 2 Emissions (tCO2e)": {
+    "context": "year 2025",
+    "value": 6243.608828
+  },
+  "Scope 3 Emissions (tCO2e)": {
+    "context": "year 2025",
+    "value": 1413774.310989
+  },
+  "Revenue (EUR)": {
+    "context": "year 2025",
+    "value": 155006886.61
+  },
+  "Average FTE": {
+    "context": "year 2025",
+    "value": 753.941667
+  },
+  "Emissions per FTE (tCO2e)": {
+    "context": "year 2025",
+    "value": 1888.69589
+  },
+  "Emissions per Million EUR (tCO2e)": {
+    "context": "year 2025",
+    "value": 9186.472667
+  },
+  "Emissions Prior Year (tCO2e)": {
+    "context": "year 2025",
+    "value": 1456602.050313
+  },
+  "Emissions Change vs Prior Year (%)": {
+    "context": "year 2025",
+    "value": -0.022827
+  },
+  "Recalculated Emissions (tCO2e)": {
+    "context": "year 2025",
+    "value": 1423966.52705
+  },
+  "Reconciliation Difference (tCO2e)": {
+    "context": "year 2025",
+    "value": 0
+  },
+  "Emission Rows": {
+    "context": "year 2025",
+    "value": 516
+  },
+  "Sites Reporting": {
+    "context": "year 2025",
+    "value": 6
+  },
+  "Energy Used (kWh)": {
+    "context": "year 2025",
+    "value": 45371547.99
+  },
+  "Natural Gas Used (kWh)": {
+    "context": "year 2025",
+    "value": 14232068.43
+  },
+  "Electricity Purchased (kWh)": {
+    "context": "year 2025",
+    "value": 23641094.48
+  },
+  "District Heating Purchased (kWh)": {
+    "context": "year 2025",
+    "value": 7498385.08
+  },
+  "Vehicle Fuel Used (litres)": {
+    "context": "year 2025",
+    "value": 321810.41
+  },
+  "Refrigerant Leakage (kg)": {
+    "context": "year 2025",
+    "value": 151.34
+  },
+  "Business Flights (passenger-km)": {
+    "context": "year 2025",
+    "value": 2725764.63
+  },
+  "Waste to Landfill (tonnes)": {
+    "context": "year 2025",
+    "value": 641.38
+  },
+  "Emissions Change Including New Sites (tCO2e)": {
+    "context": "year 2025",
+    "value": -32635.523283
+  },
+  "Emissions Change Including New Sites (%)": {
+    "context": "year 2025",
+    "value": -0.022405
+  },
+  "Scope 2 Market-based Emissions (tCO2e)": {
+    "context": "year 2025",
+    "value": 7383.457519
+  },
+  "Total Emissions Market-based (tCO2e)": {
+    "context": "year 2025",
+    "value": 1425106.375721
+  },
+  "Electricity with Guarantees of Origin (kWh)": {
+    "context": "year 2025",
+    "value": 11583451.7
+  },
+  "Electricity with Guarantees of Origin (%)": {
+    "context": "year 2025",
+    "value": 0.489971
+  },
+  "Purchased Goods and Services Emissions (tCO2e)": {
+    "context": "year 2025",
+    "value": 51466.751862
+  },
+  "Fuel and Energy Related Emissions (tCO2e)": {
+    "context": "year 2025",
+    "value": 1013.295472
+  },
+  "Upstream Transport Emissions (tCO2e)": {
+    "context": "year 2025",
+    "value": 2586.115935
+  },
+  "Downstream Transport Emissions (tCO2e)": {
+    "context": "year 2025",
+    "value": 634.563035
+  },
+  "Purchased Spend (EUR)": {
+    "context": "year 2025",
+    "value": 77248870.64
+  },
+  "Freight Transport (tonne-km)": {
+    "context": "year 2025",
+    "value": 56001948.5
+  },
+  "Purchased Goods Emissions per Thousand EUR (tCO2e)": {
+    "context": "year 2025",
+    "value": 0.666246
+  },
+  "Market-based Reconciliation Difference (tCO2e)": {
+    "context": "year 2025",
+    "value": 0
+  },
+  "Units Sold": {
+    "context": "year 2025",
+    "value": 120671
+  },
+  "Net Sales (EUR)": {
+    "context": "year 2025",
+    "value": 154682852.69
+  },
+  "Cost of Sales (EUR)": {
+    "context": "year 2025",
+    "value": 92520946.59
+  },
+  "Margin (EUR)": {
+    "context": "year 2025",
+    "value": 62161906.1
+  },
+  "Margin (%)": {
+    "context": "year 2025",
+    "value": 0.401867
+  },
+  "Average Price (EUR)": {
+    "context": "year 2025",
+    "value": 1281.856061
+  },
+  "Units Sold Prior Year": {
+    "context": "year 2025",
+    "value": 95276
+  },
+  "Net Sales Prior Year (EUR)": {
+    "context": "year 2025",
+    "value": 146192104.42
+  },
+  "Cost of Sales Prior Year (EUR)": {
+    "context": "year 2025",
+    "value": 88206170.49
+  },
+  "Margin Prior Year (EUR)": {
+    "context": "year 2025",
+    "value": 57985933.93
+  },
+  "Margin Change vs Prior Year (EUR)": {
+    "context": "year 2025",
+    "value": 4175972.17
+  },
+  "Price Effect (EUR)": {
+    "context": "year 2025",
+    "value": 4384554.781169
+  },
+  "Mix Effect (EUR)": {
+    "context": "year 2025",
+    "value": -13401711.712487
+  },
+  "Quantity Effect (EUR)": {
+    "context": "year 2025",
+    "value": 15455652.967719
+  },
+  "Volume Effect (EUR)": {
+    "context": "year 2025",
+    "value": 2053941.255232
+  },
+  "Cost Effect (EUR)": {
+    "context": "year 2025",
+    "value": -2262523.866401
+  },
+  "Not Comparable Change (EUR)": {
+    "context": "month 2025-06, region BAL, family Pump packages and controls",
+    "value": -63394.95
+  },
+  "Share of Net Sales (%)": {
+    "context": "year 2025",
+    "value": 1
+  },
+  "Share of Margin (%)": {
+    "context": "year 2025",
+    "value": 1
+  },
+  "Use-phase Emissions (tCO2e)": {
+    "context": "year 2025",
+    "value": 1357344.03
+  },
+  "Use-phase Emissions per Unit (tCO2e)": {
+    "context": "year 2025",
+    "value": 109.251773
+  },
+  "Use-phase Emissions per Thousand EUR (tCO2e)": {
+    "context": "year 2025",
+    "value": 13.427716
+  },
+  "Weighted Score": {
+    "context": "year 2025",
+    "value": 5.96
+  },
+  "Quarantined Sales (EUR)": {
+    "context": "all data, no filter",
+    "value": 324033.92
+  },
+  "Sales Reconciliation Difference (EUR)": {
+    "context": "all data, no filter",
+    "value": 0
+  },
+  "Data Issues": {
+    "context": "all data, no filter",
+    "value": 4
+  },
+  "Operational Emissions (tCO2e)": {
+    "context": "year 2025",
+    "value": 10192.216041
+  },
+  "Operational Emissions per FTE (tCO2e)": {
+    "context": "year 2025",
+    "value": 13.518574
+  },
+  "Scope 2 Market minus Location (tCO2e)": {
+    "context": "year 2025",
+    "value": 1139.848691
+  },
+  "Sales Growth vs Prior Year (%)": {
+    "context": "year 2025",
+    "value": 0.058079
+  },
+  "Budget Net Sales (EUR)": {
+    "context": "year 2025",
+    "value": 154987804
+  },
+  "Budget Margin (EUR)": {
+    "context": "year 2025",
+    "value": 62225158
+  },
+  "Budget Units": {
+    "context": "year 2025",
+    "value": 117773
+  },
+  "Net Sales vs Budget (EUR)": {
+    "context": "year 2025",
+    "value": -304951.31
+  },
+  "Net Sales vs Budget (%)": {
+    "context": "year 2025",
+    "value": -0.001968
+  },
+  "Margin vs Budget (EUR)": {
+    "context": "year 2025",
+    "value": -63251.9
+  },
+  "Mix Effect by Group (EUR)": {
+    "context": "year 2025",
+    "value": -492599.880252
+  },
+  "Quantity Effect by Group (EUR)": {
+    "context": "year 2025",
+    "value": 2546541.135484
+  },
+  "Mix Between Groups (EUR)": {
+    "context": "year 2025",
+    "value": -12909111.832235
+  },
+  "Bridge Value (EUR)": {
+    "context": "year 2025, bridge step \"Sales prices\"",
+    "value": 4384554.781169
+  },
+  "Bridge Base (EUR)": {
+    "context": "year 2025, bridge step \"Mix\"",
+    "value": 48968776.998682
+  },
+  "Bridge Increase (EUR)": {
+    "context": "year 2025, bridge step \"Delivery volumes\"",
+    "value": 15455652.967719
+  },
+  "Bridge Decrease (EUR)": {
+    "context": "year 2025, bridge step \"Mix\"",
+    "value": 13401711.712487
+  },
+  "Bridge Prior Year Total (EUR)": {
+    "context": "year 2025, bridge step \"Prior-year margin\"",
+    "value": 57985933.93
+  },
+  "Bridge This Year Total (EUR)": {
+    "context": "year 2025, bridge step \"This year's margin\"",
+    "value": 62161906.1
+  },
+  "Weighted Score Prior Quarter": {
+    "context": "year 2025, quarter 4",
+    "value": 5.84
+  },
+  "Weighted Score Change vs Prior Quarter": {
+    "context": "year 2025, quarter 4",
+    "value": 0.065
+  },
+  "Open Data Issues": {
+    "context": "all data, no filter",
+    "value": 2
+  },
+  "Total Emissions Context": {
+    "context": "year 2025",
+    "value": "2024: 1,456.6K, -2.2%"
+  },
+  "Scope 1 Emissions Context": {
+    "context": "year 2025",
+    "value": "2024: 3.7K, +5.4%"
+  },
+  "Scope 2 Emissions Context": {
+    "context": "year 2025",
+    "value": "2024: 5.7K, +9.2%"
+  },
+  "Scope 3 Emissions Context": {
+    "context": "year 2025",
+    "value": "2024: 1,447.1K, -2.3%"
+  },
+  "Emissions per FTE Context": {
+    "context": "year 2025",
+    "value": "2024: 2,018, -6.4%"
+  },
+  "Emissions per Million EUR Context": {
+    "context": "year 2025",
+    "value": "2024: 9,964, -7.8%"
+  },
+  "Operational Emissions per FTE Context": {
+    "context": "year 2025",
+    "value": "2024: 13.1, +3.1%"
+  },
+  "Purchased Goods Context": {
+    "context": "year 2025",
+    "value": "2024: 49.6K, +3.7%"
+  },
+  "Fuel and Energy Context": {
+    "context": "year 2025",
+    "value": "2024: 0.9K, +9.5%"
+  },
+  "Upstream Transport Context": {
+    "context": "year 2025",
+    "value": "2024: 2.5K, +5.5%"
+  },
+  "Downstream Transport Context": {
+    "context": "year 2025",
+    "value": "2024: 0.6K, +5.1%"
+  },
+  "Scope 2 Market-based Context": {
+    "context": "year 2025",
+    "value": "2024: 8.4K, -12.5%"
+  },
+  "Guarantees of Origin Context": {
+    "context": "year 2025",
+    "value": "2024: 29.0%, +20.0 pts"
+  },
+  "Energy Used Context": {
+    "context": "year 2025",
+    "value": "2024: 43.1M, +5.3%"
+  },
+  "Vehicle Fuel Context": {
+    "context": "year 2025",
+    "value": "2024: 265.8K, +21.1%"
+  },
+  "Refrigerant Context": {
+    "context": "year 2025",
+    "value": "2024: 191.9, -21.1%"
+  },
+  "Business Flights Context": {
+    "context": "year 2025",
+    "value": "2024: 2.7M, +1.5%"
+  },
+  "Waste Context": {
+    "context": "year 2025",
+    "value": "2024: 584.2, +9.8%"
+  },
+  "Net Sales Context": {
+    "context": "year 2025",
+    "value": "2024: 146.2M, +5.8%"
+  },
+  "Margin Context": {
+    "context": "year 2025",
+    "value": "2024: 58.0M, +7.2%"
+  },
+  "Margin Percent Context": {
+    "context": "year 2025",
+    "value": "2024: 39.7%, +0.5 pts"
+  },
+  "Units Sold Context": {
+    "context": "year 2025",
+    "value": "2024: 95.3K, +26.7%"
+  },
+  "Use-phase Emissions Context": {
+    "context": "year 2025",
+    "value": "2024: 1,392.8K, -2.5%"
+  },
+  "Use-phase per Unit Context": {
+    "context": "year 2025",
+    "value": "2024: 115.4, -5.3%"
+  },
+  "Use-phase per Thousand EUR Context": {
+    "context": "year 2025",
+    "value": "2024: 14.24, -5.7%"
+  },
+  "Net Sales Budget Context": {
+    "context": "year 2025",
+    "value": "Budget: 155.0M, -0.2%"
+  },
+  "Margin Budget Context": {
+    "context": "year 2025",
+    "value": "Budget: 62.2M, -0.1%"
+  },
+  "Margin Percent Budget Context": {
+    "context": "year 2025",
+    "value": "Budget: 40.1%, 0.0 pts"
+  },
+  "Units Sold Budget Context": {
+    "context": "year 2025",
+    "value": "Budget: 117.8K, +2.5%"
+  },
+  "Margin Change Context": {
+    "context": "year 2025",
+    "value": "+7.2% on 2024"
+  },
+  "Open Issues Context": {
+    "context": "all data, no filter",
+    "value": "of 4 logged"
+  },
+  "Overview Message": {
+    "context": "year 2025",
+    "value": "Emissions fell 2.2% in 2025; use of sold products is 95% of the total"
+  },
+  "Breakdown Message": {
+    "context": "year 2025",
+    "value": "Scope 3 is 99.3% of emissions in 2025; scopes 1 and 2 together are 10.2K tCO2e"
+  },
+  "Value Chain Message": {
+    "context": "year 2025",
+    "value": "7 of 15 scope 3 categories calculated (4 in part); use of sold products is 96% of scope 3 in 2025"
+  },
+  "Scope 2 Message": {
+    "context": "year 2025",
+    "value": "Market-based scope 2 is 18% above location-based in 2025; guarantees of origin cover 49.0% of electricity bought"
+  },
+  "Intensity Message": {
+    "context": "year 2025",
+    "value": "Emissions per million euros of revenue were 9,186 tCO2e in 2025, -7.8% on 2024"
+  },
+  "Energy Message": {
+    "context": "year 2025",
+    "value": "Sites used 45.4 million kWh of energy in 2025, +5.3% on 2024"
+  },
+  "What Changed Message": {
+    "context": "year 2025",
+    "value": "Emissions fell 2.3% like for like in 2025; the biggest change was at Tampere Plant (-36.6K tCO2e)"
+  },
+  "Sites Message": {
+    "context": "year 2025",
+    "value": "Tartu Warehouse has the highest operational (scope 1 and 2) emissions per FTE in 2025: 29.2 tCO2e"
+  },
+  "Data Quality Message": {
+    "context": "year 2025",
+    "value": "Stored emissions match activity times factor for all 516 site rows in 2025 (difference 0.000 tCO2e)"
+  },
+  "Portfolio Overview Message": {
+    "context": "year 2025",
+    "value": "Net sales were EUR 154.7 million in 2025, +5.8% on 2024 and -0.2% against budget; margin 40.2%"
+  },
+  "Price Volume Mix Message": {
+    "context": "year 2025",
+    "value": "Margin rose EUR 4.2 million in 2025; the biggest driver was delivery volumes (+15.5 million)"
+  },
+  "Portfolio Balance Message": {
+    "context": "year 2025",
+    "value": "Nordics bring 44% of net sales in 2025; Submersible pumps earn the largest share of margin (17.9%)"
+  },
+  "Scorecard Message": {
+    "context": "year 2025, quarter 4",
+    "value": "Booster sets score highest (7.9) and Service kits lowest (3.8) in 2025 Q4; 4 of 10 fell"
+  },
+  "Product Sustainability Message": {
+    "context": "year 2025",
+    "value": "Pumps sold in 2025 will cause 1,357.3K tCO2e over their lives; Split-case pumps are highest per unit (842 t)"
+  },
+  "Classification Message": {
+    "context": "all data, no filter",
+    "value": "2 of 4 issues open; EUR 324,034 of sales held back until mapped; sales reconcile to finance to the cent"
+  },
+  "Mix Between Groups Note": {
+    "context": "year 2025",
+    "value": "Rows show mix within each group. The waterfall's Mix also holds the shift between groups (EUR -12.9 million), which its Delivery volumes step offsets, so both add to the same change."
+  },
+  "Report Footer": {
+    "context": "all data, no filter",
+    "value": "Data Jan 2023 to Dec 2025, monthly. Refreshed (time of the last refresh)."
+  },
+  "Contract Start": {
+    "context": "contract C02",
+    "value": "Jan 2025"
+  },
+  "Contract End": {
+    "context": "contract C02",
+    "value": "Dec 2027"
+  },
+  "Bridge Label Position (EUR)": {
+    "context": "year 2025, bridge step \"Sales prices\"",
+    "value": 62370488.711169
+  },
+  "Company Margin (%)": {
+    "context": "year 2025",
+    "value": 0.401867
+  },
+  "Company Sales Growth (%)": {
+    "context": "year 2025",
+    "value": 0.058079
+  },
+  "Company Weighted Score": {
+    "context": "year 2025",
+    "value": 5.96
+  },
+  "Company Use-phase Emissions per Thousand EUR (tCO2e)": {
+    "context": "year 2025",
+    "value": 13.427716
+  }
+}
