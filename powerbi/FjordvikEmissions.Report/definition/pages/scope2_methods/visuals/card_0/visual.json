@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "_Measures.Scope 2 Emissions (tCO2e)",
-              "nativeQueryRef": "Scope 2 Emissions (tCO2e)"
+              "nativeQueryRef": "Scope 2 Emissions (tCO2e)",
+              "displayName": "Scope 2, location (tCO2e)"
             }
           ]
         }

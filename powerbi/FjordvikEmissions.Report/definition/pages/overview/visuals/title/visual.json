@@ -3,9 +3,9 @@
   "name": "title",
   "position": {
     "x": 20,
-    "y": 10,
+    "y": 8,
     "z": 0,
-    "height": 70,
+    "height": 84,
     "width": 820,
     "tabOrder": 0
   },
@@ -30,7 +30,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Synthetic data for a fictional company. Emission factors are illustrative, not for real reporting.",
+                    "value": "Use of sold products (scope 3 category 11) is about 95% of the total; pick a scope on the Emissions breakdown page to see the rest. Synthetic data for a fictional company. Emission factors are illustrative, not for real reporting.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }

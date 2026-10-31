@@ -28,6 +28,11 @@ def measure(name):
     return ("_Measures", name, "Measure", None)
 
 
+def labelled(name, label):
+    """A measure shown under a shorter heading, for tables and legends with little room."""
+    return ("_Measures", name, "Measure", label)
+
+
 def column(table, name, label=None):
     return (table, name, "Column", label)
 
@@ -58,10 +63,12 @@ def container(name, x, y, w, h, z, visual):
             "visual": visual}
 
 
-def card(name, x, y, w, h, z, m):
+def card(name, x, y, w, h, z, m, label=None):
+    """A single-number card. label replaces a measure name too long for the card."""
+    entity, prop, kind, _ = measure(m)
     return container(name, x, y, w, h, z, {
         "visualType": "card",
-        "query": {"queryState": {"Values": {"projections": [projection(measure(m))]}}},
+        "query": {"queryState": {"Values": {"projections": [projection((entity, prop, kind, label))]}}},
         "drillFilterOtherVisuals": True})
 
 
@@ -107,6 +114,15 @@ def style(visual, title=None, colours=None, labels=False, legend=False, extra=No
         visual["visualContainerObjects"] = {"title": [{"properties": {
             "show": lit("true"), "text": lit("'" + title.replace("'", "''") + "'")}}]}
     return visual
+
+
+# More room for long category names on bar charts (share of the chart, default 25).
+WIDE_NAMES = {"categoryAxis": [{"properties": {"maxMarginFactor": lit("45L")}}]}
+
+# Data labels in thousands with no decimals. Category 11 dwarfs the other sources, so the
+# automatic units (millions) would print every small bar as 0.0M.
+LABELS_K = {"labels": [{"properties": {"show": lit("true"), "labelDisplayUnits": lit("1000D"),
+                                       "labelPrecision": lit("0L")}}]}
 
 
 def year_filter(year):
@@ -192,8 +208,10 @@ def section(name, x, y, w, h, z, heading, lines):
 
 def page_navigator(name, x, y, w, h, z):
     """Power BI's built-in page navigator: one button per page, kept in step with the pages."""
-    return container(name, x, y, w, h, z, {"visualType": "pageNavigator",
-                                           "drillFilterOtherVisuals": True})
+    return container(name, x, y, w, h, z, {
+        "visualType": "pageNavigator",
+        "objects": {"text": [{"properties": {"fontSize": lit("8D")}, "selector": {"id": "default"}}]},
+        "drillFilterOtherVisuals": True})
 
 
 # ---------------------------------------------------------------------------
@@ -227,6 +245,8 @@ ENERGY = [("Natural Gas Used (kWh)", "#2A78D6"), ("Electricity Purchased (kWh)",
 MARKET = "Scope 2 Market-based Emissions (tCO2e)"
 MARKET_COLOUR = "#8A5A0B"
 CATEGORY = column("dim_scope3_category", "category_name", "Scope 3 category")
+VALUE_CHAIN_LABELS = ["Scope 3 (tCO2e)", "Purchased goods (tCO2e)", "Fuel and energy (tCO2e)",
+                      "Freight, category 4 (tCO2e)", "Freight, category 9 (tCO2e)"]
 VALUE_CHAIN_CARDS = ["Scope 3 Emissions (tCO2e)", "Purchased Goods and Services Emissions (tCO2e)",
                      "Fuel and Energy Related Emissions (tCO2e)",
                      "Upstream Transport Emissions (tCO2e)", "Downstream Transport Emissions (tCO2e)"]
@@ -249,7 +269,7 @@ ACTIVITY_CARDS = ["Energy Used (kWh)", "Vehicle Fuel Used (litres)", "Refrigeran
 def header(title, note, slicers=(YEAR, COUNTRY)):
     """Page title with the synthetic-data caveat, and the page's slicers top right."""
     width = 1240 - 210 * len(slicers)
-    out = [textbox("title", 20, 10, width, 70, 0, [title, f"{note} {CAVEAT}".strip()])]
+    out = [textbox("title", 20, 8, width, 84, 0, [title, f"{note} {CAVEAT}".strip()])]
     for i, field in enumerate(slicers):
         out.append(slicer(f"slicer_{field[1]}", 20 + width + 20 + i * 210, 10, 190, 70,
                           100 + i, field))
@@ -315,19 +335,23 @@ def introduction():
 def overview():
     cards = [TOTAL, *SCOPES, "Emissions per FTE (tCO2e)"]
     return [
-        *header("Fjordvik Manufacturing Oy: emissions overview", ""),
+        *header("Fjordvik Manufacturing Oy: emissions overview",
+                "Use of sold products (scope 3 category 11) is about 95% of the total; pick a "
+                "scope on the Emissions breakdown page to see the rest."),
         *[card(f"card_{i}", 20 + i * 250, 95, 240, 110, 300 + i, m) for i, m in enumerate(cards)],
         chart("lineChart", "line_total_by_month", 20, 220, 760, 480, 400, MONTH, [measure(TOTAL)],
               title="Total emissions by month (tCO2e)", colours=single()),
         chart("clusteredBarChart", "bar_total_by_site", 800, 220, 460, 480, 500,
               SITE, [measure(TOTAL)], sort_by_value=True, title="Emissions by site (tCO2e)",
-              colours=single(), labels=True),
+              colours=single(), extra=LABELS_K),
     ]
 
 
 def breakdown():
     return [
-        *header("Emissions breakdown", "What the emissions are made of: scope, source and country."),
+        *header("Emissions breakdown",
+                "What the emissions are made of. Scope 3 is mostly use of sold products: pick "
+                "scope 1 or 2 to see those sources.", slicers=(YEAR, SCOPE)),
         chart("columnChart", "column_scope_by_month", 20, 95, 760, 300, 300, MONTH,
               [measure(m) for m in SCOPES], title="Emissions by scope and month (tCO2e)",
               colours=[(for_measure(m), SCOPE_COLOURS[i + 1]) for i, m in enumerate(SCOPES)],
@@ -338,34 +362,35 @@ def breakdown():
               labels=True, legend=True),
         chart("clusteredBarChart", "bar_by_source", 20, 410, 620, 300, 500, SOURCE,
               [measure(TOTAL)], sort_by_value=True, title="Emissions by source (tCO2e)",
-              colours=single(), labels=True),
+              colours=single(), extra={**LABELS_K, **WIDE_NAMES}),
         chart("clusteredColumnChart", "column_by_country", 660, 410, 600, 300, 600, COUNTRY,
               [measure(TOTAL)], sort_by_value=True, title="Emissions by country (tCO2e)",
               colours=[(for_value(COUNTRY, k), c) for k, c in COUNTRY_COLOURS.items()],
-              labels=True),
+              extra=LABELS_K),
     ]
 
 
 def value_chain():
     return [
         *header("Value chain (scope 3)",
-                "The scope 3 categories counted, and why the others are not. Category 11, use of "
-                "sold products, is likely the largest and needs product data."),
-        *[card(f"card_{i}", 20 + i * 250, 95, 240, 100, 300 + i, m)
-          for i, m in enumerate(VALUE_CHAIN_CARDS)],
+                "The scope 3 categories counted, and why the others are not. Use of sold "
+                "products (category 11) is by far the largest."),
+        *[card(f"card_{i}", 20 + i * 250, 95, 240, 100, 300 + i, m, label)
+          for i, (m, label) in enumerate(zip(VALUE_CHAIN_CARDS, VALUE_CHAIN_LABELS))],
         # Scope 3 measure, not the total: scope 1 and 2 sources have no category, so the
         # total would add a blank bar holding scopes 1 and 2.
-        chart("clusteredBarChart", "bar_by_scope3_category", 20, 210, 400, 250, 400, CATEGORY,
+        chart("clusteredBarChart", "bar_by_scope3_category", 20, 210, 520, 250, 400, CATEGORY,
               [measure("Scope 3 Emissions (tCO2e)")], sort_by_value=True, title="Scope 3 emissions by category (tCO2e)",
-              colours=single("#7A5BA6"), labels=True),
-        chart("clusteredBarChart", "bar_purchases_by_spend_category", 440, 210, 400, 250, 500,
+              colours=single("#7A5BA6"), extra={**LABELS_K, **WIDE_NAMES}),
+        chart("clusteredBarChart", "bar_purchases_by_spend_category", 556, 210, 340, 250, 500,
               column("fact_purchases", "spend_category", "Spend category"),
               [measure("Purchased Goods and Services Emissions (tCO2e)")], sort_by_value=True,
               title="Purchased goods and services by spend category (tCO2e)",
-              colours=single("#7A5BA6"), labels=True),
-        chart("clusteredColumnChart", "column_freight_by_mode", 860, 210, 400, 250, 600,
-              column("fact_freight", "mode", "Mode"), [measure(m) for m, _c in FREIGHT],
-              title="Freight by mode: paid by Fjordvik (category 4) and customers (9) (tCO2e)",
+              colours=single("#7A5BA6"), labels=True, extra=WIDE_NAMES),
+        chart("clusteredColumnChart", "column_freight_by_mode", 912, 210, 348, 250, 600,
+              column("fact_freight", "mode", "Mode"),
+              [labelled(m, label) for (m, _c), label in zip(FREIGHT, ["Category 4", "Category 9"])],
+              title="Freight by mode and payer (tCO2e)",
               colours=[(for_measure(m), c) for m, c in FREIGHT], legend=True),
         table("table_scope3_categories", 20, 475, 1240, 235, 700, [
             column("dim_scope3_category", "scope3_category", "No."), CATEGORY,
@@ -384,7 +409,12 @@ def scope2_methods():
         *header("Scope 2: location-based and market-based",
                 "Market-based uses the guarantees of origin Fjordvik buys and each country's "
                 "residual mix for the rest. It is shown beside the total, never added to it."),
-        *[card(f"card_{i}", 20 + i * 250, 95, 240, 100, 300 + i, m) for i, m in enumerate(cards)],
+        *[card(f"card_{i}", 20 + i * 250, 95, 240, 100, 300 + i, m, label)
+          for i, (m, label) in enumerate(zip(cards, ["Scope 2, location (tCO2e)",
+                                                     "Scope 2, market (tCO2e)",
+                                                     "Total, location (tCO2e)",
+                                                     "Total, market (tCO2e)",
+                                                     "Covered by guarantees (%)"]))],
         chart("clusteredColumnChart", "column_methods_by_year", 20, 210, 620, 250, 400, YEAR,
               [measure(m) for m, _c in methods],
               title="Scope 2 by method and year: location-based and market-based (tCO2e)",
@@ -413,13 +443,13 @@ def portfolio_overview():
                 "Volume, sales, price and margin from the cleaned ERP sales (the extract is simulated).",
                 slicers=(YEAR, REGION)),
         *[card(f"card_{i}", 20 + i * 250, 95, 240, 100, 300 + i, m) for i, m in enumerate(SALES_CARDS)],
-        chart("columnChart", "column_sales_by_month", 20, 210, 760, 260, 400, MONTH,
+        chart("columnChart", "column_sales_by_month", 20, 210, 760, 245, 400, MONTH,
               [measure("Net Sales (EUR)")], series=FAMILY, title="Net sales by month and family (EUR)",
               colours=[(for_value(FAMILY, f), c) for f, c in FAMILY_COLOURS.items()], legend=True),
-        chart("clusteredBarChart", "bar_margin_pct_by_group", 800, 210, 460, 260, 500, GROUP,
+        chart("clusteredBarChart", "bar_margin_pct_by_group", 800, 210, 460, 502, 500, GROUP,
               [measure("Margin (%)")], sort_by_value=True, title="Margin by product group (%)",
               colours=single(), labels=True),
-        table("table_by_family", 20, 485, 1240, 225, 600, [
+        table("table_by_family", 20, 467, 760, 245, 600, [
             FAMILY, GROUP, measure("Units Sold"), measure("Net Sales (EUR)"),
             measure("Average Price (EUR)"), measure("Margin (EUR)"), measure("Margin (%)")],
             title="Sales and margin by family and product group"),
@@ -429,25 +459,29 @@ def portfolio_overview():
 def price_volume_mix():
     return [
         *header("Price, volume and mix",
-                "How margin moved against the same months a year earlier (ACCA, prior year as "
-                "standard). Pick one family: across pumps and spare parts, mix and quantity mislead.",
+                "Margin against the same months a year earlier (ACCA, prior year as standard). "
+                "Pick a year and one family: across pumps and spare parts, mix and quantity mislead.",
                 slicers=(YEAR, FAMILY)),
         card("card_prior", 20, 95, 300, 100, 300, "Margin Prior Year (EUR)"),
         card("card_change", 340, 95, 300, 100, 301, "Margin Change vs Prior Year (EUR)"),
         card("card_margin", 660, 95, 300, 100, 302, "Margin (EUR)"),
         card("card_volume", 980, 95, 280, 100, 303, "Volume Effect (EUR)"),
-        chart("clusteredBarChart", "bar_effects", 20, 210, 620, 290, 400, YEAR,
+        chart("clusteredBarChart", "bar_effects", 20, 210, 620, 240, 400, YEAR,
               [measure(m) for m in EFFECTS],
               title="What moved margin: price, mix, quantity, cost and not comparable (EUR)",
               colours=[(for_measure(m), c) for m, c in zip(EFFECTS, ["#1F6FA8", "#C77A1A", "#7A5BA6",
                                                                     "#C4502A", "#6B6B6B"])],
               labels=True, legend=True),
-        matrix("matrix_effects_by_family", 660, 210, 600, 290, 500, [FAMILY], [YEAR],
-               [measure("Price Effect (EUR)"), measure("Volume Effect (EUR)"), measure("Cost Effect (EUR)")],
-               title="Price, volume and cost effect by family and year (EUR)"),
-        table("table_effects_by_group", 20, 515, 1240, 195, 600, [
-            GROUP, measure("Margin Prior Year (EUR)"), *[measure(m) for m in EFFECTS],
-            measure("Margin (EUR)")], title="Bridge by product group (EUR)"),
+        table("table_effects_by_family", 660, 210, 600, 240, 500, [
+            FAMILY, labelled("Price Effect (EUR)", "Price"), labelled("Volume Effect (EUR)", "Volume"),
+            labelled("Cost Effect (EUR)", "Cost"),
+            labelled("Margin Change vs Prior Year (EUR)", "Margin change")],
+            title="Price, volume and cost effect by family (EUR)"),
+        table("table_effects_by_group", 20, 462, 1240, 250, 600, [
+            GROUP, labelled("Margin Prior Year (EUR)", "Prior-year margin"),
+            *[labelled(m, label) for m, label in zip(EFFECTS, ["Price", "Mix", "Quantity", "Cost",
+                                                               "Not comparable"])],
+            labelled("Margin (EUR)", "Margin")], title="Bridge by product group (EUR)"),
     ]
 
 
@@ -455,11 +489,11 @@ def portfolio_balance():
     return [
         *header("Portfolio balance", "Where sales and margin come from, by family and region.",
                 slicers=(YEAR,)),
-        chart("donutChart", "donut_share_by_family", 20, 95, 400, 300, 300, FAMILY,
+        chart("donutChart", "donut_share_by_family", 20, 95, 600, 300, 300, FAMILY,
               [measure("Net Sales (EUR)")], sort_by_value=True, title="Share of net sales by family",
               colours=[(for_value(FAMILY, f), c) for f, c in FAMILY_COLOURS.items()],
-              labels=True, legend=True),
-        matrix("matrix_share_family_region", 440, 95, 820, 300, 400, [FAMILY], [REGION],
+              labels=True),
+        matrix("matrix_share_family_region", 640, 95, 620, 300, 400, [FAMILY], [REGION],
                [measure("Share of Net Sales (%)")], title="Share of net sales by family and region (%)"),
         chart("clusteredBarChart", "bar_share_margin_by_group", 20, 410, 620, 300, 500, GROUP,
               [measure("Share of Margin (%)")], sort_by_value=True, title="Share of margin by product group (%)",
@@ -558,7 +592,7 @@ def intensity():
         chart("clusteredBarChart", "bar_lfl_change_by_site", 860, 400, 400, 300, 700, SITE,
               [measure(LFL)], sort_by_value=True,
               title="Like-for-like change on the prior year, by site (%)", colours=single(),
-              labels=True),
+              labels=True, extra=WIDE_NAMES),
     ]
 
 
@@ -589,7 +623,7 @@ def changed():
                 "sites counts Tartu Warehouse's first year (opened July 2024) as an increase.",
                 slicers=(COUNTRY,)),
         chart("clusteredColumnChart", "column_change_pct_by_year", 20, 95, 400, 300, 300, YEAR,
-              [measure(LFL), measure(CHANGE_PCT)],
+              [labelled(LFL, "Like for like"), labelled(CHANGE_PCT, "Including new sites")],
               title="Change on the prior year: like for like and including new sites (%)",
               colours=[(for_measure(LFL), ACCENT), (for_measure(CHANGE_PCT), "#C77A1A")],
               labels=True, legend=True),
@@ -603,8 +637,9 @@ def changed():
               [measure(CHANGE)], series=YEAR, title="Change on the prior year by site (tCO2e)",
               colours=[(for_value(YEAR, 2024), "#7A5BA6"), (for_value(YEAR, 2025), ACCENT)],
               legend=True),
+        # One measure, so the two years fit without scrolling sideways.
         matrix("matrix_change_by_site_year", 660, 410, 600, 300, 600, [SITE], [YEAR],
-               [measure(CHANGE), measure(LFL)], title="Change by site and year"),
+               [measure(LFL)], title="Like-for-like change by site and year (%)"),
     ]
 
 
@@ -632,7 +667,7 @@ def data_quality():
         card("card_rows", 340, 95, 300, 110, 101, "Emission Rows"),
         card("card_sites", 660, 95, 300, 110, 102, "Sites Reporting"),
         card("card_market_difference", 980, 95, 280, 110, 103,
-             "Market-based Reconciliation Difference (tCO2e)"),
+             "Market-based Reconciliation Difference (tCO2e)", "Market-based check (tCO2e)"),
         table("table_by_year", 20, 220, 1240, 200, 200, [
             YEAR, measure("Emission Rows"), measure("Sites Reporting"), measure(TOTAL),
             measure("Recalculated Emissions (tCO2e)"), measure("Reconciliation Difference (tCO2e)")],

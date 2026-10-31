@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "_Measures.Upstream Transport Emissions (tCO2e)",
-              "nativeQueryRef": "Upstream Transport Emissions (tCO2e)"
+              "nativeQueryRef": "Upstream Transport Emissions (tCO2e)",
+              "displayName": "Freight, category 4 (tCO2e)"
             }
           ]
         }

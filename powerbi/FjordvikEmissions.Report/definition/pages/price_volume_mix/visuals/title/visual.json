@@ -3,9 +3,9 @@
   "name": "title",
   "position": {
     "x": 20,
-    "y": 10,
+    "y": 8,
     "z": 0,
-    "height": 70,
+    "height": 84,
     "width": 820,
     "tabOrder": 0
   },
@@ -30,7 +30,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "How margin moved against the same months a year earlier (ACCA, prior year as standard). Pick one family: across pumps and spare parts, mix and quantity mislead. Synthetic data for a fictional company. Emission factors are illustrative, not for real reporting.",
+                    "value": "Margin against the same months a year earlier (ACCA, prior year as standard). Pick a year and one family: across pumps and spare parts, mix and quantity mislead. Synthetic data for a fictional company. Emission factors are illustrative, not for real reporting.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }

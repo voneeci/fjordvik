@@ -47,7 +47,8 @@
                 }
               },
               "queryRef": "_Measures.Emissions Change vs Prior Year (%)",
-              "nativeQueryRef": "Emissions Change vs Prior Year (%)"
+              "nativeQueryRef": "Emissions Change vs Prior Year (%)",
+              "displayName": "Like for like"
             },
             {
               "field": {
@@ -61,7 +62,8 @@
                 }
               },
               "queryRef": "_Measures.Emissions Change Including New Sites (%)",
-              "nativeQueryRef": "Emissions Change Including New Sites (%)"
+              "nativeQueryRef": "Emissions Change Including New Sites (%)",
+              "displayName": "Including new sites"
             }
           ]
         }

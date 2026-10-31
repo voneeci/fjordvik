@@ -19,7 +19,9 @@ ORDER BY business_unit, local_item_number;
 -- One row per issue for the data owner: what happened, how much, what to do.
 CREATE TABLE issues_raw AS
 SELECT d.date_key, b.site_id, d.business_unit, 'Duplicate lines' AS issue_type,
-       'File ' || min(d.source_file) || ' repeats lines already received' AS detail,
+       -- Name the ZIP that arrived (staged as <month>__<zip name>.csv)
+       'File ' || replace(replace(min(d.source_file), '__', '/'), '.csv', '.zip')
+           || ' repeats lines already received' AS detail,
        count(*) AS line_count,
        sum(CASE WHEN b.ledger_currency = 'EUR' THEN d.amount
                 ELSE CAST(round(CAST(d.amount AS DOUBLE) / r.rate, 2) AS DECIMAL(18, 2)) END) AS amount_eur,

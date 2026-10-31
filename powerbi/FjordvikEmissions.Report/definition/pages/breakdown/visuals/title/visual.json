@@ -3,9 +3,9 @@
   "name": "title",
   "position": {
     "x": 20,
-    "y": 10,
+    "y": 8,
     "z": 0,
-    "height": 70,
+    "height": 84,
     "width": 820,
     "tabOrder": 0
   },
@@ -30,7 +30,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "What the emissions are made of: scope, source and country. Synthetic data for a fictional company. Emission factors are illustrative, not for real reporting.",
+                    "value": "What the emissions are made of. Scope 3 is mostly use of sold products: pick scope 1 or 2 to see those sources. Synthetic data for a fictional company. Emission factors are illustrative, not for real reporting.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }

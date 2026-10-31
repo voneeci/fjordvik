@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "_Measures.Market-based Reconciliation Difference (tCO2e)",
-              "nativeQueryRef": "Market-based Reconciliation Difference (tCO2e)"
+              "nativeQueryRef": "Market-based Reconciliation Difference (tCO2e)",
+              "displayName": "Market-based check (tCO2e)"
             }
           ]
         }

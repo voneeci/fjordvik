@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "bar_purchases_by_spend_category",
   "position": {
-    "x": 440,
+    "x": 556,
     "y": 210,
     "z": 500,
     "height": 250,
-    "width": 400,
+    "width": 340,
     "tabOrder": 500
   },
   "visual": {
@@ -97,6 +97,19 @@
               "expr": {
                 "Literal": {
                   "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "categoryAxis": [
+        {
+          "properties": {
+            "maxMarginFactor": {
+              "expr": {
+                "Literal": {
+                  "Value": "45L"
                 }
               }
             }

@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "_Measures.Scope 3 Emissions (tCO2e)",
-              "nativeQueryRef": "Scope 3 Emissions (tCO2e)"
+              "nativeQueryRef": "Scope 3 Emissions (tCO2e)",
+              "displayName": "Scope 3 (tCO2e)"
             }
           ]
         }

@@ -85,6 +85,25 @@ Category 11 is now 95% of the 2025 total, inside the plan's 1.3 to 1.6 million r
 Like-for-like change 2025: -2.3%. The figure tables above are the earlier run.
 Evidence: `*/evidence/pytest-lower-kwh-2026-10-31.txt`.
 
+## Addendum: page check (Reece asked, 31 October 2026)
+
+All 16 pages were checked by eye in Desktop and fixed in `scripts/build_report.py` (three
+rounds): headers tall enough for their notes; smaller page-button text so all 16 names
+show; data labels in thousands (category 11 made small bars read 0.0M); short labels on
+cards, tables and legends; room for long category names; a Scope slicer on Emissions
+breakdown; the Price, volume and mix family view as a table; tables and the margin chart
+sized so every row shows. The duplicate-lines issue now names the ZIP that arrived
+(`data/sql/05_publish.sql`), not the staging file. Screenshots in `powerbi/docs/images/`
+are new, with three portfolio pages added to the Power BI README.
+
+Known and left: the per-product table on Product sustainability (24 rows) and the
+classification table scroll; category 11 still dominates the emission charts, which the
+Overview and Breakdown notes say.
+
+Evidence: `powerbi/evidence/pytest-layout-live-2026-10-31.txt` (371 passed, live model
+refreshed); `data`, `mcp` and `power-automate` in `evidence/pytest-layout-2026-10-31.txt`
+(58, 59 and 26 passed).
+
 ## Test results (each from its own folder and `.venv`)
 
 | Part | Result | Evidence |
@@ -101,13 +120,9 @@ blank (`expected.py` says so).
 
 ## Open
 
-- The category 11 scale above (Reece's call).
-- The report pages were not checked by eye in Desktop (a slow visual check, left for a
-  batch run on request); `powerbi/docs/images/` still shows the first version.
 - Incremental refresh and Service publishing are designed, not built.
 - Rest of world category 11 and categories 2, 7 and 12 remain uncalculated.
 
 ## Next step
 
-Reece decides on the category 11 scale. Then: a visual check of the 16 pages, and
-publishing to a Power BI Service trial to build the refresh design.
+Publish to a Power BI Service trial to build the refresh design.

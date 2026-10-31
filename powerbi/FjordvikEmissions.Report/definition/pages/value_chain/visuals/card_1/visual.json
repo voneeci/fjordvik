@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "_Measures.Purchased Goods and Services Emissions (tCO2e)",
-              "nativeQueryRef": "Purchased Goods and Services Emissions (tCO2e)"
+              "nativeQueryRef": "Purchased Goods and Services Emissions (tCO2e)",
+              "displayName": "Purchased goods (tCO2e)"
             }
           ]
         }

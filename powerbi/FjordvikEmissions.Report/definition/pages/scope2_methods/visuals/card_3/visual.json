@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "_Measures.Total Emissions Market-based (tCO2e)",
-              "nativeQueryRef": "Total Emissions Market-based (tCO2e)"
+              "nativeQueryRef": "Total Emissions Market-based (tCO2e)",
+              "displayName": "Total, market (tCO2e)"
             }
           ]
         }

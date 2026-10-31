@@ -75,6 +75,10 @@ check.
   [data dictionary](docs/data-dictionary.md), and a
   [certification checklist](docs/certification-checklist.md).
 
+![Portfolio overview page](docs/images/portfolio-overview.jpg)
+
+![Price, volume and mix page](docs/images/price-volume-mix.jpg)
+
 ## Architecture
 
 ```
@@ -160,6 +164,8 @@ exposed a fault in the first version of the change measure, which compared Tartu
 
 ![Data quality page](docs/images/data-quality.jpg)
 
+![Classification and data quality page](docs/images/classification.jpg)
+
 ## Ownership
 
 | Role | Who (fictional) |
@@ -183,8 +189,6 @@ exposed a fault in the first version of the change measure, which compared Tartu
 - **Incremental refresh is designed, not built**: it needs a database source.
 - **Live tests need Desktop open.** In a team, the same DAX queries would run in CI
   (continuous integration) against a published model through the XMLA endpoint.
-- **Screenshots are from the first version.** The two images on this page show the
-  original Overview and Data quality pages, before the 31 October 2026 redesign.
 
 ## Next steps
 

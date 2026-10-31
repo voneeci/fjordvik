@@ -3,10 +3,10 @@
   "name": "table_by_family",
   "position": {
     "x": 20,
-    "y": 485,
+    "y": 467,
     "z": 600,
-    "height": 225,
-    "width": 1240,
+    "height": 245,
+    "width": 760,
     "tabOrder": 600
   },
   "visual": {

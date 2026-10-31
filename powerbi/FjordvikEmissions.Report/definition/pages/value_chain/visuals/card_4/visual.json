@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "_Measures.Downstream Transport Emissions (tCO2e)",
-              "nativeQueryRef": "Downstream Transport Emissions (tCO2e)"
+              "nativeQueryRef": "Downstream Transport Emissions (tCO2e)",
+              "displayName": "Freight, category 9 (tCO2e)"
             }
           ]
         }

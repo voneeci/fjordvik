@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "_Measures.Scope 2 Market-based Emissions (tCO2e)",
-              "nativeQueryRef": "Scope 2 Market-based Emissions (tCO2e)"
+              "nativeQueryRef": "Scope 2 Market-based Emissions (tCO2e)",
+              "displayName": "Scope 2, market (tCO2e)"
             }
           ]
         }

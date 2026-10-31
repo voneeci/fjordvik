@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "column_freight_by_mode",
   "position": {
-    "x": 860,
+    "x": 912,
     "y": 210,
     "z": 600,
     "height": 250,
-    "width": 400,
+    "width": 348,
     "tabOrder": 600
   },
   "visual": {
@@ -47,7 +47,8 @@
                 }
               },
               "queryRef": "_Measures.Upstream Transport Emissions (tCO2e)",
-              "nativeQueryRef": "Upstream Transport Emissions (tCO2e)"
+              "nativeQueryRef": "Upstream Transport Emissions (tCO2e)",
+              "displayName": "Category 4"
             },
             {
               "field": {
@@ -61,7 +62,8 @@
                 }
               },
               "queryRef": "_Measures.Downstream Transport Emissions (tCO2e)",
-              "nativeQueryRef": "Downstream Transport Emissions (tCO2e)"
+              "nativeQueryRef": "Downstream Transport Emissions (tCO2e)",
+              "displayName": "Category 9"
             }
           ]
         }
@@ -160,7 +162,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Freight by mode: paid by Fjordvik (category 4) and customers (9) (tCO2e)'"
+                  "Value": "'Freight by mode and payer (tCO2e)'"
                 }
               }
             }

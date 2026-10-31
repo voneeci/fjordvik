@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "_Measures.Electricity with Guarantees of Origin (%)",
-              "nativeQueryRef": "Electricity with Guarantees of Origin (%)"
+              "nativeQueryRef": "Electricity with Guarantees of Origin (%)",
+              "displayName": "Covered by guarantees (%)"
             }
           ]
         }

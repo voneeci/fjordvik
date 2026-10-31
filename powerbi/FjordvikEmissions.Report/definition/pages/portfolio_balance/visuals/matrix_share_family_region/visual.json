@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "matrix_share_family_region",
   "position": {
-    "x": 440,
+    "x": 640,
     "y": 95,
     "z": 400,
     "height": 300,
-    "width": 820,
+    "width": 620,
     "tabOrder": 400
   },
   "visual": {

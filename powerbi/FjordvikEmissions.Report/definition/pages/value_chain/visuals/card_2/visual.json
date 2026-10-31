@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "_Measures.Fuel and Energy Related Emissions (tCO2e)",
-              "nativeQueryRef": "Fuel and Energy Related Emissions (tCO2e)"
+              "nativeQueryRef": "Fuel and Energy Related Emissions (tCO2e)",
+              "displayName": "Fuel and energy (tCO2e)"
             }
           ]
         }
