@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "line_per_meur_by_month",
   "position": {
-    "x": 660,
-    "y": 95,
-    "z": 400,
-    "height": 290,
-    "width": 600,
-    "tabOrder": 400
+    "x": 20,
+    "y": 200,
+    "z": 300,
+    "height": 240,
+    "width": 620,
+    "tabOrder": 300
   },
   "visual": {
     "visualType": "lineChart",
@@ -105,7 +105,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Emissions per million euros of revenue by month (tCO2e)'"
+                  "Value": "'Emissions per million euros of revenue by month, all three years (tCO2e)'"
                 }
               }
             }

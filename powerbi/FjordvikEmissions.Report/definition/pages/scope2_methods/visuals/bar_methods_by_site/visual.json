@@ -3,7 +3,7 @@
   "name": "bar_methods_by_site",
   "position": {
     "x": 660,
-    "y": 210,
+    "y": 200,
     "z": 500,
     "height": 250,
     "width": 600,
@@ -47,7 +47,8 @@
                 }
               },
               "queryRef": "_Measures.Scope 2 Emissions (tCO2e)",
-              "nativeQueryRef": "Scope 2 Emissions (tCO2e)"
+              "nativeQueryRef": "Scope 2 Emissions (tCO2e)",
+              "displayName": "Location-based"
             },
             {
               "field": {
@@ -61,7 +62,8 @@
                 }
               },
               "queryRef": "_Measures.Scope 2 Market-based Emissions (tCO2e)",
-              "nativeQueryRef": "Scope 2 Market-based Emissions (tCO2e)"
+              "nativeQueryRef": "Scope 2 Market-based Emissions (tCO2e)",
+              "displayName": "Market-based"
             }
           ]
         }
@@ -139,6 +141,46 @@
               "expr": {
                 "Literal": {
                   "Value": "'Top'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "labels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "labelDisplayUnits": {
+              "expr": {
+                "Literal": {
+                  "Value": "1000D"
+                }
+              }
+            },
+            "labelPrecision": {
+              "expr": {
+                "Literal": {
+                  "Value": "1L"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "categoryAxis": [
+        {
+          "properties": {
+            "maxMarginFactor": {
+              "expr": {
+                "Literal": {
+                  "Value": "45L"
                 }
               }
             }

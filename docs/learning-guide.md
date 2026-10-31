@@ -131,10 +131,10 @@ flowchart LR
         E["Intake flow<br/>ten written rules"]
         F["SQL pipeline<br/>clean, map, reconcile"]
     end
-    G[("3. One governed dataset<br/>21 tables + checksums")]
+    G[("3. One governed dataset<br/>22 tables + checksums")]
     subgraph OUT["4. Who reads it"]
         direction TB
-        H["Power BI report<br/>16 pages"]
+        H["Power BI reports<br/>emissions and portfolio"]
         I["Claude connector<br/>7 read-only tools"]
     end
     A --> E --> G
@@ -164,9 +164,9 @@ outside the project.
 
 | Part | What it does for the business | Built | Tests |
 | --- | --- | --- | --- |
-| [`data`](../data) | The governed dataset: 21 tables with fixed names, checksums and quality tests, and the SQL that cleans the ERP extract | 12 to 31 October 2026 | 58 |
+| [`data`](../data) | The governed dataset: 22 tables with fixed names, checksums and quality tests, and the SQL that cleans the ERP extract | 12 to 31 October 2026 | 60 |
 | [`mcp`](../mcp) | A Model Context Protocol (MCP) server that lets Claude answer questions from the data, read-only | 12 to 31 October 2026 | 59 |
-| [`powerbi`](../powerbi) | The Power BI model and report, with every measure reconciled against an independent calculation | 12 to 31 October 2026 | 371 |
+| [`powerbi`](../powerbi) | The Power BI model and two reports on it, with every measure reconciled against an independent calculation | 12 to 31 October 2026 | 701 |
 | [`power-automate`](../power-automate) | The flows that take in, check and chase the monthly site files, designed and tested offline | 12 October 2026 | 26 |
 
 All 514 tests passed on 31 October 2026, including the 109 Power BI tests that run live
@@ -176,7 +176,7 @@ in each folder's `evidence/` folder.
 ## The order of the build
 
 ```
-1. data             the contract: 21 tables, fixed names, checksums, the ERP SQL
+1. data             the contract: 22 tables, fixed names, checksums, the ERP SQL
       │
       ├──> 2. mcp             Claude asks questions of the data
       ├──> 3. powerbi         dashboards and governed measures
@@ -262,8 +262,9 @@ emissions per FTE twelve times too small.
 
 **What it is.** A Power BI Project (PBIP): the model in Tabular Model Definition Language
 (TMDL) and the report in the Power BI enhanced report format (PBIR), all as text files in
-git. It has 62 measures, seven row-level security (RLS) roles (three countries, four
-sales regions) and a 16-page report,
+git. It has 134 measures, seven row-level security (RLS) roles (three countries, four
+sales regions) and two reports on the one model: emissions (10 pages) and portfolio
+(7 pages), each page
 opening on an Introduction page that explains the company and what each page answers.
 
 **Key decisions.**

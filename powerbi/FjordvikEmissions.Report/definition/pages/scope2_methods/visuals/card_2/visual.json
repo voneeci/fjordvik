@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "card_2",
   "position": {
-    "x": 520,
-    "y": 95,
+    "x": 650,
+    "y": 104,
     "z": 302,
-    "height": 100,
-    "width": 240,
+    "height": 64,
+    "width": 295,
     "tabOrder": 302
   },
   "visual": {
@@ -23,17 +23,46 @@
                       "Entity": "_Measures"
                     }
                   },
-                  "Property": "Total Emissions (tCO2e)"
+                  "Property": "Scope 2 Market minus Location (tCO2e)"
                 }
               },
-              "queryRef": "_Measures.Total Emissions (tCO2e)",
-              "nativeQueryRef": "Total Emissions (tCO2e)",
-              "displayName": "Total, location (tCO2e)"
+              "queryRef": "_Measures.Scope 2 Market minus Location (tCO2e)",
+              "nativeQueryRef": "Scope 2 Market minus Location (tCO2e)",
+              "displayName": "Market minus location (tCO2e)"
             }
           ]
         }
       }
     },
-    "drillFilterOtherVisuals": true
+    "drillFilterOtherVisuals": true,
+    "objects": {
+      "labels": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "20D"
+                }
+              }
+            },
+            "labelDisplayUnits": {
+              "expr": {
+                "Literal": {
+                  "Value": "1000D"
+                }
+              }
+            },
+            "labelPrecision": {
+              "expr": {
+                "Literal": {
+                  "Value": "1L"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
   }
 }

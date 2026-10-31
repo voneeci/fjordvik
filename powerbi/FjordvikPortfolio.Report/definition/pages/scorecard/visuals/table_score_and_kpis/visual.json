@@ -1,0 +1,199 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "table_score_and_kpis",
+  "position": {
+    "x": 20,
+    "y": 384,
+    "z": 500,
+    "height": 300,
+    "width": 760,
+    "tabOrder": 500
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_product_group"
+                    }
+                  },
+                  "Property": "product_group"
+                }
+              },
+              "queryRef": "dim_product_group.product_group",
+              "nativeQueryRef": "product_group",
+              "displayName": "Product group"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Weighted Score"
+                }
+              },
+              "queryRef": "_Measures.Weighted Score",
+              "nativeQueryRef": "Weighted Score",
+              "displayName": "Score"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Weighted Score Change vs Prior Quarter"
+                }
+              },
+              "queryRef": "_Measures.Weighted Score Change vs Prior Quarter",
+              "nativeQueryRef": "Weighted Score Change vs Prior Quarter",
+              "displayName": "Change"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Net Sales (EUR)"
+                }
+              },
+              "queryRef": "_Measures.Net Sales (EUR)",
+              "nativeQueryRef": "Net Sales (EUR)",
+              "displayName": "Net sales"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Margin (%)"
+                }
+              },
+              "queryRef": "_Measures.Margin (%)",
+              "nativeQueryRef": "Margin (%)",
+              "displayName": "Margin"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Share of Net Sales (%)"
+                }
+              },
+              "queryRef": "_Measures.Share of Net Sales (%)",
+              "nativeQueryRef": "Share of Net Sales (%)",
+              "displayName": "Share"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Price Effect (EUR)"
+                }
+              },
+              "queryRef": "_Measures.Price Effect (EUR)",
+              "nativeQueryRef": "Price Effect (EUR)",
+              "displayName": "Prices effect"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Use-phase Emissions per Unit (tCO2e)"
+                }
+              },
+              "queryRef": "_Measures.Use-phase Emissions per Unit (tCO2e)",
+              "nativeQueryRef": "Use-phase Emissions per Unit (tCO2e)",
+              "displayName": "tCO2e per unit"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "_Measures"
+                  }
+                },
+                "Property": "Weighted Score"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Score beside the figures, for the selected quarter'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

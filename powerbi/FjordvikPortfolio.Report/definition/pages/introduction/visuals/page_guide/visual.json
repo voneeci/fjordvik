@@ -1,0 +1,57 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "page_guide",
+  "position": {
+    "x": 640,
+    "y": 110,
+    "z": 500,
+    "height": 250,
+    "width": 620,
+    "tabOrder": 500
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "What each page answers",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "13pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Portfolio overview: what sells and earns, against last year and budget. Price, volume and mix: why margin moved. Portfolio balance: where sales and margin come from, and which groups grow. Quarterly scorecard: how the review rates each group, beside its figures. Product sustainability: the lifetime emissions of the pumps sold. Classification and data quality: what the ERP data got wrong.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Each page title is a sentence worked out from the data, so it never goes stale.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

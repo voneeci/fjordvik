@@ -40,3 +40,4 @@ table dim_score_criterion
 					Typed
 
 	annotation PBI_ResultType = Table
+

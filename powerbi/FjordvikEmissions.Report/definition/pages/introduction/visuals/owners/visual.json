@@ -3,9 +3,9 @@
   "name": "owners",
   "position": {
     "x": 20,
-    "y": 560,
+    "y": 520,
     "z": 400,
-    "height": 145,
+    "height": 160,
     "width": 600,
     "tabOrder": 400
   },

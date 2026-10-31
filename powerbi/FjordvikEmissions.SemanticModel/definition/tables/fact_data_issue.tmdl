@@ -81,3 +81,4 @@ table fact_data_issue
 					Typed
 
 	annotation PBI_ResultType = Table
+

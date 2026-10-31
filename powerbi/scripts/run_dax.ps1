@@ -69,7 +69,11 @@ foreach ($q in $queries) {
         $reader = $cmd.ExecuteReader()
         $value = $null
         if ($reader.Read()) {
-            if (-not $reader.IsDBNull(0)) { $value = [double]$reader.GetValue(0) }
+            if (-not $reader.IsDBNull(0)) {
+                # Text measures (page titles, card context lines) come back as text.
+                $raw = $reader.GetValue(0)
+                if ($raw -is [string]) { $value = $raw } else { $value = [double]$raw }
+            }
         }
         $reader.Close()
         $results += [pscustomobject]@{ id = $q.id; value = $value; error = $null }

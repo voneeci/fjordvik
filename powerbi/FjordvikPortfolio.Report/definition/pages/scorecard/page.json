@@ -1,0 +1,20 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "scorecard",
+  "displayName": "Quarterly scorecard",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "visualInteractions": [
+    {
+      "source": "slicer_year",
+      "target": "matrix_score_by_quarter",
+      "type": "NoFilter"
+    },
+    {
+      "source": "slicer_quarter",
+      "target": "matrix_score_by_quarter",
+      "type": "NoFilter"
+    }
+  ]
+}

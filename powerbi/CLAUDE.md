@@ -11,7 +11,12 @@ power-automate. Permanent rules in
   exception for the Fjordvik project, 12 October 2026). Every page and doc says so.
 - The `DataFolder` parameter points at the repository's shared `data\tables` folder; never
   edit that folder from here. `tests/test_data.py` checks its checksums and the parameter.
-- Report JSON is generated: edit `scripts/build_report.py`, never the visual.json files.
+- Two reports, one model (31 October 2026): `FjordvikEmissions.pbip` and
+  `FjordvikPortfolio.pbip` both read `FjordvikEmissions.SemanticModel`. Open one at a time.
+  Desktop saves the model in its own form when it opens one after a model change (blank
+  lines, diagram layout, language metadata); that is the committed form.
+- Report JSON is generated: edit `scripts/build_report.py`, never the visual.json files
+  (both reports, their theme, `.pbip` and `definition.pbir`).
   The rebuild test compares JSON content (not bytes), so a Desktop save that changes
   nothing passes; a Desktop save that changes report settings means updating the
   generator to match (as on 16 October 2026). The data dictionary is generated: run
@@ -36,5 +41,5 @@ power-automate. Permanent rules in
 ```bash
 python scripts/build_report.py            # regenerate report pages
 python scripts/build_data_dictionary.py   # regenerate docs/data-dictionary.md
-python -m pytest -q                       # 371 tests (109 need Desktop open)
+python -m pytest -q                       # 701 tests (148 need Desktop open)
 ```

@@ -3,9 +3,9 @@
   "name": "bar_total_by_site",
   "position": {
     "x": 800,
-    "y": 220,
+    "y": 200,
     "z": 500,
-    "height": 480,
+    "height": 236,
     "width": 460,
     "tabOrder": 500
   },
@@ -116,6 +116,19 @@
             }
           }
         }
+      ],
+      "categoryAxis": [
+        {
+          "properties": {
+            "maxMarginFactor": {
+              "expr": {
+                "Literal": {
+                  "Value": "45L"
+                }
+              }
+            }
+          }
+        }
       ]
     },
     "visualContainerObjects": {
@@ -132,7 +145,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Emissions by site (tCO2e)'"
+                  "Value": "'Emissions by site, including use of the products each plant made (tCO2e)'"
                 }
               }
             }

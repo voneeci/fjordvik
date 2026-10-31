@@ -3,9 +3,9 @@
   "name": "bar_purchases_by_spend_category",
   "position": {
     "x": 556,
-    "y": 210,
+    "y": 200,
     "z": 500,
-    "height": 250,
+    "height": 230,
     "width": 340,
     "tabOrder": 500
   },
@@ -99,6 +99,20 @@
                   "Value": "true"
                 }
               }
+            },
+            "labelDisplayUnits": {
+              "expr": {
+                "Literal": {
+                  "Value": "1000D"
+                }
+              }
+            },
+            "labelPrecision": {
+              "expr": {
+                "Literal": {
+                  "Value": "0L"
+                }
+              }
             }
           }
         }
@@ -131,7 +145,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Purchased goods and services by spend category (tCO2e)'"
+                  "Value": "'Purchased goods by spend category (tCO2e)'"
                 }
               }
             }

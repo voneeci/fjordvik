@@ -3,11 +3,11 @@
   "name": "title",
   "position": {
     "x": 20,
-    "y": 8,
-    "z": 0,
-    "height": 84,
-    "width": 1030,
-    "tabOrder": 0
+    "y": 38,
+    "z": 1,
+    "height": 26,
+    "width": 1080,
+    "tabOrder": 1
   },
   "visual": {
     "visualType": "textbox",
@@ -19,20 +19,10 @@
               {
                 "textRuns": [
                   {
-                    "value": "Sites: emissions and intensity",
+                    "value": "Sites",
                     "textStyle": {
                       "fontWeight": "bold",
-                      "fontSize": "16pt"
-                    }
-                  }
-                ]
-              },
-              {
-                "textRuns": [
-                  {
-                    "value": "Synthetic data for a fictional company. Emission factors are illustrative, not for real reporting.",
-                    "textStyle": {
-                      "fontSize": "10pt"
+                      "fontSize": "12pt"
                     }
                   }
                 ]

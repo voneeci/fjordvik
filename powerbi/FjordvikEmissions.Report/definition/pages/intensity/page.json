@@ -4,5 +4,27 @@
   "displayName": "Intensity and growth",
   "displayOption": "FitToPage",
   "height": 720,
-  "width": 1280
+  "width": 1280,
+  "visualInteractions": [
+    {
+      "source": "slicer_year",
+      "target": "line_per_meur_by_month",
+      "type": "NoFilter"
+    },
+    {
+      "source": "slicer_year",
+      "target": "line_per_fte_by_month",
+      "type": "NoFilter"
+    },
+    {
+      "source": "slicer_year",
+      "target": "column_revenue_by_month",
+      "type": "NoFilter"
+    },
+    {
+      "source": "slicer_year",
+      "target": "line_fte_by_month",
+      "type": "NoFilter"
+    }
+  ]
 }

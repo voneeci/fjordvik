@@ -3,9 +3,9 @@
   "name": "table_sites",
   "position": {
     "x": 20,
-    "y": 340,
+    "y": 310,
     "z": 300,
-    "height": 210,
+    "height": 200,
     "width": 600,
     "tabOrder": 300
   },

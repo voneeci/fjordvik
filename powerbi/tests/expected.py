@@ -148,12 +148,15 @@ FILTERS = {
     "family": ("dim_product_group", "product_family", str),
     "region": ("dim_region", "region_id", str),
     "group": ("dim_product_group", "product_group", str),
+    "quarter": ("dim_date", "quarter", int),
+    "step": ("dim_bridge_step", "step", str),
+    "contract": ("dim_contract", "contract_id", str),
 }
 
 
-def case(case_id, measure, expected, role=None, tolerance=0.001, **filters):
+def case(case_id, measure, expected, role=None, tolerance=0.001, prefix=False, **filters):
     return {"id": case_id, "measure": measure, "expected": expected, "role": role,
-            "tolerance": tolerance, "filters": filters}
+            "tolerance": tolerance, "prefix": prefix, "filters": filters}
 
 
 def cases():
@@ -236,6 +239,7 @@ def cases():
     ]
     out += value_chain_cases()
     out += portfolio_cases()
+    out += redesign_cases()
     return out
 
 
@@ -481,3 +485,146 @@ def dax_query(c) -> str:
     if filters:
         inner = f"CALCULATE({inner}, {', '.join(filters)})"
     return f'EVALUATE ROW("value", {inner})'
+
+
+# ---------------------------------------------------------------------------
+# Report redesign (31 October 2026): comparisons, budget, the bridge waterfall,
+# the scorecard's prior quarter, and the text the pages show.
+# ---------------------------------------------------------------------------
+
+BUDGET = read("fact_budget")
+CONTRACTS = {r["contract_id"]: r for r in read("dim_contract")}
+
+
+def budget(column, year=None, family=None, region=None):
+    picked = [float(r[column]) for r in BUDGET
+              if (not year or r["date_key"].startswith(str(year)))
+              and (not family or GROUP_FAMILY[r["product_group"]] == family)
+              and (not region or r["region_id"] == region)]
+    return sum(picked) if picked else None
+
+
+def thousands(x):
+    return f"{x / 1000:,.1f}K"
+
+
+def millions(x):
+    return f"{x / 1_000_000:,.1f}M"
+
+
+def score_in_quarter(first_month_key, group=None):
+    num = den = 0.0
+    for r in RATINGS:
+        if r["date_key"] == str(first_month_key) and (not group or r["product_group"] == group):
+            num += int(r["rating"]) * WEIGHT[r["criterion_id"]]
+            den += WEIGHT[r["criterion_id"]]
+    return num / den
+
+
+def by_group_bridge(year, effect):
+    """An effect worked out within each product group, then added over the groups."""
+    out = 0.0
+    for group in GROUP_FAMILY:
+        cur = {p: v for p, v in by_product(year=year).items() if PRODUCT[p]["product_group"] == group}
+        prev = {p: v for p, v in by_product(year=year - 1).items() if PRODUCT[p]["product_group"] == group}
+        comp = [p for p in cur if p in prev]
+        if not comp:
+            continue
+        ta, tp = sum(cur[p][0] for p in comp), sum(prev[p][0] for p in comp)
+        pm = {p: (prev[p][1] - prev[p][2]) / prev[p][0] for p in comp}
+        if effect == "mix":
+            out += sum((cur[p][0] - ta * prev[p][0] / tp) * pm[p] for p in comp)
+        else:
+            out += sum((ta * prev[p][0] / tp - prev[p][0]) * pm[p] for p in comp)
+    return out
+
+
+def redesign_cases():
+    e25, e24 = emissions(year=2025), emissions(year=2024)
+    s25, s24 = sales("net_sales_eur", year=2025), sales("net_sales_eur", year=2024)
+    m25, m24 = sales("margin_eur", year=2025), sales("margin_eur", year=2024)
+    b25 = bridge({"year": 2025}, {"year": 2024})
+    operational = emissions(year=2025, scope=1) + emissions(year=2025, scope=2)
+    plan_sales, plan_margin = budget("budget_net_sales_eur", year=2025), budget("budget_margin_eur", year=2025)
+    pumps = "Industrial process pumps"
+    steps = [("Prior-year margin", m24), ("Sales prices", b25["price"]), ("Mix", b25["mix"]),
+             ("Delivery volumes", b25["quantity"]), ("Variable costs", b25["cost"]),
+             ("Not comparable", None), ("This year's margin", m25)]
+    before_mix = m24 + b25["price"]
+    drivers = {"sales prices": b25["price"], "mix": b25["mix"], "delivery volumes": b25["quantity"],
+               "variable costs": b25["cost"]}
+    biggest = max(drivers, key=lambda k: abs(drivers[k]))
+    change = (e25 - e24) / e24
+    margin_pct = (m25 / s25, m24 / s24)
+    contract = sorted(CONTRACTS)[0]
+    start = CONTRACTS[contract]["start_date_key"]
+    month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    out = [
+        case("operational_2025", "Operational Emissions (tCO2e)", operational, year=2025),
+        case("operational_per_fte_2025", "Operational Emissions per FTE (tCO2e)",
+             operational / average_fte(year=2025), year=2025, tolerance=0.0001),
+        case("market_minus_location_2025", "Scope 2 Market minus Location (tCO2e)",
+             total(MARKET, year=2025) - emissions(year=2025, scope=2), year=2025),
+        case("sales_growth_2025", "Sales Growth vs Prior Year (%)", s25 / s24 - 1, year=2025,
+             tolerance=0.00001),
+        case("sales_growth_2023_is_blank", "Sales Growth vs Prior Year (%)", None, year=2023),
+        case("budget_sales_2025", "Budget Net Sales (EUR)", plan_sales, year=2025, tolerance=0.5),
+        case("budget_margin_2025", "Budget Margin (EUR)", plan_margin, year=2025, tolerance=0.5),
+        case("budget_units_pumps_2025", "Budget Units", budget("budget_units", year=2025, family=pumps),
+             year=2025, family=pumps),
+        case("sales_vs_budget_2025", "Net Sales vs Budget (EUR)", s25 - plan_sales, year=2025, tolerance=0.5),
+        case("sales_vs_budget_pct_2025", "Net Sales vs Budget (%)", s25 / plan_sales - 1, year=2025,
+             tolerance=0.00001),
+        case("margin_vs_budget_2025", "Margin vs Budget (EUR)", m25 - plan_margin, year=2025, tolerance=0.5),
+        case("rls_nordics_budget_2025", "Budget Net Sales (EUR)", budget("budget_net_sales_eur", year=2025, region="NOR"),
+             role="Nordics", year=2025, tolerance=0.5),
+        case("rls_nordics_cannot_see_baltics_budget", "Budget Net Sales (EUR)", None, role="Nordics", region="BAL"),
+        case("mix_by_group_2025", "Mix Effect by Group (EUR)", by_group_bridge(2025, "mix"), year=2025, tolerance=0.01),
+        case("quantity_by_group_2025", "Quantity Effect by Group (EUR)", by_group_bridge(2025, "quantity"),
+             year=2025, tolerance=0.01),
+        case("mix_between_groups_2025", "Mix Between Groups (EUR)",
+             b25["mix"] - by_group_bridge(2025, "mix"), year=2025, tolerance=0.01),
+        # Within groups, mix plus quantity add to the company's volume effect: volume is additive.
+        case("volume_adds_over_groups_2025", "Volume Effect (EUR)",
+             by_group_bridge(2025, "mix") + by_group_bridge(2025, "quantity"), year=2025, tolerance=0.01),
+        case("bridge_mix_base_2025", "Bridge Base (EUR)", min(before_mix, before_mix + b25["mix"]),
+             year=2025, step="Mix", tolerance=0.01),
+        case("bridge_prior_total_2025", "Bridge Prior Year Total (EUR)", m24, year=2025,
+             step="Prior-year margin", tolerance=0.01),
+        case("bridge_this_year_total_2025", "Bridge This Year Total (EUR)", m25, year=2025,
+             step="This year's margin", tolerance=0.01),
+        case("bridge_not_comparable_2025_is_blank", "Bridge Value (EUR)", None, year=2025, step="Not comparable"),
+        case("bridge_this_year_base_is_blank", "Bridge Base (EUR)", None, year=2025, step="This year's margin"),
+        case("score_prior_quarter_2025_q1", "Weighted Score Prior Quarter", score_in_quarter(20241001),
+             year=2025, quarter=1, tolerance=0.00001),
+        case("score_change_booster_2025_q2", "Weighted Score Change vs Prior Quarter",
+             score_in_quarter(20250401, "Booster sets") - score_in_quarter(20250101, "Booster sets"),
+             year=2025, quarter=2, group="Booster sets", tolerance=0.00001),
+        case("open_issues_all", "Open Data Issues",
+             float(sum(1 for r in ISSUES if r["status"] == "Quarantined"))),
+        # Text measures: the exact words a page shows.
+        case("total_context_2025", "Total Emissions Context",
+             f"2024: {thousands(e24)}, {change:+.1%}", year=2025),
+        case("total_context_2023", "Total Emissions Context", "No prior year to compare", year=2023),
+        case("margin_percent_context_2025", "Margin Percent Context",
+             f"2024: {margin_pct[1]:.1%}, " + f"{margin_pct[0] - margin_pct[1]:+.1%}".replace("%", " pts"),
+             year=2025),
+        case("net_sales_budget_context_2025", "Net Sales Budget Context",
+             f"Budget: {millions(plan_sales)}, {s25 / plan_sales - 1:+.1%}", year=2025),
+        case("overview_message_2025", "Overview Message",
+             f"Emissions {'fell' if change < 0 else 'rose'} {abs(change):.1%} in 2025; use of sold products is "
+             f"{use_phase(year=2025) / e25:.0%} of the total", year=2025),
+        case("price_volume_mix_message_2025", "Price Volume Mix Message",
+             f"Margin {'fell' if b25['change'] < 0 else 'rose'} EUR {abs(b25['change']) / 1e6:,.1f} million in 2025; "
+             f"the biggest driver was {biggest} ({drivers[biggest] / 1e6:+,.1f} million)", year=2025),
+        case("contract_start", "Contract Start",
+             f"{month_names[int(start[4:6]) - 1]} {start[:4]}", contract=contract),
+        case("report_footer", "Report Footer", "Data Jan 2023 to Dec 2025, monthly. Refreshed ", prefix=True),
+    ]
+    # Each step of the waterfall equals its measure, and the steps add from one total to the other.
+    for name, value in steps:
+        if value is not None:
+            out.append(case(f"bridge_value_{name.split()[0].lower()}_2025", "Bridge Value (EUR)", value,
+                            year=2025, step=name, tolerance=0.01))
+    assert abs(m24 + b25["price"] + b25["mix"] + b25["quantity"] + b25["cost"] - m25) < 0.01
+    return out

@@ -3,9 +3,9 @@
   "name": "table_scope3_categories",
   "position": {
     "x": 20,
-    "y": 475,
+    "y": 440,
     "z": 700,
-    "height": 235,
+    "height": 244,
     "width": 1240,
     "tabOrder": 700
   },
@@ -80,6 +80,79 @@
       }
     },
     "drillFilterOtherVisuals": true,
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "40D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "dim_scope3_category.scope3_category"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "250D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "dim_scope3_category.category_name"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "140D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "dim_scope3_category.status"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "760D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "dim_scope3_category.reason"
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {
+            "wordWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
     "visualContainerObjects": {
       "title": [
         {

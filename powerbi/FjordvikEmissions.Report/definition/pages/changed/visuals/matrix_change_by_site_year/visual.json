@@ -3,9 +3,9 @@
   "name": "matrix_change_by_site_year",
   "position": {
     "x": 660,
-    "y": 410,
+    "y": 404,
     "z": 600,
-    "height": 300,
+    "height": 280,
     "width": 600,
     "tabOrder": 600
   },
@@ -74,6 +74,28 @@
       }
     },
     "drillFilterOtherVisuals": true,
+    "objects": {
+      "subTotals": [
+        {
+          "properties": {
+            "rowSubtotals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "columnSubtotals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
     "visualContainerObjects": {
       "title": [
         {
@@ -88,7 +110,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Like-for-like change by site and year (%)'"
+                  "Value": "'Like-for-like change by site, each year (%)'"
                 }
               }
             }

@@ -3,9 +3,9 @@
   "name": "column_energy_by_month",
   "position": {
     "x": 20,
-    "y": 210,
+    "y": 200,
     "z": 400,
-    "height": 260,
+    "height": 250,
     "width": 620,
     "tabOrder": 400
   },
@@ -109,7 +109,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#2A78D6'"
+                      "Value": "'#2F4B7C'"
                     }
                   }
                 }
@@ -127,7 +127,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#EB6834'"
+                      "Value": "'#B5651D'"
                     }
                   }
                 }
@@ -145,7 +145,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#1BAF7A'"
+                      "Value": "'#3D8C8C'"
                     }
                   }
                 }
@@ -192,7 +192,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Energy used by month (kWh)'"
+                  "Value": "'Energy used by month, all three years (kWh)'"
                 }
               }
             }

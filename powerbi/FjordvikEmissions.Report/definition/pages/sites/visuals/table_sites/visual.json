@@ -3,9 +3,9 @@
   "name": "table_sites",
   "position": {
     "x": 20,
-    "y": 95,
+    "y": 104,
     "z": 200,
-    "height": 290,
+    "height": 270,
     "width": 1240,
     "tabOrder": 200
   },
@@ -72,7 +72,23 @@
                 }
               },
               "queryRef": "_Measures.Total Emissions (tCO2e)",
-              "nativeQueryRef": "Total Emissions (tCO2e)"
+              "nativeQueryRef": "Total Emissions (tCO2e)",
+              "displayName": "Total (tCO2e)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Operational Emissions (tCO2e)"
+                }
+              },
+              "queryRef": "_Measures.Operational Emissions (tCO2e)",
+              "nativeQueryRef": "Operational Emissions (tCO2e)",
+              "displayName": "Scopes 1, 2 (tCO2e)"
             },
             {
               "field": {
@@ -86,7 +102,23 @@
                 }
               },
               "queryRef": "_Measures.Emissions per FTE (tCO2e)",
-              "nativeQueryRef": "Emissions per FTE (tCO2e)"
+              "nativeQueryRef": "Emissions per FTE (tCO2e)",
+              "displayName": "Per FTE, all (tCO2e)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Operational Emissions per FTE (tCO2e)"
+                }
+              },
+              "queryRef": "_Measures.Operational Emissions per FTE (tCO2e)",
+              "nativeQueryRef": "Operational Emissions per FTE (tCO2e)",
+              "displayName": "Per FTE, scopes 1, 2 (tCO2e)"
             },
             {
               "field": {
@@ -100,7 +132,8 @@
                 }
               },
               "queryRef": "_Measures.Emissions per Million EUR (tCO2e)",
-              "nativeQueryRef": "Emissions per Million EUR (tCO2e)"
+              "nativeQueryRef": "Emissions per Million EUR (tCO2e)",
+              "displayName": "Per EUR million (tCO2e)"
             },
             {
               "field": {
@@ -114,7 +147,8 @@
                 }
               },
               "queryRef": "_Measures.Emissions Change vs Prior Year (%)",
-              "nativeQueryRef": "Emissions Change vs Prior Year (%)"
+              "nativeQueryRef": "Emissions Change vs Prior Year (%)",
+              "displayName": "Change (%)"
             }
           ]
         }
@@ -135,7 +169,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Emissions and intensity by site'"
+                  "Value": "'Emissions and intensity by site: ''all'' includes use of the products a plant made'"
                 }
               }
             }

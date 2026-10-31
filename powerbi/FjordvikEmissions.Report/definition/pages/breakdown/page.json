@@ -4,5 +4,17 @@
   "displayName": "Emissions breakdown",
   "displayOption": "FitToPage",
   "height": 720,
-  "width": 1280
+  "width": 1280,
+  "visualInteractions": [
+    {
+      "source": "slicer_year",
+      "target": "column_scope_by_month",
+      "type": "NoFilter"
+    },
+    {
+      "source": "slicer_year",
+      "target": "column_scope12_by_month",
+      "type": "NoFilter"
+    }
+  ]
 }

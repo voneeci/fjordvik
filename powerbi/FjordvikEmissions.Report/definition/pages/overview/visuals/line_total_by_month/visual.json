@@ -3,9 +3,9 @@
   "name": "line_total_by_month",
   "position": {
     "x": 20,
-    "y": 220,
+    "y": 200,
     "z": 400,
-    "height": 480,
+    "height": 484,
     "width": 760,
     "tabOrder": 400
   },
@@ -105,7 +105,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Total emissions by month (tCO2e)'"
+                  "Value": "'Total emissions by month, all three years (tCO2e)'"
                 }
               }
             }

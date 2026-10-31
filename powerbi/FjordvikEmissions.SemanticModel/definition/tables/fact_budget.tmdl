@@ -1,0 +1,67 @@
+/// Fjordvik's sales plan (synthetic client input): one row per month, shipping site, product group and region. Product group is the finest level, so a filter on a single product does not narrow the budget.
+table fact_budget
+	lineageTag: c7b7668b-6ce2-4a70-9136-ea237e229757
+
+	column date_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 108744b2-8bab-4931-aafa-1c0bb17057dc
+		summarizeBy: none
+		sourceColumn: date_key
+
+	column site_id
+		dataType: string
+		isHidden
+		lineageTag: c05d741d-6153-4a13-99b2-5ae0276f4257
+		summarizeBy: none
+		sourceColumn: site_id
+
+	column product_group
+		dataType: string
+		isHidden
+		lineageTag: 1fa9a128-dc35-4daf-9bec-f7d56a744fcf
+		summarizeBy: none
+		sourceColumn: product_group
+
+	column region_id
+		dataType: string
+		isHidden
+		lineageTag: a01a699c-488f-4505-8169-901e1d24e9fd
+		summarizeBy: none
+		sourceColumn: region_id
+
+	column budget_units
+		dataType: int64
+		formatString: #,0
+		lineageTag: aa05765c-749f-46a0-b47a-68c2e291c5f2
+		summarizeBy: none
+		sourceColumn: budget_units
+
+	column budget_net_sales_eur
+		dataType: double
+		formatString: #,0
+		lineageTag: 87cede38-d6d8-4109-8cac-62f9dd39c8eb
+		summarizeBy: none
+		sourceColumn: budget_net_sales_eur
+
+	column budget_margin_eur
+		dataType: double
+		formatString: #,0
+		lineageTag: 4ee002b9-a637-429e-ae33-9bb3d1fdf95e
+		summarizeBy: none
+		sourceColumn: budget_margin_eur
+
+	partition fact_budget = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(DataFolder & "\fact_budget.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					// "en-US" so numbers read the same on any Windows locale
+					Typed = Table.TransformColumnTypes(Promoted, {{"date_key", Int64.Type}, {"site_id", type text}, {"product_group", type text}, {"region_id", type text}, {"budget_units", Int64.Type}, {"budget_net_sales_eur", type number}, {"budget_margin_eur", type number}}, "en-US")
+				in
+					Typed
+
+	annotation PBI_ResultType = Table
+

@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "card_3",
   "position": {
-    "x": 770,
-    "y": 95,
+    "x": 965,
+    "y": 104,
     "z": 303,
-    "height": 100,
-    "width": 240,
+    "height": 64,
+    "width": 295,
     "tabOrder": 303
   },
   "visual": {
@@ -23,17 +23,32 @@
                       "Entity": "_Measures"
                     }
                   },
-                  "Property": "Total Emissions Market-based (tCO2e)"
+                  "Property": "Electricity with Guarantees of Origin (%)"
                 }
               },
-              "queryRef": "_Measures.Total Emissions Market-based (tCO2e)",
-              "nativeQueryRef": "Total Emissions Market-based (tCO2e)",
-              "displayName": "Total, market (tCO2e)"
+              "queryRef": "_Measures.Electricity with Guarantees of Origin (%)",
+              "nativeQueryRef": "Electricity with Guarantees of Origin (%)",
+              "displayName": "Covered by guarantees (%)"
             }
           ]
         }
       }
     },
-    "drillFilterOtherVisuals": true
+    "drillFilterOtherVisuals": true,
+    "objects": {
+      "labels": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "20D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
   }
 }

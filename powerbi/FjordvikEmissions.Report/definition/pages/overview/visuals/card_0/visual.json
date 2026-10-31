@@ -3,10 +3,10 @@
   "name": "card_0",
   "position": {
     "x": 20,
-    "y": 95,
+    "y": 104,
     "z": 300,
-    "height": 110,
-    "width": 240,
+    "height": 64,
+    "width": 232,
     "tabOrder": 300
   },
   "visual": {
@@ -27,12 +27,42 @@
                 }
               },
               "queryRef": "_Measures.Total Emissions (tCO2e)",
-              "nativeQueryRef": "Total Emissions (tCO2e)"
+              "nativeQueryRef": "Total Emissions (tCO2e)",
+              "displayName": "Total emissions (tCO2e)"
             }
           ]
         }
       }
     },
-    "drillFilterOtherVisuals": true
+    "drillFilterOtherVisuals": true,
+    "objects": {
+      "labels": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "20D"
+                }
+              }
+            },
+            "labelDisplayUnits": {
+              "expr": {
+                "Literal": {
+                  "Value": "1000D"
+                }
+              }
+            },
+            "labelPrecision": {
+              "expr": {
+                "Literal": {
+                  "Value": "1L"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
   }
 }

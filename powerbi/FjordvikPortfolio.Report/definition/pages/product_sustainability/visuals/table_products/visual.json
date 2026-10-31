@@ -1,0 +1,135 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "table_products",
+  "position": {
+    "x": 20,
+    "y": 474,
+    "z": 700,
+    "height": 210,
+    "width": 1240,
+    "tabOrder": 700
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_product"
+                    }
+                  },
+                  "Property": "product_name"
+                }
+              },
+              "queryRef": "dim_product.product_name",
+              "nativeQueryRef": "product_name",
+              "displayName": "Product"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_product"
+                    }
+                  },
+                  "Property": "kwh_per_year"
+                }
+              },
+              "queryRef": "dim_product.kwh_per_year",
+              "nativeQueryRef": "kwh_per_year",
+              "displayName": "kWh a year"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_product"
+                    }
+                  },
+                  "Property": "lifetime_years"
+                }
+              },
+              "queryRef": "dim_product.lifetime_years",
+              "nativeQueryRef": "lifetime_years",
+              "displayName": "Lifetime (years)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Units Sold"
+                }
+              },
+              "queryRef": "_Measures.Units Sold",
+              "nativeQueryRef": "Units Sold"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Use-phase Emissions per Unit (tCO2e)"
+                }
+              },
+              "queryRef": "_Measures.Use-phase Emissions per Unit (tCO2e)",
+              "nativeQueryRef": "Use-phase Emissions per Unit (tCO2e)",
+              "displayName": "Per unit (tCO2e)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Use-phase Emissions per Thousand EUR (tCO2e)"
+                }
+              },
+              "queryRef": "_Measures.Use-phase Emissions per Thousand EUR (tCO2e)",
+              "nativeQueryRef": "Use-phase Emissions per Thousand EUR (tCO2e)",
+              "displayName": "Per EUR 1,000 of net sales (tCO2e)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Each product: specification and use-phase emissions'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

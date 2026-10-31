@@ -3,9 +3,9 @@
   "name": "page_guide",
   "position": {
     "x": 640,
-    "y": 155,
+    "y": 110,
     "z": 500,
-    "height": 270,
+    "height": 250,
     "width": 620,
     "tabOrder": 500
   },
@@ -30,7 +30,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Emissions: Overview, Emissions breakdown, Value chain (scope 3), Scope 2 methods, Intensity and growth, Energy and activity, What changed, Sites and Data quality: how much Fjordvik emits, where, why it moved, and whether the figures reconcile.",
+                    "value": "Overview: how much Fjordvik emits and where. Emissions breakdown: by scope, source and country. Value chain: the 15 scope 3 categories. Scope 2 methods: location-based beside market-based.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }
@@ -40,7 +40,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Portfolio: Portfolio overview, Price, volume and mix, Portfolio balance, Product sustainability, Quarterly scorecard, and Classification and data quality: what sells, what earns, why margin moved, how products score, and what the ERP data got wrong.",
+                    "value": "Intensity and growth: is Fjordvik getting cleaner as it grows? Energy and activity: what the sites used. What changed: the change on the prior year. Sites: each site's figures. Data quality: do the stored figures reconcile?",
                     "textStyle": {
                       "fontSize": "10pt"
                     }
@@ -50,7 +50,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Country managers see their own sites; sales region managers see their own region's sales and blank site figures.",
+                    "value": "Each page title is a sentence worked out from the data, so it never goes stale.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }

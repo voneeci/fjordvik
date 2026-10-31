@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "FjordvikPortfolio"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "91d6ec56-49de-48cd-90b2-2b0dd2a4213b"
+  }
+}

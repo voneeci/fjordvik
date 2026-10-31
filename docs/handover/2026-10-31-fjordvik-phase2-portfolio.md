@@ -133,6 +133,39 @@ Evidence: `mcp/evidence/pytest-http-auth-2026-10-31.txt` (76 passed),
 Not built: hosting, a real identity provider, access from claude.ai or phones (they
 connect from Anthropic's cloud and cannot reach localhost), an audit log.
 
+## Addendum: report redesign from the dashboard review (31 October 2026)
+
+A research note reviewed all 16 pages against Microsoft's Power BI guidance, the
+International Business Communication Standards (IBCS) and the wiki's dashboard rules.
+Reece chose to build its whole top 10, split the report in two on one model, add a budget,
+and name the bridge steps as segment reports do.
+
+- **Two errors fixed.** With Year on "All", the Price, volume and mix cards showed the whole
+  2025 margin (EUR 62.2 million) as the change; every Year slicer now opens on 2025 alone,
+  and the 2025 change reads EUR 4,175,972. The bridge table's columns now add up (mix and
+  quantity within each group; a note gives the mix between groups, EUR -12.9 million in 2025).
+- **Budget.** `fact_budget` (1,368 rows): Fjordvik's plan by month, site, product group and
+  region, worked back from actuals through a planned variance per family and year
+  (`config.py`, synthetic client input). 2025 net sales are 0.2% under budget.
+- **Two reports, one model.** `FjordvikEmissions.pbip` (10 pages) and
+  `FjordvikPortfolio.pbip` (7 pages). Every page: page buttons, a title sentence from the
+  data, slicers, comparisons under each card, a footer with caveat, owner, period and
+  refresh time. A theme lifts all text to 4.5:1 contrast. New: the margin waterfall, share of
+  sales beside share of margin, growth against margin, shaded score matrix with the change on
+  the prior quarter, score against margin, margin against use-phase emissions per euro.
+- **Model.** 72 new measures (134 in all): comparisons, budget, bridge, scorecard, text;
+  `dim_bridge_step` and `dim_refresh` hold no figures. Desktop saved the model in its own
+  form on opening it after the change (blank lines, diagram layout, language metadata).
+- **Not built:** labels on the two smallest waterfall steps (too short; the table gives
+  them), synced slicers across pages, average lines on the scatter charts, the gap list's
+  forecast, cost split, currency effect, segments and market share.
+
+Evidence: `powerbi/evidence/pytest-redesign-live-2026-10-31.txt` (701 passed, Desktop open
+and refreshed), `powerbi/evidence/pytest-redesign-offline-2026-10-31.txt` (553 passed, 148
+skipped), `data`, `mcp` and `power-automate` in `evidence/pytest-budget-2026-10-31.txt`
+(60, 76 and 26 passed). Screenshots of all 17 pages are in `powerbi/docs/images/` (six of
+them) and in the knowledge folder's raw exports.
+
 ## Test results (each from its own folder and `.venv`)
 
 | Part | Result | Evidence |

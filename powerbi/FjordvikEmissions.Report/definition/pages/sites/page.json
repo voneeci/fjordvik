@@ -4,5 +4,12 @@
   "displayName": "Sites",
   "displayOption": "FitToPage",
   "height": 720,
-  "width": 1280
+  "width": 1280,
+  "visualInteractions": [
+    {
+      "source": "slicer_year",
+      "target": "bar_operational_by_site_year",
+      "type": "NoFilter"
+    }
+  ]
 }

@@ -5,11 +5,18 @@ role 'Rest of world'
 	tablePermission dim_region = dim_region[region_id] = "ROW"
 
 	tablePermission fact_emissions = FALSE()
+
 	tablePermission fact_energy_upstream = FALSE()
+
 	tablePermission fact_purchases = FALSE()
+
 	tablePermission fact_freight = FALSE()
+
 	tablePermission fact_scope2_market = FALSE()
+
 	tablePermission fact_site_metrics = FALSE()
+
 	tablePermission fact_data_issue = FALSE()
 
 	annotation PBI_Id = 7c48b9c8b19d46ddb5fd62527c71a570
+

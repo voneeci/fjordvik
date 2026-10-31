@@ -4,5 +4,17 @@
   "displayName": "Scope 2 methods",
   "displayOption": "FitToPage",
   "height": 720,
-  "width": 1280
+  "width": 1280,
+  "visualInteractions": [
+    {
+      "source": "slicer_year",
+      "target": "column_methods_by_year",
+      "type": "NoFilter"
+    },
+    {
+      "source": "slicer_year",
+      "target": "matrix_market_by_instrument",
+      "type": "NoFilter"
+    }
+  ]
 }

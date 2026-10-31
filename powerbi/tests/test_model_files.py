@@ -13,7 +13,8 @@ import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 MODEL = REPO / "FjordvikEmissions.SemanticModel" / "definition"
-REPORT = REPO / "FjordvikEmissions.Report" / "definition"
+# Two reports on the one model since 31 October 2026: emissions and portfolio.
+REPORTS = [REPO / f"{name}.Report" / "definition" for name in ("FjordvikEmissions", "FjordvikPortfolio")]
 
 SHARED_SCHEMA = {
     "dim_date": ["date_key", "date", "year", "quarter", "month", "month_name"],
@@ -51,6 +52,8 @@ SHARED_SCHEMA = {
                         "detail", "line_count", "amount_eur", "status", "action"],
     "fact_use_phase": ["date_key", "site_id", "source_id", "product_id", "region_id", "units",
                        "net_sales_eur", "activity_amount", "unit", "emission_factor", "tco2e"],
+    "fact_budget": ["date_key", "site_id", "product_group", "region_id", "budget_units",
+                    "budget_net_sales_eur", "budget_margin_eur"],
 }
 
 # Numbers allowed in DAX, each a unit conversion or a key, never a rate or factor.
@@ -59,12 +62,22 @@ ALLOWED_NUMBERS = {
     "1000",          # kilograms per tonne
     "1000000",       # euros per million euros
     "10000",         # one year in a yyyymmdd date key (20250301 - 10000 = 20240301)
+    "100",           # the month digits of a yyyymmdd key (contract dates shown as months)
+    "0",             # zero, for signs (a rise or a fall) and for counting none as 0
 }
 # Measures named for a count or headcount carry no unit in brackets.
 # Units Sold, Units Sold Prior Year, Data Issues and Weighted Score added for phase 2
 # (31 October 2026): counts and a 1 to 10 score have no unit to bracket.
 UNITLESS = {"Average FTE", "Emission Rows", "Sites Reporting", "Units Sold",
-            "Units Sold Prior Year", "Data Issues", "Weighted Score"}
+            "Units Sold Prior Year", "Data Issues", "Weighted Score",
+            # Added with the report redesign (31 October 2026): planned units, open issues and
+            # scorecard points are counts or scores, with no unit to bracket.
+            "Budget Units", "Open Data Issues", "Weighted Score Prior Quarter",
+            "Weighted Score Change vs Prior Quarter"}
+# Text measures (display folder "Text") build the words on the report: card context lines,
+# page titles and the footer. They return text, so they carry no unit and no number format
+# (report redesign, 31 October 2026).
+TEXT_FOLDER = "Text"
 
 
 def parse_tables():
@@ -121,13 +134,14 @@ def test_all_measures_live_in_the_measures_table():
 def test_measure_has_description_format_and_folder(name):
     m = MEASURES[name]
     assert m["description"], "no /// description"
-    assert m["props"].get("formatString"), "no formatString"
     assert m["props"].get("displayFolder"), "no displayFolder"
+    if m["props"]["displayFolder"] != TEXT_FOLDER:
+        assert m["props"].get("formatString"), "no formatString"
 
 
 @pytest.mark.parametrize("name", sorted(MEASURES))
 def test_measure_name_carries_its_unit(name):
-    if name in UNITLESS:
+    if name in UNITLESS or MEASURES[name]["props"].get("displayFolder") == TEXT_FOLDER:
         return
     # Activity units added 31 October 2026 with the Activity measures (Energy Used (kWh) and
     # others): each is the unit the sites report that source in, so the rule is unchanged.
@@ -183,7 +197,7 @@ def test_four_region_roles_filter_dim_region_and_deny_site_figures():
 
 
 def test_model_files_are_utf8_without_bom():
-    for path in list(MODEL.rglob("*.tmdl")) + list(REPORT.rglob("*.json")):
+    for path in list(MODEL.rglob("*.tmdl")) + [f for r in REPORTS for f in r.parent.rglob("*.json")]:
         assert not path.read_bytes().startswith(b"\xef\xbb\xbf"), path
 
 
@@ -195,7 +209,7 @@ NAME = re.compile(r"^[\w-]{1,50}$")
 
 
 def visuals():
-    for path in REPORT.glob("pages/*/visuals/*/visual.json"):
+    for path in (f for r in REPORTS for f in r.glob("pages/*/visuals/*/visual.json")):
         yield path, json.loads(path.read_text(encoding="utf-8"))
 
 
@@ -227,13 +241,17 @@ def test_every_visual_field_exists_in_the_model():
             assert prop in pool, f"{path}: unknown {kind.lower()} {entity}[{prop}]"
 
 
-def test_names_match_folders_and_follow_the_rules():
-    pages = json.loads((REPORT / "pages" / "pages.json").read_text(encoding="utf-8"))
-    folders = sorted(p.name for p in (REPORT / "pages").iterdir() if p.is_dir())
+@pytest.mark.parametrize("report", REPORTS, ids=lambda r: r.parent.name)
+def test_names_match_folders_and_follow_the_rules(report):
+    pages = json.loads((report / "pages" / "pages.json").read_text(encoding="utf-8"))
+    folders = sorted(p.name for p in (report / "pages").iterdir() if p.is_dir())
     assert sorted(pages["pageOrder"]) == folders
     for folder in folders:
-        page = json.loads((REPORT / "pages" / folder / "page.json").read_text(encoding="utf-8"))
+        page = json.loads((report / "pages" / folder / "page.json").read_text(encoding="utf-8"))
         assert page["name"] == folder and NAME.match(folder)
+        visual_names = {v.name for v in (report / "pages" / folder / "visuals").iterdir()}
+        for link in page.get("visualInteractions", []):
+            assert {link["source"], link["target"]} <= visual_names, (folder, link)
     for path, v in visuals():
         assert v["name"] == path.parent.name and NAME.match(v["name"]), path
 
@@ -246,10 +264,30 @@ def test_query_refs_are_unique_within_each_visual():
 
 
 def test_every_page_states_the_data_is_synthetic():
-    for page in (REPORT / "pages").iterdir():
-        if page.is_dir():
-            text = (page / "visuals" / "title" / "visual.json").read_text(encoding="utf-8")
-            assert "illustrative" in text and "Synthetic" in text, page.name
+    """Since the redesign (31 October 2026) the caveat sits in every page's footer."""
+    for report in REPORTS:
+        for page in (report / "pages").iterdir():
+            if page.is_dir():
+                text = (page / "visuals" / "footer_note" / "visual.json").read_text(encoding="utf-8")
+                assert "illustrative" in text and "Synthetic" in text, page.name
+
+
+def test_every_page_has_page_buttons_a_footer_and_a_theme():
+    for report in REPORTS:
+        for page in (report / "pages").iterdir():
+            if page.is_dir():
+                names = {v.name for v in (page / "visuals").iterdir()}
+                assert {"page_buttons", "footer_note", "footer_data", "title"} <= names, page
+        assert (report.parent / "StaticResources" / "RegisteredResources" / "Fjordvik.json").exists()
+
+
+def test_year_slicers_open_on_one_year():
+    """Jasila's review, rank 1: with every year selected, cards add three years together."""
+    for path, v in visuals():
+        if v["name"] == "slicer_year":
+            objects = v["visual"]["objects"]
+            assert objects["selection"][0]["properties"]["singleSelect"]["expr"]["Literal"]["Value"] == "true"
+            assert "filter" in objects["general"][0]["properties"], path
 
 
 # Desktop rewrites this on every save to remember the last page open; it is
@@ -264,16 +302,17 @@ def test_report_is_rebuilt_from_the_script(tmp_path, monkeypatch):
     (line endings, no final newline), and a Desktop save must not fail this test
     when nothing in the report changed (decision 16 October 2026)."""
     import importlib.util
-    import shutil
-    copy = tmp_path / "FjordvikEmissions.Report"
-    shutil.copytree(REPORT.parent, copy)
     spec = importlib.util.spec_from_file_location("build_report", REPO / "scripts" / "build_report.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    monkeypatch.setattr(module, "REPORT", copy)
+    monkeypatch.setattr(module, "ROOT", tmp_path)
     module.main()
-    for original in REPORT.rglob("*.json"):
-        rebuilt = copy / "definition" / original.relative_to(REPORT)
+    # .pbi holds Desktop's local settings and cache, git-ignored and not report content.
+    originals = [f for r in REPORTS for f in r.parent.rglob("*.json") if ".pbi" not in f.parts]
+    rebuilt_files = {f.relative_to(tmp_path) for f in tmp_path.rglob("*.json") if ".Report" in str(f)}
+    assert rebuilt_files == {f.relative_to(REPO) for f in originals}, "report files added or missing"
+    for original in originals:
+        rebuilt = tmp_path / original.relative_to(REPO)
         want = json.loads(rebuilt.read_text(encoding="utf-8-sig"))
         have = json.loads(original.read_text(encoding="utf-8-sig"))
         for key in DESKTOP_VIEW_STATE.get(original.name, set()):

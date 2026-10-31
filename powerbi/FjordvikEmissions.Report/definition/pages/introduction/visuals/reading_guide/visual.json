@@ -3,9 +3,9 @@
   "name": "reading_guide",
   "position": {
     "x": 640,
-    "y": 435,
+    "y": 370,
     "z": 600,
-    "height": 270,
+    "height": 310,
     "width": 620,
     "tabOrder": 600
   },
@@ -30,7 +30,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Scope 1: fuel burned on site and refrigerant leaks. Scope 2: electricity and heat bought, at each country's average factor (location-based); market-based is shown beside it. Scope 3: purchases, upstream fuel and grid losses, freight, flights and landfill waste. Totals are location-based.",
+                    "value": "Each page opens on the latest full year (2025). Pick another year in the Year slicer; charts by month or year always show all three years.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }
@@ -40,7 +40,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "tCO2e is tonnes of carbon dioxide equivalent: activity amount times emission factor, divided by 1,000.",
+                    "value": "Under each headline number: the same months a year earlier and the change on them.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }
@@ -50,7 +50,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Intensity divides emissions by average full-time equivalent employees (FTE) or by revenue in millions of euros, so a growing business can see whether it is getting cleaner as well as bigger.",
+                    "value": "Scope 1: fuel burned on site and refrigerant leaks. Scope 2: electricity and heat bought, at each country's average factor (location-based); market-based is shown beside it. Scope 3: purchases, upstream fuel and grid losses, freight, flights, landfill waste and the lifetime electricity of the pumps sold. Totals are location-based.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }
@@ -60,7 +60,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Like-for-like change compares only site-months reported in both years, so a new site does not inflate growth. The What changed page shows both views.",
+                    "value": "tCO2e is tonnes of carbon dioxide equivalent. K means thousands, M millions.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }
@@ -70,7 +70,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Most pages have Year or Country slicers at the top right: pick a value to filter that page.",
+                    "value": "Like-for-like change compares only site-months reported in both years, so a new site does not inflate growth.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }

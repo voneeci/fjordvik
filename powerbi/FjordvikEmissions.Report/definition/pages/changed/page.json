@@ -4,5 +4,22 @@
   "displayName": "What changed",
   "displayOption": "FitToPage",
   "height": 720,
-  "width": 1280
+  "width": 1280,
+  "visualInteractions": [
+    {
+      "source": "slicer_year",
+      "target": "column_change_pct_by_year",
+      "type": "NoFilter"
+    },
+    {
+      "source": "slicer_year",
+      "target": "bar_change_by_site_and_year",
+      "type": "NoFilter"
+    },
+    {
+      "source": "slicer_year",
+      "target": "matrix_change_by_site_year",
+      "type": "NoFilter"
+    }
+  ]
 }

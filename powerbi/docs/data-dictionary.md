@@ -33,6 +33,12 @@ CALCULATE ( [Total Emissions (tCO2e)], KEEPFILTERS ( dim_source[scope] = 2 ) )
 CALCULATE ( [Total Emissions (tCO2e)], KEEPFILTERS ( dim_source[scope] = 3 ) )
 ```
 
+**Operational Emissions (tCO2e)**: Scopes 1 and 2 only (location-based): the emissions a site controls, without the value chain or the use of products it made. Format: `#,0.0`.
+
+```dax
+[Scope 1 Emissions (tCO2e)] + [Scope 2 Emissions (tCO2e)]
+```
+
 ### Intensity
 
 **Revenue (EUR)**: Revenue in euros. A flow: it adds up over months. Format: `#,0`.
@@ -57,6 +63,12 @@ DIVIDE ( [Total Emissions (tCO2e)], [Average FTE] )
 
 ```dax
 DIVIDE ( [Total Emissions (tCO2e)], DIVIDE ( [Revenue (EUR)], 1000000 ) )
+```
+
+**Operational Emissions per FTE (tCO2e)**: Scopes 1 and 2 per average full-time equivalent employee: the site measure a site manager can act on. Emissions per FTE (tCO2e) includes the use-phase emissions of products made at a plant. Format: `#,0.00`.
+
+```dax
+DIVIDE ( [Operational Emissions (tCO2e)], [Average FTE] )
 ```
 
 ### Time comparison
@@ -154,6 +166,12 @@ ROUND ( [Revenue (EUR)] - [Net Sales (EUR)] - [Quarantined Sales (EUR)], 2 )
 COUNTROWS ( fact_data_issue )
 ```
 
+**Open Data Issues**: Issues still waiting for their owner: quarantined lines stay out of sales until portfolio governance maps the item number. Removed and corrected issues are closed by rule. Format: `#,0`.
+
+```dax
+CALCULATE ( COUNTROWS ( fact_data_issue ), KEEPFILTERS ( fact_data_issue[status] = "Quarantined" ) )
+```
+
 ### Activity
 
 **Energy Used (kWh)**: Natural gas, purchased electricity and district heating, the three sources reported in kWh, added together. Format: `#,0`.
@@ -228,6 +246,12 @@ CALCULATE ( SUM ( fact_scope2_market[activity_amount] ), KEEPFILTERS ( NOT ISBLA
 
 ```dax
 DIVIDE ( [Electricity with Guarantees of Origin (kWh)], [Electricity Purchased (kWh)] )
+```
+
+**Scope 2 Market minus Location (tCO2e)**: Market-based scope 2 minus location-based scope 2. Positive means the guarantees of origin and residual mixes give a higher figure than grid averages. A comparison only; never added to a total. Format: `#,0.0`.
+
+```dax
+[Scope 2 Market-based Emissions (tCO2e)] - [Scope 2 Emissions (tCO2e)]
 ```
 
 ### Value chain
@@ -348,6 +372,12 @@ RETURN
 	CALCULATE ( [Margin (EUR)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
 ```
 
+**Sales Growth vs Prior Year (%)**: Net sales against the same months a year earlier. Blank with no prior year. Format: `0.0%`.
+
+```dax
+DIVIDE ( [Net Sales (EUR)] - [Net Sales Prior Year (EUR)], [Net Sales Prior Year (EUR)] )
+```
+
 ### Price, volume and mix
 
 **Margin Change vs Prior Year (EUR)**: This period's margin minus the same months a year earlier. Equals the sum of the price, volume, cost and not-comparable effects. Blank with no prior year. Format: `#,0`.
@@ -444,6 +474,24 @@ RETURN
 	)
 ```
 
+**Mix Effect by Group (EUR)**: Mix effect within each product group, added up over the groups shown, so a table's total row adds down its column. The mix between groups is in Mix Between Groups (EUR). Format: `#,0`.
+
+```dax
+SUMX ( VALUES ( dim_product_group[product_group] ), [Mix Effect (EUR)] )
+```
+
+**Quantity Effect by Group (EUR)**: Quantity effect within each product group, added up over the groups shown, so a table's total row adds down its column. Format: `#,0`.
+
+```dax
+SUMX ( VALUES ( dim_product_group[product_group] ), [Quantity Effect (EUR)] )
+```
+
+**Mix Between Groups (EUR)**: Mix from the shift in sales between product groups: the company-level mix effect minus the mix within each group. The quantity effect moves by the same amount the other way, so the volume effect (mix plus quantity) is the same either way. Format: `#,0`.
+
+```dax
+[Mix Effect (EUR)] - [Mix Effect by Group (EUR)]
+```
+
 ### Portfolio balance
 
 **Share of Net Sales (%)**: Share of all net sales in the same months and sites, across every product and region: portfolio balance. Format: `0.0%`.
@@ -486,7 +534,617 @@ DIVIDE ( [Use-phase Emissions (tCO2e)], DIVIDE ( SUM ( fact_use_phase[net_sales_
 DIVIDE ( SUMX ( fact_product_rating, fact_product_rating[rating] * RELATED ( dim_score_criterion[weight] ) ), SUMX ( fact_product_rating, RELATED ( dim_score_criterion[weight] ) ) )
 ```
 
+**Weighted Score Prior Quarter**: The weighted score of the quarter before (each month moved back three months). Format: `0.0`.
+
+```dax
+VAR PriorDates = SELECTCOLUMNS ( VALUES ( dim_date[date] ), "date", EDATE ( dim_date[date], -3 ) )
+RETURN
+	CALCULATE ( [Weighted Score], REMOVEFILTERS ( dim_date ), TREATAS ( PriorDates, dim_date[date] ) )
+```
+
+**Weighted Score Change vs Prior Quarter**: Change in weighted score on the quarter before, in score points. Format: `+0.0;-0.0;0.0`.
+
+```dax
+IF ( NOT ISBLANK ( [Weighted Score Prior Quarter] ), [Weighted Score] - [Weighted Score Prior Quarter] )
+```
+
+### Budget
+
+**Budget Net Sales (EUR)**: Fjordvik's planned net sales (fact_budget, client input, synthetic). The plan is by product group, so read it at product group, family, region or site level, not by single product. Format: `#,0`.
+
+```dax
+SUM ( fact_budget[budget_net_sales_eur] )
+```
+
+**Budget Margin (EUR)**: Fjordvik's planned margin (fact_budget). By product group, region, site and month. Format: `#,0`.
+
+```dax
+SUM ( fact_budget[budget_margin_eur] )
+```
+
+**Budget Units**: Fjordvik's planned units sold (fact_budget). By product group, region, site and month. Format: `#,0`.
+
+```dax
+SUM ( fact_budget[budget_units] )
+```
+
+**Net Sales vs Budget (EUR)**: Net sales minus budget. Positive means ahead of plan. Format: `#,0`.
+
+```dax
+IF ( NOT ISBLANK ( [Budget Net Sales (EUR)] ), [Net Sales (EUR)] - [Budget Net Sales (EUR)] )
+```
+
+**Net Sales vs Budget (%)**: Net sales against budget, as a share of budget. Format: `0.0%`.
+
+```dax
+DIVIDE ( [Net Sales (EUR)] - [Budget Net Sales (EUR)], [Budget Net Sales (EUR)] )
+```
+
+**Margin vs Budget (EUR)**: Margin minus budgeted margin. Positive means ahead of plan. Format: `#,0`.
+
+```dax
+IF ( NOT ISBLANK ( [Budget Margin (EUR)] ), [Margin (EUR)] - [Budget Margin (EUR)] )
+```
+
+### Bridge
+
+**Bridge Value (EUR)**: The value of each bridge step (dim_bridge_step): prior-year margin, the ACCA effects named as segment reports name them (price as sales prices, quantity as delivery volumes, cost as variable costs), not comparable, and this year's margin. Format: `#,0`.
+
+```dax
+SWITCH ( SELECTEDVALUE ( dim_bridge_step[step] ),
+	"Prior-year margin", [Margin Prior Year (EUR)],
+	"Sales prices", [Price Effect (EUR)],
+	"Mix", [Mix Effect (EUR)],
+	"Delivery volumes", [Quantity Effect (EUR)],
+	"Variable costs", [Cost Effect (EUR)],
+	"Not comparable", [Not Comparable Change (EUR)],
+	"This year's margin", [Margin (EUR)]
+)
+```
+
+**Bridge Base (EUR)**: The invisible base of each step in the waterfall: where the bar starts, so steps float between the prior-year and this year's margin. Format: `#,0`.
+
+```dax
+VAR ThisStep = SELECTEDVALUE ( dim_bridge_step[step_order] )
+VAR StepStart = SUMX ( FILTER ( ALL ( dim_bridge_step ), dim_bridge_step[step_order] < ThisStep ), CALCULATE ( [Bridge Value (EUR)] ) )
+VAR StepValue = [Bridge Value (EUR)]
+VAR IsTotal = SELECTEDVALUE ( dim_bridge_step[step] ) IN { "Prior-year margin", "This year's margin" }
+RETURN
+	IF ( NOT IsTotal && NOT ISBLANK ( StepValue ), MIN ( StepStart, StepStart + StepValue ) )
+```
+
+**Bridge Increase (EUR)**: A step that raised margin (green in the waterfall). Format: `+#,0;-#,0`.
+
+```dax
+VAR ThisStep = SELECTEDVALUE ( dim_bridge_step[step_order] )
+VAR StepStart = SUMX ( FILTER ( ALL ( dim_bridge_step ), dim_bridge_step[step_order] < ThisStep ), CALCULATE ( [Bridge Value (EUR)] ) )
+VAR StepValue = [Bridge Value (EUR)]
+VAR IsTotal = SELECTEDVALUE ( dim_bridge_step[step] ) IN { "Prior-year margin", "This year's margin" }
+RETURN
+	IF ( NOT IsTotal && StepValue > 0, StepValue )
+```
+
+**Bridge Decrease (EUR)**: A step that lowered margin, as a positive bar height (red in the waterfall); its label shows the minus sign. Format: `-#,0;-#,0`.
+
+```dax
+VAR ThisStep = SELECTEDVALUE ( dim_bridge_step[step_order] )
+VAR StepStart = SUMX ( FILTER ( ALL ( dim_bridge_step ), dim_bridge_step[step_order] < ThisStep ), CALCULATE ( [Bridge Value (EUR)] ) )
+VAR StepValue = [Bridge Value (EUR)]
+VAR IsTotal = SELECTEDVALUE ( dim_bridge_step[step] ) IN { "Prior-year margin", "This year's margin" }
+RETURN
+	IF ( NOT IsTotal && StepValue < 0, - StepValue )
+```
+
+**Bridge Prior Year Total (EUR)**: The waterfall's first bar: the same months a year earlier. Format: `#,0`.
+
+```dax
+IF ( SELECTEDVALUE ( dim_bridge_step[step] ) = "Prior-year margin", [Bridge Value (EUR)] )
+```
+
+**Bridge This Year Total (EUR)**: The waterfall's last bar: this period's margin. Equals the first bar plus every step. Format: `#,0`.
+
+```dax
+IF ( SELECTEDVALUE ( dim_bridge_step[step] ) = "This year's margin", [Bridge Value (EUR)] )
+```
+
+### Text
+
+**Total Emissions Context**: Card context for Total Emissions (tCO2e): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Total Emissions (tCO2e)]
+VAR Prior = CALCULATE ( [Total Emissions (tCO2e)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( DIVIDE ( Prior, 1000 ), "#,0.0" ) & "K" & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Scope 1 Emissions Context**: Card context for Scope 1 Emissions (tCO2e): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Scope 1 Emissions (tCO2e)]
+VAR Prior = CALCULATE ( [Scope 1 Emissions (tCO2e)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( DIVIDE ( Prior, 1000 ), "#,0.0" ) & "K" & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Scope 2 Emissions Context**: Card context for Scope 2 Emissions (tCO2e): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Scope 2 Emissions (tCO2e)]
+VAR Prior = CALCULATE ( [Scope 2 Emissions (tCO2e)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( DIVIDE ( Prior, 1000 ), "#,0.0" ) & "K" & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Scope 3 Emissions Context**: Card context for Scope 3 Emissions (tCO2e): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Scope 3 Emissions (tCO2e)]
+VAR Prior = CALCULATE ( [Scope 3 Emissions (tCO2e)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( DIVIDE ( Prior, 1000 ), "#,0.0" ) & "K" & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Emissions per FTE Context**: Card context for Emissions per FTE (tCO2e): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Emissions per FTE (tCO2e)]
+VAR Prior = CALCULATE ( [Emissions per FTE (tCO2e)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( Prior, "#,0" ) & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Emissions per Million EUR Context**: Card context for Emissions per Million EUR (tCO2e): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Emissions per Million EUR (tCO2e)]
+VAR Prior = CALCULATE ( [Emissions per Million EUR (tCO2e)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( Prior, "#,0" ) & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Operational Emissions per FTE Context**: Card context for Operational Emissions per FTE (tCO2e): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Operational Emissions per FTE (tCO2e)]
+VAR Prior = CALCULATE ( [Operational Emissions per FTE (tCO2e)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( Prior, "#,0.0" ) & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Purchased Goods Context**: Card context for Purchased Goods and Services Emissions (tCO2e): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Purchased Goods and Services Emissions (tCO2e)]
+VAR Prior = CALCULATE ( [Purchased Goods and Services Emissions (tCO2e)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( DIVIDE ( Prior, 1000 ), "#,0.0" ) & "K" & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Fuel and Energy Context**: Card context for Fuel and Energy Related Emissions (tCO2e): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Fuel and Energy Related Emissions (tCO2e)]
+VAR Prior = CALCULATE ( [Fuel and Energy Related Emissions (tCO2e)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( DIVIDE ( Prior, 1000 ), "#,0.0" ) & "K" & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Upstream Transport Context**: Card context for Upstream Transport Emissions (tCO2e): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Upstream Transport Emissions (tCO2e)]
+VAR Prior = CALCULATE ( [Upstream Transport Emissions (tCO2e)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( DIVIDE ( Prior, 1000 ), "#,0.0" ) & "K" & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Downstream Transport Context**: Card context for Downstream Transport Emissions (tCO2e): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Downstream Transport Emissions (tCO2e)]
+VAR Prior = CALCULATE ( [Downstream Transport Emissions (tCO2e)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( DIVIDE ( Prior, 1000 ), "#,0.0" ) & "K" & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Scope 2 Market-based Context**: Card context for Scope 2 Market-based Emissions (tCO2e): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Scope 2 Market-based Emissions (tCO2e)]
+VAR Prior = CALCULATE ( [Scope 2 Market-based Emissions (tCO2e)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( DIVIDE ( Prior, 1000 ), "#,0.0" ) & "K" & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Guarantees of Origin Context**: Card context for Electricity with Guarantees of Origin (%): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Electricity with Guarantees of Origin (%)]
+VAR Prior = CALCULATE ( [Electricity with Guarantees of Origin (%)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( Prior, "0.0%" ) & ", " & SUBSTITUTE ( FORMAT ( Now - Prior, "+0.0%;-0.0%;0.0%" ), "%", " pts" ) )
+```
+
+**Energy Used Context**: Card context for Energy Used (kWh): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Energy Used (kWh)]
+VAR Prior = CALCULATE ( [Energy Used (kWh)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( DIVIDE ( Prior, 1000000 ), "#,0.0" ) & "M" & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Vehicle Fuel Context**: Card context for Vehicle Fuel Used (litres): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Vehicle Fuel Used (litres)]
+VAR Prior = CALCULATE ( [Vehicle Fuel Used (litres)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( DIVIDE ( Prior, 1000 ), "#,0.0" ) & "K" & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Refrigerant Context**: Card context for Refrigerant Leakage (kg): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Refrigerant Leakage (kg)]
+VAR Prior = CALCULATE ( [Refrigerant Leakage (kg)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( Prior, "#,0.0" ) & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Business Flights Context**: Card context for Business Flights (passenger-km): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Business Flights (passenger-km)]
+VAR Prior = CALCULATE ( [Business Flights (passenger-km)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( DIVIDE ( Prior, 1000000 ), "#,0.0" ) & "M" & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Waste Context**: Card context for Waste to Landfill (tonnes): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Waste to Landfill (tonnes)]
+VAR Prior = CALCULATE ( [Waste to Landfill (tonnes)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( Prior, "#,0.0" ) & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Net Sales Context**: Card context for Net Sales (EUR): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Net Sales (EUR)]
+VAR Prior = CALCULATE ( [Net Sales (EUR)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( DIVIDE ( Prior, 1000000 ), "#,0.0" ) & "M" & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Margin Context**: Card context for Margin (EUR): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Margin (EUR)]
+VAR Prior = CALCULATE ( [Margin (EUR)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( DIVIDE ( Prior, 1000000 ), "#,0.0" ) & "M" & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Margin Percent Context**: Card context for Margin (%): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Margin (%)]
+VAR Prior = CALCULATE ( [Margin (%)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( Prior, "0.0%" ) & ", " & SUBSTITUTE ( FORMAT ( Now - Prior, "+0.0%;-0.0%;0.0%" ), "%", " pts" ) )
+```
+
+**Units Sold Context**: Card context for Units Sold: the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Units Sold]
+VAR Prior = CALCULATE ( [Units Sold], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( DIVIDE ( Prior, 1000 ), "#,0.0" ) & "K" & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Use-phase Emissions Context**: Card context for Use-phase Emissions (tCO2e): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Use-phase Emissions (tCO2e)]
+VAR Prior = CALCULATE ( [Use-phase Emissions (tCO2e)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( DIVIDE ( Prior, 1000 ), "#,0.0" ) & "K" & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Use-phase per Unit Context**: Card context for Use-phase Emissions per Unit (tCO2e): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Use-phase Emissions per Unit (tCO2e)]
+VAR Prior = CALCULATE ( [Use-phase Emissions per Unit (tCO2e)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( Prior, "#,0.0" ) & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Use-phase per Thousand EUR Context**: Card context for Use-phase Emissions per Thousand EUR (tCO2e): the same months a year earlier and the change on them (percentage points for a rate). Text, for the line under the card. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Use-phase Emissions per Thousand EUR (tCO2e)]
+VAR Prior = CALCULATE ( [Use-phase Emissions per Thousand EUR (tCO2e)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) & ": " & FORMAT ( Prior, "#,0.00" ) & ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Net Sales Budget Context**: Card context for Net Sales (EUR) against Fjordvik's budget (fact_budget): the plan and the variance on it. Text, for the line under the card. Format: ``.
+
+```dax
+VAR Now = [Net Sales (EUR)]
+VAR Plan = [Budget Net Sales (EUR)]
+RETURN
+	IF ( ISBLANK ( Plan ), "No budget", "Budget: " & FORMAT ( DIVIDE ( Plan, 1000000 ), "#,0.0" ) & "M" & ", " & FORMAT ( DIVIDE ( Now - Plan, Plan ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Margin Budget Context**: Card context for Margin (EUR) against Fjordvik's budget (fact_budget): the plan and the variance on it. Text, for the line under the card. Format: ``.
+
+```dax
+VAR Now = [Margin (EUR)]
+VAR Plan = [Budget Margin (EUR)]
+RETURN
+	IF ( ISBLANK ( Plan ), "No budget", "Budget: " & FORMAT ( DIVIDE ( Plan, 1000000 ), "#,0.0" ) & "M" & ", " & FORMAT ( DIVIDE ( Now - Plan, Plan ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Margin Percent Budget Context**: Card context for Margin (%) against Fjordvik's budget (fact_budget): the plan and the variance on it. Text, for the line under the card. Format: ``.
+
+```dax
+VAR Now = [Margin (%)]
+VAR Plan = DIVIDE ( [Budget Margin (EUR)], [Budget Net Sales (EUR)] )
+RETURN
+	IF ( ISBLANK ( Plan ), "No budget", "Budget: " & FORMAT ( Plan, "0.0%" ) & ", " & SUBSTITUTE ( FORMAT ( Now - Plan, "+0.0%;-0.0%;0.0%" ), "%", " pts" ) )
+```
+
+**Units Sold Budget Context**: Card context for Units Sold against Fjordvik's budget (fact_budget): the plan and the variance on it. Text, for the line under the card. Format: ``.
+
+```dax
+VAR Now = [Units Sold]
+VAR Plan = [Budget Units]
+RETURN
+	IF ( ISBLANK ( Plan ), "No budget", "Budget: " & FORMAT ( DIVIDE ( Plan, 1000 ), "#,0.0" ) & "K" & ", " & FORMAT ( DIVIDE ( Now - Plan, Plan ), "+0.0%;-0.0%;0.0%" ) )
+```
+
+**Margin Change Context**: Card context for the margin change: the change as a share of the prior-year margin. Format: ``.
+
+```dax
+VAR Prior = [Margin Prior Year (EUR)]
+RETURN
+	IF ( ISBLANK ( Prior ), "No prior year to compare", FORMAT ( DIVIDE ( [Margin (EUR)] - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) & " on " & FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) )
+```
+
+**Open Issues Context**: Card context for open issues: how many were logged in all. Format: ``.
+
+```dax
+"of " & FORMAT ( [Data Issues], "0" ) & " logged"
+```
+
+**Overview Message**: Overview page title: the change on the prior year (all sites) and the share of use of sold products. Format: ``.
+
+```dax
+VAR Change = [Emissions Change Including New Sites (%)]
+VAR Share = DIVIDE ( [Use-phase Emissions (tCO2e)], [Total Emissions (tCO2e)] )
+RETURN
+	IF ( ISBLANK ( Change ), "Emissions in " & FORMAT ( MAX ( dim_date[year] ), "0" ) & ": " & FORMAT ( DIVIDE ( [Total Emissions (tCO2e)], 1000 ), "#,0.0" ) & "K tCO2e",
+		"Emissions " & IF ( Change < 0, "fell ", "rose " ) & FORMAT ( ABS ( Change ), "0.0%" ) & " in " & FORMAT ( MAX ( dim_date[year] ), "0" ) )
+	& "; use of sold products is " & FORMAT ( Share, "0%" ) & " of the total"
+```
+
+**Breakdown Message**: Emissions breakdown page title. Ignores the Scope slicer, so it always describes the whole. Format: ``.
+
+```dax
+VAR Total = CALCULATE ( [Total Emissions (tCO2e)], REMOVEFILTERS ( dim_source ) )
+VAR Scope3 = CALCULATE ( [Scope 3 Emissions (tCO2e)], REMOVEFILTERS ( dim_source ) )
+VAR Operational = CALCULATE ( [Operational Emissions (tCO2e)], REMOVEFILTERS ( dim_source ) )
+RETURN
+	"Scope 3 is " & FORMAT ( DIVIDE ( Scope3, Total ), "0.0%" ) & " of emissions in " & FORMAT ( MAX ( dim_date[year] ), "0" ) & "; scopes 1 and 2 together are " & FORMAT ( DIVIDE ( Operational, 1000 ), "#,0.0" ) & "K tCO2e"
+```
+
+**Value Chain Message**: Value chain page title: how many of the 15 categories are calculated, and the share of category 11. Format: ``.
+
+```dax
+VAR Counted = CALCULATE ( COUNTROWS ( dim_scope3_category ), REMOVEFILTERS ( dim_scope3_category ), dim_scope3_category[status] IN { "Calculated", "Calculated in part" } )
+VAR InPart = CALCULATE ( COUNTROWS ( dim_scope3_category ), REMOVEFILTERS ( dim_scope3_category ), dim_scope3_category[status] = "Calculated in part" )
+VAR Categories = CALCULATE ( COUNTROWS ( dim_scope3_category ), REMOVEFILTERS ( dim_scope3_category ) )
+VAR Share = DIVIDE ( [Use-phase Emissions (tCO2e)], [Scope 3 Emissions (tCO2e)] )
+RETURN
+	FORMAT ( Counted, "0" ) & " of " & FORMAT ( Categories, "0" ) & " scope 3 categories calculated (" & FORMAT ( InPart, "0" ) & " in part); use of sold products is " & FORMAT ( Share, "0%" ) & " of scope 3 in " & FORMAT ( MAX ( dim_date[year] ), "0" )
+```
+
+**Scope 2 Message**: Scope 2 methods page title. Format: ``.
+
+```dax
+VAR Location = [Scope 2 Emissions (tCO2e)]
+VAR Gap = DIVIDE ( [Scope 2 Market-based Emissions (tCO2e)] - Location, Location )
+RETURN
+	"Market-based scope 2 is " & FORMAT ( ABS ( Gap ), "0%" ) & IF ( Gap >= 0, " above", " below" ) & " location-based in " & FORMAT ( MAX ( dim_date[year] ), "0" ) & "; guarantees of origin cover " & FORMAT ( [Electricity with Guarantees of Origin (%)], "0.0%" ) & " of electricity bought"
+```
+
+**Intensity Message**: Intensity and growth page title. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Emissions per Million EUR (tCO2e)]
+VAR Prior = CALCULATE ( [Emissions per Million EUR (tCO2e)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	"Emissions per million euros of revenue were " & FORMAT ( Now, "#,0" ) & " tCO2e in " & FORMAT ( MAX ( dim_date[year] ), "0" )
+	& IF ( ISBLANK ( Prior ), "", ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) & " on " & FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) )
+```
+
+**Energy Message**: Energy and activity page title. Format: ``.
+
+```dax
+VAR PriorKeys = SELECTCOLUMNS ( VALUES ( dim_date[date_key] ), "date_key", dim_date[date_key] - 10000 )
+VAR Now = [Energy Used (kWh)]
+VAR Prior = CALCULATE ( [Energy Used (kWh)], REMOVEFILTERS ( dim_date ), TREATAS ( PriorKeys, dim_date[date_key] ) )
+RETURN
+	"Sites used " & FORMAT ( DIVIDE ( Now, 1000000 ), "#,0.0" ) & " million kWh of energy in " & FORMAT ( MAX ( dim_date[year] ), "0" )
+	& IF ( ISBLANK ( Prior ), "", ", " & FORMAT ( DIVIDE ( Now - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) & " on " & FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) )
+```
+
+**What Changed Message**: What changed page title: the like-for-like change and the site that moved most. Format: ``.
+
+```dax
+VAR Sites = ADDCOLUMNS ( VALUES ( dim_site[site_name] ), "@change", [Emissions Change Including New Sites (tCO2e)] )
+VAR Biggest = TOPN ( 1, Sites, ABS ( [@change] ), DESC )
+VAR LikeForLike = [Emissions Change vs Prior Year (%)]
+RETURN
+	IF ( ISBLANK ( LikeForLike ), "No prior year to compare in " & FORMAT ( MAX ( dim_date[year] ), "0" ),
+		"Emissions " & IF ( LikeForLike < 0, "fell ", "rose " ) & FORMAT ( ABS ( LikeForLike ), "0.0%" ) & " like for like in " & FORMAT ( MAX ( dim_date[year] ), "0" )
+		& "; the biggest change was at " & MAXX ( Biggest, dim_site[site_name] ) & " (" & FORMAT ( DIVIDE ( MAXX ( Biggest, [@change] ), 1000 ), "+#,0.0;-#,0.0" ) & "K tCO2e)" )
+```
+
+**Sites Message**: Sites page title. Format: ``.
+
+```dax
+VAR Ranked = ADDCOLUMNS ( VALUES ( dim_site[site_name] ), "@value", [Operational Emissions per FTE (tCO2e)] )
+VAR Highest = TOPN ( 1, Ranked, [@value], DESC )
+RETURN
+	MAXX ( Highest, dim_site[site_name] ) & " has the highest operational (scope 1 and 2) emissions per FTE in " & FORMAT ( MAX ( dim_date[year] ), "0" ) & ": " & FORMAT ( MAXX ( Highest, [@value] ), "#,0.0" ) & " tCO2e"
+```
+
+**Data Quality Message**: Data quality page title. Format: ``.
+
+```dax
+VAR Difference = [Reconciliation Difference (tCO2e)]
+RETURN
+	"Stored emissions " & IF ( Difference = 0, "match", "do not match" ) & " activity times factor for all " & FORMAT ( [Emission Rows], "#,0" ) & " site rows in " & FORMAT ( MAX ( dim_date[year] ), "0" ) & " (difference " & FORMAT ( Difference, "0.000" ) & " tCO2e)"
+```
+
+**Portfolio Overview Message**: Portfolio overview page title. Format: ``.
+
+```dax
+VAR Sales = [Net Sales (EUR)]
+VAR Prior = [Net Sales Prior Year (EUR)]
+VAR Plan = [Budget Net Sales (EUR)]
+RETURN
+	"Net sales were EUR " & FORMAT ( DIVIDE ( Sales, 1000000 ), "#,0.0" ) & " million in " & FORMAT ( MAX ( dim_date[year] ), "0" )
+	& IF ( ISBLANK ( Prior ), "", ", " & FORMAT ( DIVIDE ( Sales - Prior, Prior ), "+0.0%;-0.0%;0.0%" ) & " on " & FORMAT ( MAX ( dim_date[year] ) - 1, "0" ) )
+	& IF ( ISBLANK ( Plan ), "", " and " & FORMAT ( DIVIDE ( Sales - Plan, Plan ), "+0.0%;-0.0%;0.0%" ) & " against budget" )
+	& "; margin " & FORMAT ( [Margin (%)], "0.0%" )
+```
+
+**Price Volume Mix Message**: Price, volume and mix page title: the margin change and its biggest driver. Format: ``.
+
+```dax
+VAR Change = [Margin Change vs Prior Year (EUR)]
+VAR Drivers = { ( "sales prices", [Price Effect (EUR)] ), ( "mix", [Mix Effect (EUR)] ), ( "delivery volumes", [Quantity Effect (EUR)] ), ( "variable costs", [Cost Effect (EUR)] ) }
+VAR Biggest = TOPN ( 1, Drivers, ABS ( [Value2] ), DESC )
+RETURN
+	IF ( ISBLANK ( Change ), "No prior year to compare in " & FORMAT ( MAX ( dim_date[year] ), "0" ),
+		"Margin " & IF ( Change < 0, "fell", "rose" ) & " EUR " & FORMAT ( DIVIDE ( ABS ( Change ), 1000000 ), "#,0.0" ) & " million in " & FORMAT ( MAX ( dim_date[year] ), "0" )
+		& "; the biggest driver was " & MAXX ( Biggest, [Value1] ) & " (" & FORMAT ( DIVIDE ( MAXX ( Biggest, [Value2] ), 1000000 ), "+#,0.0;-#,0.0" ) & " million)" )
+```
+
+**Portfolio Balance Message**: Portfolio balance page title. Format: ``.
+
+```dax
+VAR Regions = TOPN ( 1, ADDCOLUMNS ( VALUES ( dim_region[region_name] ), "@share", [Share of Net Sales (%)] ), [@share], DESC )
+VAR Groups = TOPN ( 1, ADDCOLUMNS ( VALUES ( dim_product_group[product_group] ), "@share", [Share of Margin (%)] ), [@share], DESC )
+RETURN
+	MAXX ( Regions, dim_region[region_name] ) & " bring " & FORMAT ( MAXX ( Regions, [@share] ), "0%" ) & " of net sales in " & FORMAT ( MAX ( dim_date[year] ), "0" ) & "; " & MAXX ( Groups, dim_product_group[product_group] ) & " earn the largest share of margin (" & FORMAT ( MAXX ( Groups, [@share] ), "0.0%" ) & ")"
+```
+
+**Scorecard Message**: Quarterly scorecard page title. Format: ``.
+
+```dax
+VAR Scores = FILTER ( ADDCOLUMNS ( VALUES ( dim_product_group[product_group] ), "@score", [Weighted Score], "@change", [Weighted Score Change vs Prior Quarter] ), NOT ISBLANK ( [@score] ) )
+VAR Highest = TOPN ( 1, Scores, [@score], DESC )
+VAR Lowest = TOPN ( 1, Scores, [@score], ASC )
+VAR Fell = COUNTROWS ( FILTER ( Scores, [@change] < 0 ) ) + 0
+VAR Period = IF ( HASONEVALUE ( dim_date[quarter] ), FORMAT ( MAX ( dim_date[year] ), "0" ) & " Q" & FORMAT ( MAX ( dim_date[quarter] ), "0" ), FORMAT ( MAX ( dim_date[year] ), "0" ) )
+RETURN
+	MAXX ( Highest, dim_product_group[product_group] ) & " score highest (" & FORMAT ( MAXX ( Highest, [@score] ), "0.0" ) & ") and " & MAXX ( Lowest, dim_product_group[product_group] ) & " lowest (" & FORMAT ( MAXX ( Lowest, [@score] ), "0.0" ) & ") in " & Period & "; " & FORMAT ( Fell, "0" ) & " of " & FORMAT ( COUNTROWS ( Scores ), "0" ) & " fell"
+```
+
+**Product Sustainability Message**: Product sustainability page title. Format: ``.
+
+```dax
+VAR Groups = TOPN ( 1, FILTER ( ADDCOLUMNS ( VALUES ( dim_product_group[product_group] ), "@perUnit", [Use-phase Emissions per Unit (tCO2e)] ), NOT ISBLANK ( [@perUnit] ) ), [@perUnit], DESC )
+RETURN
+	"Pumps sold in " & FORMAT ( MAX ( dim_date[year] ), "0" ) & " will cause " & FORMAT ( DIVIDE ( [Use-phase Emissions (tCO2e)], 1000 ), "#,0.0" ) & "K tCO2e over their lives; " & MAXX ( Groups, dim_product_group[product_group] ) & " are highest per unit (" & FORMAT ( MAXX ( Groups, [@perUnit] ), "#,0" ) & " t)"
+```
+
+**Classification Message**: Classification and data quality page title. Format: ``.
+
+```dax
+VAR Difference = [Sales Reconciliation Difference (EUR)]
+RETURN
+	FORMAT ( [Open Data Issues], "0" ) & " of " & FORMAT ( [Data Issues], "0" ) & " issues open; EUR " & FORMAT ( [Quarantined Sales (EUR)], "#,0" ) & " of sales held back until mapped; "
+	& IF ( Difference = 0, "sales reconcile to finance to the cent", "sales differ from finance revenue by EUR " & FORMAT ( Difference, "#,0.00" ) )
+```
+
+**Mix Between Groups Note**: Note under the bridge table, so a reader knows why its mix and quantity columns differ from the waterfall. Format: ``.
+
+```dax
+"Rows show mix within each group. The waterfall's Mix also holds the shift between groups (EUR " & FORMAT ( DIVIDE ( [Mix Between Groups (EUR)], 1000000 ), "+#,0.0;-#,0.0" ) & " million), which its Delivery volumes step offsets, so both add to the same change."
+```
+
+**Report Footer**: Page footer: the period the data covers and when the model last refreshed. Format: ``.
+
+```dax
+VAR FirstMonth = CALCULATE ( MIN ( dim_date[date] ), REMOVEFILTERS ( dim_date ) )
+VAR LastMonth = CALCULATE ( MAX ( dim_date[date] ), REMOVEFILTERS ( dim_date ) )
+RETURN
+	"Data " & FORMAT ( FirstMonth, "mmm yyyy" ) & " to " & FORMAT ( LastMonth, "mmm yyyy" ) & ", monthly. Refreshed " & FORMAT ( MAX ( dim_refresh[refreshed_at] ), "d mmm yyyy hh:nn" ) & "."
+```
+
+**Contract Start**: A contract's first month, as a month name, from its yyyymmdd key. Format: ``.
+
+```dax
+VAR DateKey = SELECTEDVALUE ( dim_contract[start_date_key] )
+RETURN
+	IF ( NOT ISBLANK ( DateKey ), FORMAT ( DATE ( QUOTIENT ( DateKey, 10000 ), MOD ( QUOTIENT ( DateKey, 100 ), 100 ), 1 ), "mmm yyyy" ) )
+```
+
+**Contract End**: A contract's last month, as a month name, from its yyyymmdd key. Format: ``.
+
+```dax
+VAR DateKey = SELECTEDVALUE ( dim_contract[end_date_key] )
+RETURN
+	IF ( NOT ISBLANK ( DateKey ), FORMAT ( DATE ( QUOTIENT ( DateKey, 10000 ), MOD ( QUOTIENT ( DateKey, 100 ), 100 ), 1 ), "mmm yyyy" ) )
+```
+
 ## Tables
+
+### dim_bridge_step
+
+The steps of the margin bridge, in order, for the waterfall on Price, volume and mix. Names only; the values come from the Bridge measures. Step names follow how segment reports describe margin drivers; the measures keep their ACCA names.
+
+| Column | Type | Format | Hidden | Description |
+| --- | --- | --- | --- | --- |
+| step | string |  |  |  |
+| step_order | int64 | 0 | yes |  |
 
 ### dim_contract
 
@@ -551,6 +1209,14 @@ Product groups and the family each belongs to: the top two levels of the global 
 | --- | --- | --- | --- | --- |
 | product_group | string |  |  |  |
 | product_family | string |  |  |  |
+
+### dim_refresh
+
+When the model last refreshed: NOW() is worked out at each refresh, so this is the time the data was loaded. Shown in each page's footer.
+
+| Column | Type | Format | Hidden | Description |
+| --- | --- | --- | --- | --- |
+| refreshed_at | dateTime | d mmm yyyy hh:nn |  |  |
 
 ### dim_region
 
@@ -617,6 +1283,20 @@ Suppliers in the purchase ledger, each with its spend category. Names are synthe
 | supplier_name | string |  |  |  |
 | country | string |  |  |  |
 | spend_category | string |  |  |  |
+
+### fact_budget
+
+Fjordvik's sales plan (synthetic client input): one row per month, shipping site, product group and region. Product group is the finest level, so a filter on a single product does not narrow the budget.
+
+| Column | Type | Format | Hidden | Description |
+| --- | --- | --- | --- | --- |
+| date_key | int64 | 0 | yes |  |
+| site_id | string |  | yes |  |
+| product_group | string |  | yes |  |
+| region_id | string |  | yes |  |
+| budget_units | int64 | #,0 |  |  |
+| budget_net_sales_eur | double | #,0 |  |  |
+| budget_margin_eur | double | #,0 |  |  |
 
 ### fact_data_issue
 
@@ -813,6 +1493,10 @@ All many-to-one, filtering from the dimension to the fact.
 | fact_product_rating.criterion_id | dim_score_criterion.criterion_id |
 | dim_product.product_group | dim_product_group.product_group |
 | dim_product_code.product_id | dim_product.product_id |
+| fact_budget.date_key | dim_date.date_key |
+| fact_budget.site_id | dim_site.site_id |
+| fact_budget.product_group | dim_product_group.product_group |
+| fact_budget.region_id | dim_region.region_id |
 
 ## Row-level security roles
 

@@ -41,3 +41,4 @@ table dim_scope3_category
 					Typed
 
 	annotation PBI_ResultType = Table
+

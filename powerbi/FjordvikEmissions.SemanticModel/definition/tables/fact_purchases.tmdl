@@ -84,3 +84,4 @@ table fact_purchases
 					Typed
 
 	annotation PBI_ResultType = Table
+

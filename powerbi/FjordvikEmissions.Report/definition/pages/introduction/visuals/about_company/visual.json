@@ -3,9 +3,9 @@
   "name": "about_company",
   "position": {
     "x": 20,
-    "y": 155,
+    "y": 110,
     "z": 200,
-    "height": 175,
+    "height": 190,
     "width": 600,
     "tabOrder": 200
   },
@@ -40,7 +40,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Each month the sites report the energy, fuel, refrigerant, flights and waste they used; purchasing, logistics, energy contracts and the ERP sales extract add the value chain and the product portfolio, January 2023 to December 2025.",
+                    "value": "Each month the sites report the energy, fuel, refrigerant, flights and waste they used; purchasing, logistics, energy contracts and the ERP sales extract add the value chain, January 2023 to December 2025.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }

@@ -3,9 +3,9 @@
   "name": "line_electricity_by_site",
   "position": {
     "x": 660,
-    "y": 210,
+    "y": 200,
     "z": 500,
-    "height": 260,
+    "height": 250,
     "width": 600,
     "tabOrder": 500
   },
@@ -100,7 +100,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#2A78D6'"
+                      "Value": "'#1F6FA8'"
                     }
                   }
                 }
@@ -141,7 +141,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#EB6834'"
+                      "Value": "'#A6A6A6'"
                     }
                   }
                 }
@@ -182,7 +182,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#1BAF7A'"
+                      "Value": "'#A6A6A6'"
                     }
                   }
                 }
@@ -223,7 +223,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#EDA100'"
+                      "Value": "'#A6A6A6'"
                     }
                   }
                 }
@@ -264,7 +264,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#E87BA4'"
+                      "Value": "'#A6A6A6'"
                     }
                   }
                 }
@@ -305,7 +305,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#008300'"
+                      "Value": "'#A6A6A6'"
                     }
                   }
                 }
@@ -375,7 +375,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Electricity bought by site and month (kWh)'"
+                  "Value": "'Electricity bought by site and month: Tampere (solar from July 2024) in blue (kWh)'"
                 }
               }
             }

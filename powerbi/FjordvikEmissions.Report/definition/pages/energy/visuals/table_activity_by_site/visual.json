@@ -3,9 +3,9 @@
   "name": "table_activity_by_site",
   "position": {
     "x": 20,
-    "y": 485,
+    "y": 462,
     "z": 600,
-    "height": 220,
+    "height": 222,
     "width": 1240,
     "tabOrder": 600
   },
@@ -57,7 +57,8 @@
                 }
               },
               "queryRef": "_Measures.Energy Used (kWh)",
-              "nativeQueryRef": "Energy Used (kWh)"
+              "nativeQueryRef": "Energy Used (kWh)",
+              "displayName": "Energy (kWh)"
             },
             {
               "field": {
@@ -71,7 +72,8 @@
                 }
               },
               "queryRef": "_Measures.Vehicle Fuel Used (litres)",
-              "nativeQueryRef": "Vehicle Fuel Used (litres)"
+              "nativeQueryRef": "Vehicle Fuel Used (litres)",
+              "displayName": "Vehicle fuel (litres)"
             },
             {
               "field": {
@@ -85,7 +87,8 @@
                 }
               },
               "queryRef": "_Measures.Refrigerant Leakage (kg)",
-              "nativeQueryRef": "Refrigerant Leakage (kg)"
+              "nativeQueryRef": "Refrigerant Leakage (kg)",
+              "displayName": "Refrigerant (kg)"
             },
             {
               "field": {
@@ -99,7 +102,8 @@
                 }
               },
               "queryRef": "_Measures.Business Flights (passenger-km)",
-              "nativeQueryRef": "Business Flights (passenger-km)"
+              "nativeQueryRef": "Business Flights (passenger-km)",
+              "displayName": "Flights (passenger-km)"
             },
             {
               "field": {
@@ -113,7 +117,8 @@
                 }
               },
               "queryRef": "_Measures.Waste to Landfill (tonnes)",
-              "nativeQueryRef": "Waste to Landfill (tonnes)"
+              "nativeQueryRef": "Waste to Landfill (tonnes)",
+              "displayName": "Landfill (tonnes)"
             },
             {
               "field": {
@@ -127,7 +132,8 @@
                 }
               },
               "queryRef": "_Measures.Natural Gas Used (kWh)",
-              "nativeQueryRef": "Natural Gas Used (kWh)"
+              "nativeQueryRef": "Natural Gas Used (kWh)",
+              "displayName": "Gas (kWh)"
             },
             {
               "field": {
@@ -141,7 +147,8 @@
                 }
               },
               "queryRef": "_Measures.Electricity Purchased (kWh)",
-              "nativeQueryRef": "Electricity Purchased (kWh)"
+              "nativeQueryRef": "Electricity Purchased (kWh)",
+              "displayName": "Electricity (kWh)"
             },
             {
               "field": {
@@ -155,7 +162,8 @@
                 }
               },
               "queryRef": "_Measures.District Heating Purchased (kWh)",
-              "nativeQueryRef": "District Heating Purchased (kWh)"
+              "nativeQueryRef": "District Heating Purchased (kWh)",
+              "displayName": "Heat (kWh)"
             }
           ]
         }

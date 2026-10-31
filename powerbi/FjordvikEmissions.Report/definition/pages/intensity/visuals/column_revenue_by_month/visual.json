@@ -3,9 +3,9 @@
   "name": "column_revenue_by_month",
   "position": {
     "x": 20,
-    "y": 400,
+    "y": 450,
     "z": 500,
-    "height": 300,
+    "height": 234,
     "width": 400,
     "tabOrder": 500
   },
@@ -81,7 +81,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#7A5BA6'"
+                      "Value": "'#1F6FA8'"
                     }
                   }
                 }

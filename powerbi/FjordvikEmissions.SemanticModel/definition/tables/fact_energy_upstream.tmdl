@@ -72,3 +72,4 @@ table fact_energy_upstream
 					Typed
 
 	annotation PBI_ResultType = Table
+

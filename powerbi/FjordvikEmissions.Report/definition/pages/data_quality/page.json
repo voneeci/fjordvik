@@ -4,5 +4,17 @@
   "displayName": "Data quality",
   "displayOption": "FitToPage",
   "height": 720,
-  "width": 1280
+  "width": 1280,
+  "visualInteractions": [
+    {
+      "source": "slicer_year",
+      "target": "table_by_year",
+      "type": "NoFilter"
+    },
+    {
+      "source": "slicer_year",
+      "target": "matrix_rows_by_site_year",
+      "type": "NoFilter"
+    }
+  ]
 }

@@ -1,0 +1,211 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "table_by_group",
+  "position": {
+    "x": 20,
+    "y": 420,
+    "z": 600,
+    "height": 268,
+    "width": 1240,
+    "tabOrder": 600
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_product_group"
+                    }
+                  },
+                  "Property": "product_family"
+                }
+              },
+              "queryRef": "dim_product_group.product_family",
+              "nativeQueryRef": "product_family",
+              "displayName": "Family"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_product_group"
+                    }
+                  },
+                  "Property": "product_group"
+                }
+              },
+              "queryRef": "dim_product_group.product_group",
+              "nativeQueryRef": "product_group",
+              "displayName": "Product group"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Net Sales Prior Year (EUR)"
+                }
+              },
+              "queryRef": "_Measures.Net Sales Prior Year (EUR)",
+              "nativeQueryRef": "Net Sales Prior Year (EUR)",
+              "displayName": "Net sales, prior year"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Net Sales (EUR)"
+                }
+              },
+              "queryRef": "_Measures.Net Sales (EUR)",
+              "nativeQueryRef": "Net Sales (EUR)",
+              "displayName": "Net sales"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Sales Growth vs Prior Year (%)"
+                }
+              },
+              "queryRef": "_Measures.Sales Growth vs Prior Year (%)",
+              "nativeQueryRef": "Sales Growth vs Prior Year (%)",
+              "displayName": "Growth"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Budget Net Sales (EUR)"
+                }
+              },
+              "queryRef": "_Measures.Budget Net Sales (EUR)",
+              "nativeQueryRef": "Budget Net Sales (EUR)",
+              "displayName": "Budget"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Net Sales vs Budget (%)"
+                }
+              },
+              "queryRef": "_Measures.Net Sales vs Budget (%)",
+              "nativeQueryRef": "Net Sales vs Budget (%)",
+              "displayName": "Against budget"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Margin (EUR)"
+                }
+              },
+              "queryRef": "_Measures.Margin (EUR)",
+              "nativeQueryRef": "Margin (EUR)",
+              "displayName": "Margin"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Margin (%)"
+                }
+              },
+              "queryRef": "_Measures.Margin (%)",
+              "nativeQueryRef": "Margin (%)",
+              "displayName": "Margin %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Margin vs Budget (EUR)"
+                }
+              },
+              "queryRef": "_Measures.Margin vs Budget (EUR)",
+              "nativeQueryRef": "Margin vs Budget (EUR)",
+              "displayName": "Margin against budget"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Sales and margin by family and product group: prior year, this year, budget'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

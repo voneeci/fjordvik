@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "column_scope_by_month",
   "position": {
-    "x": 20,
-    "y": 95,
-    "z": 300,
-    "height": 300,
-    "width": 760,
-    "tabOrder": 300
+    "x": 460,
+    "y": 304,
+    "z": 600,
+    "height": 186,
+    "width": 800,
+    "tabOrder": 600
   },
   "visual": {
     "visualType": "columnChart",
@@ -192,7 +192,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Emissions by scope and month (tCO2e)'"
+                  "Value": "'All scopes by month, all three years (tCO2e)'"
                 }
               }
             }

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "card_1",
+  "position": {
+    "x": 440,
+    "y": 104,
+    "z": 301,
+    "height": 64,
+    "width": 400,
+    "tabOrder": 301
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Emissions per Million EUR (tCO2e)"
+                }
+              },
+              "queryRef": "_Measures.Emissions per Million EUR (tCO2e)",
+              "nativeQueryRef": "Emissions per Million EUR (tCO2e)",
+              "displayName": "Per million EUR of revenue (tCO2e)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "objects": {
+      "labels": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "20D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

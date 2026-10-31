@@ -141,3 +141,20 @@ relationship dim_product_product_group
 relationship dim_product_code_product_id
 	fromColumn: dim_product_code.product_id
 	toColumn: dim_product.product_id
+
+relationship fact_budget_date_key
+	fromColumn: fact_budget.date_key
+	toColumn: dim_date.date_key
+
+relationship fact_budget_site_id
+	fromColumn: fact_budget.site_id
+	toColumn: dim_site.site_id
+
+relationship fact_budget_product_group
+	fromColumn: fact_budget.product_group
+	toColumn: dim_product_group.product_group
+
+relationship fact_budget_region_id
+	fromColumn: fact_budget.region_id
+	toColumn: dim_region.region_id
+

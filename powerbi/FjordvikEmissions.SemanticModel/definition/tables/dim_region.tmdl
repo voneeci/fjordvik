@@ -26,3 +26,4 @@ table dim_region
 					Typed
 
 	annotation PBI_ResultType = Table
+

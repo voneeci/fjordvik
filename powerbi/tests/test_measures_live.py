@@ -45,6 +45,12 @@ def test_measure_matches_python(c, results):
     assert r["error"] is None, f"{dax_query(c)}\n{r['error']}"
     if c["expected"] is None:
         assert r["value"] is None, f"expected blank, got {r['value']}"
+    elif isinstance(c["expected"], str):
+        # Text measures: the exact words, or the fixed start of words that hold a time.
+        if c.get("prefix"):
+            assert str(r["value"]).startswith(c["expected"]), r["value"]
+        else:
+            assert r["value"] == c["expected"], r["value"]
     else:
         assert r["value"] is not None, "got blank"
         assert abs(r["value"] - c["expected"]) <= c["tolerance"], (r["value"], c["expected"])

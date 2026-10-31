@@ -3,9 +3,9 @@
   "name": "bar_by_scope3_category",
   "position": {
     "x": 20,
-    "y": 210,
+    "y": 200,
     "z": 400,
-    "height": 250,
+    "height": 230,
     "width": 520,
     "tabOrder": 400
   },

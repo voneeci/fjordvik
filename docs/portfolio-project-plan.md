@@ -32,7 +32,7 @@ Managers and regional users without asking an analyst for every number.
 | M1 | Classification agreed | Portfolio governance | Every business unit's item numbers map to one global product | Built: `data/reference/product_code_map.csv` |
 | M2 | Extract running monthly | IT (ERP team) | ZIP and manifest land after each close | Simulated: `data/erp-extract` |
 | M3 | SQL cleans and reconciles | Data and AI Specialist | Every check passes; sales + quarantine = finance to the cent | Built: `data/sql`, 9 planted-problem tests |
-| M4 | Model and measures | Data and AI Specialist | Every measure matches an independent calculation live | Built: 109 live tests |
+| M4 | Model and measures | Data and AI Specialist | Every measure matches an independent calculation live | Built: 148 live tests |
 | M5 | Pages reviewed with users | Product Managers | Each page answers its question for two Product Managers | Built; review with users not held |
 | M6 | First quarterly scorecard | Portfolio governance | Ratings entered; review uses the page | Built with synthetic ratings |
 | M7 | Published with security | Data and AI Specialist, IT | Region and country roles have members; refresh scheduled | Designed: `powerbi/docs/refresh-design.md` |

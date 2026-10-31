@@ -71,3 +71,4 @@ table fact_sales
 					Typed
 
 	annotation PBI_ResultType = Table
+

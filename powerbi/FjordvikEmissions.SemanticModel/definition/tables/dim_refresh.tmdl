@@ -1,0 +1,17 @@
+/// When the model last refreshed: NOW() is worked out at each refresh, so this is the time the data was loaded. Shown in each page's footer.
+table dim_refresh
+	lineageTag: cf5afb34-3c54-471d-8375-70e1963aeead
+
+	column refreshed_at
+		dataType: dateTime
+		formatString: d mmm yyyy hh:nn
+		lineageTag: fc207024-411f-4f61-b631-7da14308c9b0
+		summarizeBy: none
+		sourceColumn: [refreshed_at]
+
+	partition dim_refresh = calculated
+		mode: import
+		source = ROW ( "refreshed_at", NOW () )
+
+	annotation PBI_ResultType = Table
+

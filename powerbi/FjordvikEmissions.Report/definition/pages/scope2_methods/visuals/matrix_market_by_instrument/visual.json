@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "matrix_market_by_instrument",
   "position": {
-    "x": 660,
-    "y": 475,
+    "x": 740,
+    "y": 462,
     "z": 700,
-    "height": 235,
-    "width": 600,
+    "height": 222,
+    "width": 520,
     "tabOrder": 700
   },
   "visual": {
@@ -88,7 +88,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Market-based scope 2 by instrument and year (tCO2e)'"
+                  "Value": "'Market-based scope 2 by instrument, all three years (tCO2e)'"
                 }
               }
             }

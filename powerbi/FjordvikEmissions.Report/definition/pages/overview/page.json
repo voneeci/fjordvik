@@ -4,5 +4,12 @@
   "displayName": "Overview",
   "displayOption": "FitToPage",
   "height": 720,
-  "width": 1280
+  "width": 1280,
+  "visualInteractions": [
+    {
+      "source": "slicer_year",
+      "target": "line_total_by_month",
+      "type": "NoFilter"
+    }
+  ]
 }

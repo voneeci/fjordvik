@@ -1,0 +1,119 @@
+{
+  "name": "Fjordvik",
+  "dataColors": [
+    "#1F6FA8",
+    "#C77A1A",
+    "#7A5BA6",
+    "#2B7A3F",
+    "#5B5FC7",
+    "#C4502A",
+    "#264E70",
+    "#4A8C9E",
+    "#8C6D46",
+    "#A6A6A6"
+  ],
+  "background": "#FFFFFF",
+  "foreground": "#252423",
+  "tableAccent": "#1F6FA8",
+  "good": "#2B7A3F",
+  "bad": "#B4232A",
+  "neutral": "#A6A6A6",
+  "textClasses": {
+    "callout": {
+      "fontSize": 24,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#252423"
+    },
+    "title": {
+      "fontSize": 11,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#252423"
+    },
+    "header": {
+      "fontSize": 11,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#252423"
+    },
+    "label": {
+      "fontSize": 10,
+      "fontFace": "Segoe UI",
+      "color": "#3B3A39"
+    }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "title": [
+          {
+            "fontColor": {
+              "solid": {
+                "color": "#252423"
+              }
+            },
+            "fontSize": 11
+          }
+        ],
+        "categoryAxis": [
+          {
+            "labelColor": {
+              "solid": {
+                "color": "#3B3A39"
+              }
+            },
+            "fontSize": 10,
+            "titleColor": {
+              "solid": {
+                "color": "#3B3A39"
+              }
+            }
+          }
+        ],
+        "valueAxis": [
+          {
+            "labelColor": {
+              "solid": {
+                "color": "#3B3A39"
+              }
+            },
+            "fontSize": 10,
+            "titleColor": {
+              "solid": {
+                "color": "#3B3A39"
+              }
+            }
+          }
+        ],
+        "legend": [
+          {
+            "labelColor": {
+              "solid": {
+                "color": "#3B3A39"
+              }
+            },
+            "fontSize": 10
+          }
+        ],
+        "labels": [
+          {
+            "color": {
+              "solid": {
+                "color": "#252423"
+              }
+            },
+            "fontSize": 10
+          }
+        ],
+        "categoryLabels": [
+          {
+            "color": {
+              "solid": {
+                "color": "#3B3A39"
+              }
+            },
+            "fontSize": 10
+          }
+        ]
+      }
+    }
+  }
+}

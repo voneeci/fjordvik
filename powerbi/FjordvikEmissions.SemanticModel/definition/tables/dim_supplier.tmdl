@@ -38,3 +38,4 @@ table dim_supplier
 					Typed
 
 	annotation PBI_ResultType = Table
+

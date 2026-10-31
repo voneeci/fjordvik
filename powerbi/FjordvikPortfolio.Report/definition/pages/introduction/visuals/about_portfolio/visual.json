@@ -1,0 +1,57 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "about_portfolio",
+  "position": {
+    "x": 20,
+    "y": 110,
+    "z": 200,
+    "height": 230,
+    "width": 600,
+    "tabOrder": 200
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "The portfolio",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "13pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Three plants make three pump families: industrial process pumps (Tampere), water and wastewater pumps (Gothenburg), pump packages and controls (Tallinn). Oulu and Tartu ship spare parts and service kits. 4 families, 10 product groups, 24 models, sold in four regions.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Sales come from the ERP extract (simulated), cleaned and reconciled to finance by SQL before the report reads them. The budget is Fjordvik's own plan by month, site, product group and region.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

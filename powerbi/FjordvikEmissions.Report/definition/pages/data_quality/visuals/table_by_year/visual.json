@@ -3,9 +3,9 @@
   "name": "table_by_year",
   "position": {
     "x": 20,
-    "y": 220,
+    "y": 180,
     "z": 200,
-    "height": 200,
+    "height": 160,
     "width": 1240,
     "tabOrder": 200
   },
@@ -119,7 +119,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Reconciliation by year'"
+                  "Value": "'Reconciliation, all three years'"
                 }
               }
             }

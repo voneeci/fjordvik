@@ -3,11 +3,11 @@
   "name": "bar_by_source",
   "position": {
     "x": 20,
-    "y": 410,
-    "z": 500,
-    "height": 300,
-    "width": 620,
-    "tabOrder": 500
+    "y": 104,
+    "z": 300,
+    "height": 580,
+    "width": 420,
+    "tabOrder": 300
   },
   "visual": {
     "visualType": "clusteredBarChart",
@@ -110,7 +110,7 @@
             "labelPrecision": {
               "expr": {
                 "Literal": {
-                  "Value": "0L"
+                  "Value": "1L"
                 }
               }
             }

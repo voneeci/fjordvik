@@ -35,6 +35,9 @@ ref table fact_data_issue
 ref table fact_use_phase
 ref table dim_score_criterion
 ref table fact_product_rating
+ref table fact_budget
+ref table dim_bridge_step
+ref table dim_refresh
 
 ref role Finland
 ref role Sweden

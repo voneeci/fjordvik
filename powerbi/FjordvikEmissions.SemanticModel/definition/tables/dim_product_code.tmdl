@@ -33,3 +33,4 @@ table dim_product_code
 					Typed
 
 	annotation PBI_ResultType = Table
+

@@ -94,3 +94,4 @@ table fact_use_phase
 					Typed
 
 	annotation PBI_ResultType = Table
+

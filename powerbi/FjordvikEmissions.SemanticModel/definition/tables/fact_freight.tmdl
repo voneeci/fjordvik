@@ -97,3 +97,4 @@ table fact_freight
 					Typed
 
 	annotation PBI_ResultType = Table
+

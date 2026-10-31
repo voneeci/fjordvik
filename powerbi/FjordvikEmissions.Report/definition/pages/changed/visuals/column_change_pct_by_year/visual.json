@@ -3,9 +3,9 @@
   "name": "column_change_pct_by_year",
   "position": {
     "x": 20,
-    "y": 95,
+    "y": 104,
     "z": 300,
-    "height": 300,
+    "height": 290,
     "width": 400,
     "tabOrder": 300
   },
@@ -115,7 +115,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#C77A1A'"
+                      "Value": "'#A6A6A6'"
                     }
                   }
                 }
@@ -175,7 +175,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Change on the prior year: like for like and including new sites (%)'"
+                  "Value": "'Change on the prior year, each year (%)'"
                 }
               }
             }

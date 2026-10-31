@@ -26,3 +26,4 @@ table dim_product_group
 					Typed
 
 	annotation PBI_ResultType = Table
+

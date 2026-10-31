@@ -3,9 +3,9 @@
   "name": "bar_change_by_site_and_year",
   "position": {
     "x": 20,
-    "y": 410,
+    "y": 404,
     "z": 500,
-    "height": 300,
+    "height": 280,
     "width": 620,
     "tabOrder": 500
   },
@@ -100,7 +100,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#7A5BA6'"
+                      "Value": "'#A6A6A6'"
                     }
                   }
                 }
@@ -195,6 +195,19 @@
             }
           }
         }
+      ],
+      "categoryAxis": [
+        {
+          "properties": {
+            "maxMarginFactor": {
+              "expr": {
+                "Literal": {
+                  "Value": "45L"
+                }
+              }
+            }
+          }
+        }
       ]
     },
     "visualContainerObjects": {
@@ -211,7 +224,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Change on the prior year by site (tCO2e)'"
+                  "Value": "'Change on the prior year by site, 2024 and 2025 (tCO2e)'"
                 }
               }
             }

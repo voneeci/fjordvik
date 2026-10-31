@@ -43,3 +43,4 @@ table fact_product_rating
 					Typed
 
 	annotation PBI_ResultType = Table
+

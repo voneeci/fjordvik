@@ -3,9 +3,9 @@
   "name": "line_fte_by_month",
   "position": {
     "x": 440,
-    "y": 400,
+    "y": 450,
     "z": 600,
-    "height": 300,
+    "height": 234,
     "width": 400,
     "tabOrder": 600
   },
@@ -81,7 +81,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#7A5BA6'"
+                      "Value": "'#1F6FA8'"
                     }
                   }
                 }

@@ -1,0 +1,25 @@
+/// The steps of the margin bridge, in order, for the waterfall on Price, volume and mix. Names only; the values come from the Bridge measures. Step names follow how segment reports describe margin drivers; the measures keep their ACCA names.
+table dim_bridge_step
+	lineageTag: b03461b8-1813-4aca-aac4-bfd1a49817ae
+
+	column step
+		dataType: string
+		lineageTag: 1a19328b-f3b0-4e8a-b5e3-126d655799eb
+		summarizeBy: none
+		sourceColumn: [step]
+		sortByColumn: step_order
+
+	column step_order
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 79423c8f-0674-4682-9260-7bbd4f1692f4
+		summarizeBy: none
+		sourceColumn: [step_order]
+
+	partition dim_bridge_step = calculated
+		mode: import
+		source = DATATABLE ( "step", STRING, "step_order", INTEGER, { { "Prior-year margin", 1 }, { "Sales prices", 2 }, { "Mix", 3 }, { "Delivery volumes", 4 }, { "Variable costs", 5 }, { "Not comparable", 6 }, { "This year's margin", 7 } } )
+
+	annotation PBI_ResultType = Table
+
