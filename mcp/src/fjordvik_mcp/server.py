@@ -1,4 +1,4 @@
-"""The Fjordvik MCP server: six read-only tools and two resources.
+"""The Fjordvik MCP server: seven read-only tools and two resources.
 
 Claude Desktop starts this as a subprocess and talks to it over standard input
 and output (the stdio transport). Each tool is a thin wrapper over a method in
@@ -15,7 +15,8 @@ from mcp.server.mcpserver.exceptions import ToolError
 from mcp.types import ToolAnnotations
 
 from fjordvik_mcp import db
-from fjordvik_mcp.queries import GroupBy, IntensityGroupBy, Scope2Method, Warehouse
+from fjordvik_mcp.queries import (GroupBy, IntensityGroupBy, SalesGroupBy, Scope2Method,
+                                  Warehouse)
 
 READ_ONLY = ToolAnnotations(read_only_hint=True, destructive_hint=False,
                             idempotent_hint=True, open_world_hint=False)
@@ -25,7 +26,7 @@ Answers questions about Fjordvik Manufacturing Oy, a FICTIONAL maker of electric
 and pump systems with six sites in Finland, Sweden and Estonia, using monthly synthetic
 data from January 2023 to December 2025. Emission factors are illustrative, not cited:
 never present results as real-world figures. Start with describe_dataset if unsure what
-exists. Prefer emissions_total, emissions_intensity and scope3_inventory; use run_sql only
+exists. Prefer emissions_total, emissions_intensity, scope3_inventory and sales_summary; use run_sql only
 for questions they can't answer. Totals are location-based unless scope2_method is
 'market'. Always state units (tCO2e = tonnes of carbon dioxide equivalent) and which
 scope 3 categories a total holds."""
@@ -56,8 +57,23 @@ fact_scope2_market(date_key, site_id, source_id, contract_id, instrument, activi
   market-based scope 2: the same kWh as location-based; never add it to the totals
 fact_site_metrics(date_key, site_id, revenue_eur, fte)
   grain: one row per month and site; fte is a level (average it over months, never sum)
-all_emissions (view): fact_emissions, fact_energy_upstream, fact_purchases and
-  fact_freight stacked (from_table, date_key, site_id, source_id, activity_amount, unit,
+dim_product_group(product_group, product_family)
+dim_product(product_id, product_name, product_group, product_family, made_at_site_id,
+            rated_kw, kwh_per_year, lifetime_years, list_price_eur, standard_cost_eur)
+dim_region(region_id NOR|BAL|WEU|ROW, region_name)
+dim_product_code(business_unit, local_item_number, product_id): the global classification
+fact_sales(date_key, site_id, product_id, region_id, units, net_sales_eur,
+           cost_of_sales_eur, margin_eur)
+  grain: month, shipping site, product, region; cleaned by SQL from a simulated Oracle extract
+fact_data_issue(issue_id, date_key, site_id, business_unit, issue_type, detail, line_count,
+                amount_eur, status, action): problems found in the extract, for the data owner
+fact_use_phase(date_key, site_id, source_id, product_id, region_id, units, net_sales_eur,
+               activity_amount (lifetime kWh), unit, emission_factor, tco2e)
+  scope 3 category 11 (S14): units x lifetime x yearly kWh x grid factor; no Rest of world rows
+dim_score_criterion(criterion_id, criterion_name, weight, source)
+fact_product_rating(date_key (first month of the quarter), product_group, criterion_id, rating 1-10)
+all_emissions (view): fact_emissions, fact_energy_upstream, fact_purchases,
+  fact_freight and fact_use_phase stacked (from_table, date_key, site_id, source_id, activity_amount, unit,
   emission_factor, tco2e): the location-based inventory
 
 In every table tco2e = activity_amount * emission_factor / 1000.
@@ -142,18 +158,33 @@ def build_server(warehouse: Warehouse | None = None) -> MCPServer:
             return wh.scope3_inventory(year)
 
     @server.tool(annotations=READ_ONLY)
+    def sales_summary(
+        group_by: list[SalesGroupBy] | None = None,
+        year: int | None = None,
+        region_id: str | None = None,
+        product_family: str | None = None,
+    ) -> dict[str, Any]:
+        """Units sold, net sales (EUR), margin (EUR) and margin % from the cleaned sales,
+        grouped by any of year, quarter, site, family, group, product, region.
+        Filters: year, region_id (NOR, BAL, WEU, ROW), product_family."""
+        with user_errors():
+            return wh.sales_summary(group_by, year=year, region_id=region_id,
+                                    product_family=product_family)
+
+    @server.tool(annotations=READ_ONLY)
     def data_quality_report() -> dict[str, Any]:
-        """Run fourteen data quality checks (unique keys, joins to dimensions, the tco2e
+        """Run fifteen data quality checks (unique keys, joins to dimensions, the tco2e
         formula, no negatives, one unit per source, a complete monthly grid, emissions
         and metrics covering the same site-months, and for the value-chain tables:
         keys, joins, formula, market-based kWh matching location-based kWh, the freight
-        payer split, and a reason for every scope 3 category). Returns pass or fail for
+        payer split, a reason for every scope 3 category, and sales reconciling to finance
+        revenue). Returns pass or fail for
         each, with up to ten example rows for any failure."""
         return wh.data_quality_report()
 
     @server.tool(annotations=READ_ONLY)
     def run_sql(query: str, max_rows: int = 200) -> dict[str, Any]:
-        """Run one read-only DuckDB SELECT against the twelve tables and the
+        """Run one read-only DuckDB SELECT against the 21 tables and the
         all_emissions view (see the
         fjordvik://schema resource). Only a single SELECT statement is accepted;
         files and the network are blocked. max_rows: 1 to 1000."""

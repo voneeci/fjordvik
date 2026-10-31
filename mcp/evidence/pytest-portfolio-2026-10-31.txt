@@ -1,0 +1,4 @@
+pytest -q in mcp, 31 October 2026 (phase 2: product portfolio, simulated ERP extract and SQL, category 11)
+
+...........................................................              [100%]
+59 passed in 5.71s

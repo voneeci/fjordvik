@@ -15,7 +15,7 @@ from fjordvik_mcp.server import build_server
 
 REPO = Path(__file__).resolve().parents[1]
 TOOLS = {"describe_dataset", "emissions_total", "emissions_intensity",
-         "scope3_inventory", "data_quality_report", "run_sql"}
+         "scope3_inventory", "sales_summary", "data_quality_report", "run_sql"}
 
 
 def run(coro):

@@ -3,7 +3,7 @@
 After loading, the database can no longer touch the file system or the network
 (`enable_external_access = false`), and that setting is locked so SQL cannot
 switch it back on. Combined with the SELECT-only check in queries.py, the
-run_sql tool can read the twelve tables and the all_emissions view, and nothing else.
+run_sql tool can read the 21 tables and the all_emissions view, and nothing else.
 """
 
 import os
@@ -54,11 +54,38 @@ SCHEMA = {
                      "tonnes": "DECIMAL(18,2)", "distance_km": "INTEGER",
                      "activity_amount": "DECIMAL(18,2)", "unit": "VARCHAR",
                      "emission_factor": "DECIMAL(12,3)", "tco2e": "DECIMAL(18,6)"},
+    "dim_product_group": {"product_group": "VARCHAR", "product_family": "VARCHAR"},
+    "dim_product": {"product_id": "VARCHAR", "product_name": "VARCHAR",
+                    "product_group": "VARCHAR", "product_family": "VARCHAR",
+                    "made_at_site_id": "VARCHAR", "rated_kw": "INTEGER",
+                    "kwh_per_year": "INTEGER", "lifetime_years": "INTEGER",
+                    "list_price_eur": "DECIMAL(18,2)", "standard_cost_eur": "DECIMAL(18,2)"},
+    "dim_region": {"region_id": "VARCHAR", "region_name": "VARCHAR"},
+    "dim_score_criterion": {"criterion_id": "VARCHAR", "criterion_name": "VARCHAR",
+                            "weight": "INTEGER", "source": "VARCHAR"},
+    "fact_product_rating": {"date_key": "INTEGER", "product_group": "VARCHAR",
+                            "criterion_id": "VARCHAR", "rating": "INTEGER"},
+    "dim_product_code": {"business_unit": "VARCHAR", "local_item_number": "VARCHAR",
+                         "product_id": "VARCHAR"},
+    "fact_sales": {"date_key": "INTEGER", "site_id": "VARCHAR", "product_id": "VARCHAR",
+                   "region_id": "VARCHAR", "units": "INTEGER", "net_sales_eur": "DECIMAL(18,2)",
+                   "cost_of_sales_eur": "DECIMAL(18,2)", "margin_eur": "DECIMAL(18,2)"},
+    "fact_data_issue": {"issue_id": "INTEGER", "date_key": "INTEGER", "site_id": "VARCHAR",
+                        "business_unit": "VARCHAR", "issue_type": "VARCHAR",
+                        "detail": "VARCHAR", "line_count": "INTEGER",
+                        "amount_eur": "DECIMAL(18,2)", "status": "VARCHAR",
+                        "action": "VARCHAR"},
+    "fact_use_phase": {"date_key": "INTEGER", "site_id": "VARCHAR", "source_id": "VARCHAR",
+                       "product_id": "VARCHAR", "region_id": "VARCHAR", "units": "INTEGER",
+                       "net_sales_eur": "DECIMAL(18,2)", "activity_amount": "DECIMAL(18,2)",
+                       "unit": "VARCHAR", "emission_factor": "DECIMAL(12,3)",
+                       "tco2e": "DECIMAL(18,6)"},
 }
 
-# The four tables that make up the location-based inventory. Market-based scope 2
+# The tables that make up the location-based inventory. Market-based scope 2
 # (fact_scope2_market) is a second view of scope 2, never added to these.
-EMISSION_TABLES = ["fact_emissions", "fact_energy_upstream", "fact_purchases", "fact_freight"]
+EMISSION_TABLES = ["fact_emissions", "fact_energy_upstream", "fact_purchases", "fact_freight",
+                   "fact_use_phase"]
 ALL_EMISSIONS = "CREATE VIEW all_emissions AS " + " UNION ALL ".join(
     f"SELECT '{t}' AS from_table, date_key, site_id, source_id, activity_amount, unit, "
     f"emission_factor, tco2e FROM {t}" for t in EMISSION_TABLES)

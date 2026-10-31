@@ -15,8 +15,8 @@ def result(report, name):
 
 def test_clean_data_passes_every_check(wh):
     report = wh.data_quality_report()
-    # 8 original checks plus 6 for the value-chain tables (31 October 2026)
-    assert report["failed"] == 0 and report["passed"] == 14
+    # 8 original checks, 6 for the value-chain tables and 1 for sales (31 October 2026)
+    assert report["failed"] == 0 and report["passed"] == 15
 
 
 def corrupt(tmp_path, data_dir, change, table="fact_emissions"):
@@ -112,3 +112,8 @@ def test_purchase_from_unknown_supplier_is_caught(tmp_path, data_dir):
         return rows
     report = corrupt(tmp_path, data_dir, orphan, "fact_purchases")
     assert not result(report, "value_chain_rows_join_dimensions")["passed"]
+
+
+def test_sales_that_do_not_reconcile_are_caught(tmp_path, data_dir):
+    report = corrupt(tmp_path, data_dir, lambda rows: rows[1:], "fact_sales")
+    assert not result(report, "sales_reconcile_to_finance")["passed"]

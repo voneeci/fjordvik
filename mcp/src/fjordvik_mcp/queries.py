@@ -19,6 +19,17 @@ GroupBy = Literal["year", "quarter", "month", "site", "country", "site_type",
                   "scope", "source", "category", "scope3_category"]
 Scope2Method = Literal["location", "market"]
 IntensityGroupBy = Literal["year", "site", "country", "site_type"]
+SalesGroupBy = Literal["year", "quarter", "site", "family", "group", "product", "region"]
+
+SALES_GROUPS: dict[str, list[tuple[str, str]]] = {
+    "year": [("d.year", "year")],
+    "quarter": [("d.year || '-Q' || d.quarter", "quarter")],
+    "site": [("s.site_id", "site_id"), ("s.site_name", "site_name")],
+    "family": [("p.product_family", "product_family")],
+    "group": [("p.product_group", "product_group")],
+    "product": [("p.product_id", "product_id"), ("p.product_name", "product_name")],
+    "region": [("r.region_id", "region_id"), ("r.region_name", "region_name")],
+}
 
 # group name -> list of (SQL expression, output column)
 GROUPS: dict[str, list[tuple[str, str]]] = {
@@ -70,6 +81,9 @@ class Warehouse:
         self.source_ids = {r[0] for r in cur.execute("SELECT source_id FROM dim_source").fetchall()}
         self.countries = {r[0] for r in cur.execute("SELECT DISTINCT country FROM dim_site").fetchall()}
         self.years = {r[0] for r in cur.execute("SELECT DISTINCT year FROM dim_date").fetchall()}
+        self.region_ids = {r[0] for r in cur.execute("SELECT region_id FROM dim_region").fetchall()}
+        self.families = {r[0] for r in cur.execute(
+            "SELECT DISTINCT product_family FROM dim_product").fetchall()}
 
     def cursor(self) -> duckdb.DuckDBPyConnection:
         # A cursor is a separate handle on the same database, safe to use per call.
@@ -144,12 +158,15 @@ class Warehouse:
             "caveats": [
                 "Emission factors are illustrative, not cited. Not for real reporting.",
                 "Totals are location-based: scope 1, scope 2 location-based and scope 3 "
-                "categories 1, 3 (parts a and c), 4, 5 (landfill only), 6 (flights only) "
-                "and 9. Market-based scope 2 is a second figure (scope2_method='market'), "
-                "never added to the location-based total.",
-                "Scope 3 categories not calculated, with reasons: see scope3_inventory. "
-                "Category 11 (use of sold products) is likely the largest and is not yet "
-                "calculated.",
+                "categories 1, 3 (parts a and c), 4, 5 (landfill only), 6 (flights only), "
+                "9 and 11 (not Rest of world). Market-based scope 2 is a second figure "
+                "(scope2_method='market'), never added to the location-based total.",
+                "Category 11 (use of sold products, the lifetime electricity of pumps sold) is "
+                "most of the total. Scope 3 categories not calculated, with reasons: see "
+                "scope3_inventory.",
+                "Sales come from a simulated Oracle ERP extract cleaned by SQL; they "
+                "reconcile to finance revenue once quarantined lines (fact_data_issue) are "
+                "added back.",
                 "Tartu Warehouse (EE02) opened in July 2024; it has no data before then.",
                 "Helsinki Head Office (FI02) books no revenue, so emissions per euro "
                 "is blank (null) for it.",
@@ -258,6 +275,43 @@ class Warehouse:
         return {"unit": "tCO2e", "year": year, "categories": rows,
                 "note": "The GHG Protocol Scope 3 Standard requires every category not "
                         "calculated to be listed with a reason."}
+
+    def sales_summary(self, group_by: list[SalesGroupBy] | None = None, year=None,
+                      region_id=None, product_family=None) -> dict:
+        """Units, net sales, margin and margin % from the cleaned sales."""
+        group_by = list(dict.fromkeys(group_by or []))
+        unknown = [g for g in group_by if g not in SALES_GROUPS]
+        if unknown:
+            raise ValueError(f"Unknown group_by {unknown}. Valid values: {list(SALES_GROUPS)}")
+        where, params = [], []
+        if year is not None:
+            self._check(year, self.years, "year")
+            where.append("d.year = ?"); params.append(year)
+        if region_id is not None:
+            self._check(region_id, self.region_ids, "region_id")
+            where.append("r.region_id = ?"); params.append(region_id)
+        if product_family is not None:
+            self._check(product_family, self.families, "product_family")
+            where.append("p.product_family = ?"); params.append(product_family)
+        cols = [pair for g in group_by for pair in SALES_GROUPS[g]]
+        select = "".join(f"{expr} AS {alias}, " for expr, alias in cols)
+        sql = f"""
+            SELECT {select}sum(f.units) AS units,
+                   round(sum(f.net_sales_eur), 2) AS net_sales_eur,
+                   round(sum(f.margin_eur), 2) AS margin_eur,
+                   round(CAST(sum(f.margin_eur) AS DOUBLE) / nullif(sum(f.net_sales_eur), 0), 4)
+                       AS margin_pct
+            FROM fact_sales f
+            JOIN dim_date d USING (date_key)
+            JOIN dim_site s USING (site_id)
+            JOIN dim_product p USING (product_id)
+            JOIN dim_region r USING (region_id)
+            {(" WHERE " + " AND ".join(where)) if where else ""}
+            GROUP BY ALL ORDER BY ALL"""
+        rows = rows_as_dicts(self.cursor().execute(sql, params))
+        return {"unit": "EUR", "group_by": group_by,
+                "note": "Clean sales only; quarantined lines are in fact_data_issue.",
+                "rows": rows}
 
     def data_quality_report(self) -> dict:
         cur = self.cursor()
@@ -369,6 +423,18 @@ class Warehouse:
                  FROM range(1, 16) n(i)
                  LEFT JOIN dim_scope3_category c3 ON c3.scope3_category = n.i
                  WHERE c3.status IS NULL OR coalesce(c3.reason, '') = ''""")
+
+        check("sales_reconcile_to_finance",
+              "Clean sales plus quarantined lines equal finance revenue for every site-month",
+              """WITH sales AS (SELECT date_key, site_id, sum(net_sales_eur) AS s
+                                FROM fact_sales GROUP BY ALL),
+                      held AS (SELECT date_key, site_id, sum(amount_eur) AS q FROM fact_data_issue
+                               WHERE status = 'Quarantined' GROUP BY ALL)
+                 SELECT m.date_key, m.site_id, m.revenue_eur, sales.s AS sales_eur, held.q AS quarantined_eur
+                 FROM fact_site_metrics m
+                 LEFT JOIN sales USING (date_key, site_id)
+                 LEFT JOIN held USING (date_key, site_id)
+                 WHERE m.revenue_eur <> coalesce(sales.s, 0) + coalesce(held.q, 0)""")
 
         passed = sum(c["passed"] for c in checks)
         return {"passed": passed, "failed": len(checks) - passed, "checks": checks}

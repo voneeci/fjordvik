@@ -109,7 +109,7 @@ def test_describe_lists_sites_with_first_month(wh):
     assert sites["EE02"]["first_month"] == "2024-07"
     assert sites["FI01"]["first_month"] == "2023-01"
     assert d["row_counts"]["fact_emissions"] == 1422
-    assert len(d["row_counts"]) == 12
+    assert len(d["row_counts"]) == 21
     assert any("illustrative" in c for c in d["caveats"])
 
 
@@ -132,7 +132,8 @@ def test_total_by_scope3_category_reconciles(wh, csv_rows):
         if category[r["source_id"]] and r["date_key"].startswith("2024"):
             expected[int(category[r["source_id"]])] += float(r["tco2e"])
     rows = [r for r in wh.emissions_total(["scope3_category"], year=2024, scope=3)["rows"]]
-    assert {r["scope3_category"] for r in rows} == set(expected) == {1, 3, 4, 5, 6, 9}
+    # Category 11 added with phase 2's sales (31 October 2026)
+    assert {r["scope3_category"] for r in rows} == set(expected) == {1, 3, 4, 5, 6, 9, 11}
     for r in rows:
         assert r["tco2e"] == pytest.approx(expected[r["scope3_category"]], abs=0.001)
 
@@ -146,8 +147,28 @@ def test_scope3_inventory_lists_all_15_with_reasons(wh, csv_rows):
     inv = wh.scope3_inventory(2025)["categories"]
     assert [c["scope3_category"] for c in inv] == list(range(1, 16))
     cat = by(inv, "scope3_category")
-    assert cat[11]["status"] == "Not yet calculated" and cat[11]["tco2e"] is None
+    # Category 11 calculated in part since phase 2 (31 October 2026)
+    assert cat[11]["status"] == "Calculated in part" and cat[11]["tco2e"] > 0
+    assert cat[2]["status"] == "Not yet calculated" and cat[2]["tco2e"] is None
     assert cat[8]["status"] == "Not relevant" and cat[8]["reason"]
     spend = sum(float(r["tco2e"]) for r in csv_rows["fact_purchases"]
                 if r["date_key"].startswith("2025"))
     assert cat[1]["tco2e"] == pytest.approx(spend, abs=0.001)
+
+
+def test_sales_summary_reconciles_by_family(wh, csv_rows):
+    family = {r["product_id"]: r["product_family"] for r in csv_rows["dim_product"]}
+    expected = defaultdict(float)
+    for r in csv_rows["fact_sales"]:
+        if r["date_key"].startswith("2025"):
+            expected[family[r["product_id"]]] += float(r["net_sales_eur"])
+    rows = wh.sales_summary(["family"], year=2025)["rows"]
+    assert {r["product_family"] for r in rows} == set(expected)
+    for r in rows:
+        assert r["net_sales_eur"] == pytest.approx(expected[r["product_family"]], abs=0.01)
+        assert 0 < r["margin_pct"] < 1
+
+
+def test_sales_summary_refuses_an_unknown_region(wh):
+    with pytest.raises(ValueError, match="Unknown region_id"):
+        wh.sales_summary(region_id="XX")
