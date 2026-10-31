@@ -96,6 +96,26 @@ counts the whole supply chain behind a euro spent, not one industry's direct emi
 | Rail | 0.025 | As above |
 | Sea | 0.015 | As above |
 
+### Category 11, use of sold products (`fact_use_phase`)
+
+Units sold × each model's lifetime in years × its yearly electricity use (Fjordvik's own
+engineering specification) × the grid factor of the region where it is used: the GHG
+Protocol's direct use-phase method, booked in the year of sale.
+
+| Region of use | kg CO2e per kWh | Source a company would cite |
+| --- | --- | --- |
+| Nordics | 0.060 | European Environment Agency (EEA), greenhouse gas emission intensity of electricity (published 10 July 2026) |
+| Baltics | 0.400 | As above |
+| Western Europe | 0.250 | As above |
+| Rest of world | not calculated | No factor source identified, so no row is written |
+
+## Exchange rates (not an emission factor)
+
+Gothenburg's sales are in Swedish kronor. The SQL converts them at the European Central
+Bank's monthly average EUR/SEK reference rates, series `EXR.M.SEK.EUR.SP00.A`, fetched from
+the ECB Data Portal on 31 October 2026 (`reference/ecb_eur_sek_monthly.csv`, raw response
+beside it). These are published figures, not illustrative ones.
+
 ## Simplifications
 
 - One factor per source for the whole period. Real factors are updated each year.

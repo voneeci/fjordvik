@@ -20,9 +20,19 @@ utilities, industry and buildings, from six sites in Finland, Sweden and Estonia
 | Pump packages and controls | Booster sets, control panels, variable-speed drive packages | Tallinn Plant, Estonia | Buildings, district energy and industry |
 
 Every product is driven by an electric motor, so its energy use over its working life (scope 3
-category 11, use of sold products) is likely to be the largest part of Fjordvik's carbon
-footprint. That category needs units sold by model and each model's yearly energy use and
-lifetime; it is listed as "not yet calculated" until the product and sales data exist.
+category 11, use of sold products) is by far the largest part of Fjordvik's carbon
+footprint: 97% of the 2025 total, worked out from units sold and each model's yearly
+electricity use and lifetime. Sales to Rest of world are left out until a grid factor
+source for that region is found.
+
+## Sales regions and the product classification
+
+Fjordvik sells in four regions: Nordics, Baltics, Western Europe and Rest of world. Its
+global product classification has three levels: 4 families, 10 product groups and 24
+product models (the three pump families above, plus spare parts and service kits shipped
+from the warehouses). Each business unit in the enterprise resource planning (ERP) system
+records sales against its own local item numbers; Gothenburg still uses legacy numbers, so
+a mapping table ties every local number to one global product.
 
 ## Sites
 
@@ -48,8 +58,12 @@ customers, its lenders and its own targets rather than by law.
 | --- | --- |
 | Group Sustainability Manager | The emissions figures, emission factors, energy contracts and guarantees of origin |
 | Site Energy Coordinator (each site) | The monthly site workbook of energy, fuel, refrigerant, flights and waste |
-| Procurement Manager | The purchase ledger in the enterprise resource planning (ERP) system |
+| Procurement Manager | The purchase ledger in the ERP system |
+| Regional controllers | Sales and cost of sales in the ERP, by business unit |
+| Portfolio governance | The global product classification and its mapping table |
+| Product Managers | Their product groups' quarterly scorecard ratings |
 | Logistics Manager | Freight invoices and shipment data from the transport management system |
 | Group Financial Controller | Revenue after each monthly close |
 | HR Manager | Headcount as FTE |
 | Country managers (Finland, Sweden, Estonia) | Their own sites' figures, seen through row-level security |
+| Sales region managers (four regions) | Their own region's sales, margin and use-phase emissions |

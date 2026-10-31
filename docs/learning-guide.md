@@ -2,7 +2,8 @@
 
 Fjordvik Manufacturing Oy needs one set of monthly greenhouse gas figures that it can
 trust, explain and show to the right people, and its customers now ask for the whole
-footprint, including what it buys and ships. This project delivers that in four parts:
+footprint, including what it buys, ships and sells. Product management needs to know what
+each product sells, earns and emits in use, from figures that reconcile to finance. This project delivers that in four parts:
 Power Automate flows that collect and check each site's monthly file, a governed dataset,
 a Power BI model and report for management and country managers, and a Claude connector
 that answers plain-language questions from the same data. This guide sets out the business
@@ -73,8 +74,9 @@ equivalent employees (FTE).
 | 3 | Other emissions in its value chain, in the Greenhouse Gas (GHG) Protocol's 15 categories | Purchased goods and services (1), upstream fuels and grid losses (3), freight (4 and 9), waste to landfill (5), business flights (6) |
 
 Every scope 3 category not calculated is listed with its reason, as the GHG Protocol
-Scope 3 Standard requires. Use of sold products (category 11) is likely the largest for
-a pump maker and needs product and sales data, so it is "not yet calculated".
+Scope 3 Standard requires. Use of sold products (category 11), the lifetime electricity of
+the pumps sold, is 97% of the 2025 total; sales to Rest of world are left out because no
+grid factor source has been identified.
 
 Emissions in tonnes of carbon dioxide equivalent (tCO2e) are worked out as activity
 amount × emission factor ÷ 1,000, with the factor in kilograms per unit. Revenue and FTE
@@ -82,9 +84,9 @@ turn totals into intensities, emissions per million euros and per employee, so a
 business can see whether it is getting cleaner as well as bigger.
 
 The dataset covers 36 months, January 2023 to December 2025: 1,422 monthly rows the
-sites report, 198 rows of revenue and FTE, and 2,802 value-chain rows. Illustrative
-location-based totals are 61,421.3 tCO2e in 2023, 63,780.3 in 2024 and 66,622.5 in 2025,
-of which purchased goods and services is 77% in 2025. Market-based scope 2 is 7,383.5
+sites report, 198 rows of revenue and FTE, 2,802 value-chain rows, 3,379 rows of sales
+and 1,940 rows of category 11. Illustrative location-based totals are 2,372,794.0 tCO2e in
+2023, 2,384,992.1 in 2024 and 2,328,686.6 in 2025. Market-based scope 2 is 7,383.5
 tCO2e in 2025 against 6,243.6 location-based: residual mixes are higher than grid
 averages, so only the guarantees of origin bring it down.
 
@@ -102,7 +104,9 @@ is logged, and a second flow chases sites with no accepted file on day 5.
 - One set of tested measures (totals, emissions per FTE and per million euros, change on
   the year) means every page and every user sees the same answer.
 - Year-on-year change compares like for like: only site-months reported in both years.
-  For 2025 that gives +3.5% for the company instead of a misleading +4.5%.
+  For 2025 that gives -2.4% for the company (the sales mix moved to smaller pumps, which
+  use less electricity in service); for Tartu Warehouse it gives +13.2% instead of a
+  misleading +138.3%.
 - Row-level security (RLS) gives each country manager their own sites only.
 - The model is saved as text in git, so every change can be reviewed, and a certification
   checklist sets out what is checked before the report is endorsed.
@@ -130,7 +134,7 @@ the shape the central Emissions list and the finance and HR exports would have. 
 tests prove the link: loading the six clean December files onto the earlier months
 rebuilds that dataset exactly.
 
-The [process map](https://voneeci.github.io/fjordvik/docs/process-map.html) shows all 27
+The [process map](https://voneeci.github.io/fjordvik/docs/process-map.html) shows all 29
 steps, from energy being used at a site to the figures on the Power BI report,
 with the owner, tool, data and checks for each, and which steps are built, designed or
 outside the project.
@@ -139,19 +143,19 @@ outside the project.
 
 | Part | What it does for the business | Built | Tests |
 | --- | --- | --- | --- |
-| [`data`](../data) | The governed dataset: twelve tables with fixed names, checksums and quality tests | 12 to 31 October 2026 | 38 |
-| [`mcp`](../mcp) | A Model Context Protocol (MCP) server that lets Claude answer questions from the data, read-only | 12 to 31 October 2026 | 56 |
-| [`powerbi`](../powerbi) | The Power BI model and report, with every measure reconciled against an independent calculation | 12 to 31 October 2026 | 225 |
+| [`data`](../data) | The governed dataset: 21 tables with fixed names, checksums and quality tests, and the SQL that cleans the ERP extract | 12 to 31 October 2026 | 58 |
+| [`mcp`](../mcp) | A Model Context Protocol (MCP) server that lets Claude answer questions from the data, read-only | 12 to 31 October 2026 | 59 |
+| [`powerbi`](../powerbi) | The Power BI model and report, with every measure reconciled against an independent calculation | 12 to 31 October 2026 | 371 |
 | [`power-automate`](../power-automate) | The flows that take in, check and chase the monthly site files, designed and tested offline | 12 October 2026 | 26 |
 
-All 345 tests passed on 31 October 2026, including the 68 Power BI tests that run live
+All 514 tests passed on 31 October 2026, including the 109 Power BI tests that run live
 Data Analysis Expressions (DAX) queries against the open model. The raw output is saved
 in each folder's `evidence/` folder.
 
 ## The order of the build
 
 ```
-1. data             the contract: twelve tables, fixed names, checksums
+1. data             the contract: 21 tables, fixed names, checksums, the ERP SQL
       │
       ├──> 2. mcp             Claude asks questions of the data
       ├──> 3. powerbi         dashboards and governed measures
@@ -167,12 +171,13 @@ checksums in `data/tables/manifest.json` before relying on it.
 
 **What it is.** The one dataset every report reads: 36 months (January 2023 to December
 2025) of emissions by site and source, with each site's revenue and headcount and the
-value chain, as a twelve-table star schema. Each month it is filled from the site
+value chain and the product portfolio, as a 21-table star schema. Each month it is filled from the site
 workbooks, through the intake flow into the central Emissions list; the reference lists
 of sites, sources, emission factors and scope 3 categories; monthly exports of revenue
 from finance and headcount from HR; the purchase ledger from the enterprise resource
-planning (ERP) system; freight from the transport management system; and, yearly, the
-energy contracts and their guarantees of origin. The [data README](../data/README.md) sets out each source, its owner and system.
+planning (ERP) system; sales order lines from the ERP's monthly extract, cleaned and
+reconciled by SQL; freight from the transport management system; and, yearly, the energy
+contracts and their guarantees of origin. The [data README](../data/README.md) sets out each source, its owner and system.
 
 **Key decisions.**
 
@@ -186,6 +191,9 @@ energy contracts and their guarantees of origin. The [data README](../data/READM
 | Market-based scope 2 | Its own table, same kWh, contract or residual-mix factor | A method column with two rows per source | Every existing total, the intake flow and the connector stay as they were; nothing can double count |
 | Scope 3 data | One table per data source (purchases, freight, upstream energy) | One wide value-chain table | Each table has one owner and one collection routine, and no half-empty columns |
 | Scope 3 coverage | All 15 categories listed, each with a status and reason | Only the categories counted | The GHG Protocol requires every exclusion to be listed and justified |
+| ERP sales | A simulated Oracle-style extract cleaned by DuckDB SQL | Clean tables written directly | The extract's problems (legacy codes, duplicates, a missing currency) are what the SQL and its tests are for |
+| Unmapped item numbers | Quarantined and listed for the data owner | Guessed from similar codes | No figure is invented; the reconciliation shows exactly what is held back |
+| Kronor | Converted at the ECB's published monthly rates | A rate typed in | Every rate is published and cited |
 
 **What happened in the period,** which the dashboards and Claude should find: winter
 heating peaks, a July slowdown at the plants, rooftop solar at Tampere Plant from July
@@ -226,7 +234,8 @@ emissions per FTE twelve times too small.
 
 **What it is.** A Power BI Project (PBIP): the model in Tabular Model Definition Language
 (TMDL) and the report in the Power BI enhanced report format (PBIR), all as text files in
-git. It has 36 measures, three row-level security (RLS) roles and a ten-page report,
+git. It has 62 measures, seven row-level security (RLS) roles (three countries, four
+sales regions) and a 16-page report,
 opening on an Introduction page that explains the company and what each page answers.
 
 **Key decisions.**
@@ -237,7 +246,10 @@ opening on an Introduction page that explains the company and what each page ans
 | Report pages | Generated by a Python script | Hand-edited JSON (JavaScript Object Notation) | One definition, consistent names, and a test proves every visual's fields exist |
 | Prior year | Shift the month key in DAX | `SAMEPERIODLASTYEAR` | A monthly date table cannot be marked as a date table, which those functions need |
 | Year-on-year change | Like-for-like site-months | Total against total | A new site inflates the change: +138.3% against +13.2% for Tartu Warehouse in 2025 |
-| Testing | DAX queries against Desktop's own engine | Checking visuals by eye | 68 exact comparisons in seconds, rerun after every change |
+| Testing | DAX queries against Desktop's own engine | Checking visuals by eye | 109 exact comparisons in seconds, rerun after every change |
+| Price, volume and mix | ACCA F5 sales variances with the prior year as standard | FTI Consulting's variant | A cited textbook method; prior-year margin plus the effects equals this year's margin exactly |
+| Scorecard weights | A table, as Fjordvik's own choice | Weights in a formula | No source publishes weights, and no number is typed into DAX |
+| Region security | Roles on the sales region that also deny site figures | Region filter only | A region manager sees their sales and nothing about other sites |
 | Market-based total | Total minus location-based scope 2 plus market-based scope 2 | A second copy of every measure | One extra measure; scopes 1 and 3 are the same in both totals by construction |
 | Security | Three static country roles | Dynamic roles by email | Simple to test locally; dynamic security needs users in the Power BI Service |
 
@@ -297,8 +309,11 @@ is the step-by-step guide for building them in a Microsoft 365 trial tenant.
 ## Limitations
 
 - Illustrative emission factors, one per source for the whole period.
-- Scope 3 is incomplete: categories 2, 7, 11 and 12 are not yet calculated, category 1 is
-  spend-based, and category 3(b) waits for a Nordic and Baltic factor source.
+- Scope 3 is incomplete: categories 2, 7 and 12 are not yet calculated, category 11 leaves
+  out Rest of world, category 1 is spend-based, and category 3(b) waits for a Nordic and
+  Baltic factor source.
+- The ERP extract is simulated; the refresh design for the Power BI Service is written
+  ([powerbi/docs/refresh-design.md](../powerbi/docs/refresh-design.md)) but not built.
 - Monthly grain, with smooth seasonal and growth patterns.
 - The Power BI model is not published, so scheduled refresh, endorsement and RLS
   membership in the Power BI Service are described rather than shown.
@@ -312,5 +327,5 @@ is the step-by-step guide for building them in a Microsoft 365 trial tenant.
 - A remote MCP server with OAuth sign-in, and a tool that runs DAX against the published
   model, so Claude and the dashboards answer from the same measures.
 - Build the Power Automate flows in a trial tenant and save their exports and screenshots.
-- Product and sales data, then category 11 (use of sold products) from units sold.
+- Incremental refresh against a staging database, once the model is published.
 - Yearly factor versions in the dataset.

@@ -6,7 +6,9 @@ greenhouse gas figures for its Group Sustainability Manager, its country manager
 customers who ask for its footprint: totals by scope, site and country, scope 2 both
 location-based and market-based, the scope 3 categories it counts and why it leaves the
 others out, emissions per employee and per euro of revenue, and honest year-on-year
-change. This Power BI semantic model and ten-page report provide it. Country managers see only
+change; and, for product management, volume, price, mix, margin, portfolio balance,
+use-phase emissions per product and a quarterly scorecard, from sales that reconcile to
+finance. This Power BI semantic model and 16-page report provide it. Country managers see only
 their own sites, and every Data Analysis Expressions (DAX) measure is reconciled against
 an independent Python calculation by automated tests. The model is saved as a Power BI
 Project (PBIP): plain text files in git, written in Tabular Model Definition Language
@@ -37,9 +39,17 @@ check.
   metrics, market-based scope 2, upstream energy, purchases, freight), with
   single-direction relationships. `dim_scope3_category` filters `dim_source`, which
   filters every emission table.
-- **Thirty-six measures** in one `_Measures` table, grouped in seven display folders
-  (Emissions, Market-based scope 2, Value chain, Intensity, Activity, Time comparison,
-  Data quality), each with a description and a format string.
+- **Sixty-two measures** in one `_Measures` table, grouped in display folders
+  (Emissions, Market-based scope 2, Value chain, Sales, Price, volume and mix, Portfolio
+  balance, Product sustainability, Scorecard, Intensity, Activity, Time comparison, Data
+  quality), each with a description and a format string.
+- **Portfolio tables:** `dim_product` in a global hierarchy (`dim_product_group`: family
+  and group), `dim_region`, `fact_sales` cleaned by SQL from the simulated ERP extract,
+  `fact_data_issue`, `fact_use_phase` (category 11), and the scorecard's
+  `dim_score_criterion` and `fact_product_rating`.
+- **Price, volume and mix** follow the ACCA F5 sales variances with the same months a year
+  earlier as the standard, product by product; prior-year margin plus the effects equals
+  this year's margin exactly. The method is named in each measure's description.
 - **Location-based totals, market-based beside them.** `Total Emissions (tCO2e)` adds
   the four location-based emission tables. `Total Emissions Market-based (tCO2e)`
   swaps location-based scope 2 for market-based scope 2; the two are never added. The Activity measures give each source in the unit the sites report
@@ -55,8 +65,10 @@ check.
 - **No date-table shortcut.** The date table has one row per month, which Power BI will
   not mark as a date table (it needs every day). The prior-year measure shifts month keys
   in plain DAX instead of using `SAMEPERIODLASTYEAR`.
-- **Row-level security (RLS).** Three roles (Finland, Sweden, Estonia) each filter
-  `dim_site` by country; the filter flows to both fact tables.
+- **Row-level security (RLS).** Three country roles (Finland, Sweden, Estonia) filter
+  `dim_site`; four sales region roles filter `dim_region` and deny the site emission and
+  finance tables, so a region manager sees only their region's sales.
+- **Refresh design** for the Power BI Service: [docs/refresh-design.md](docs/refresh-design.md).
 - **In-model reconciliation.** `Reconciliation Difference (tCO2e)` compares stored tCO2e
   with activity times factor, row by row, on the Data quality page.
 - **Governance documents:** [naming conventions](docs/naming-conventions.md), a generated
@@ -70,11 +82,11 @@ checksums checked by tests/test_data.py ──> ../data/tables/*.csv  (the share
                                                     │  Power Query, en-US locale
                                                     ▼
 FjordvikEmissions.SemanticModel/definition/   TMDL: tables, relationships, measures, roles
-FjordvikEmissions.Report/definition/          PBIR: 10 pages, 83 visuals (from build_report.py)
+FjordvikEmissions.Report/definition/          PBIR: 16 pages, 131 visuals (from build_report.py)
                                                     │
                Power BI Desktop (local engine) <────┘
                        ▲
-  tests/test_measures_live.py ──run_dax.ps1──┘  68 DAX queries, compared with tests/expected.py
+  tests/test_measures_live.py ──run_dax.ps1──┘  109 DAX queries, compared with tests/expected.py
 ```
 
 | Page | Question it answers | Shows |
@@ -89,6 +101,12 @@ FjordvikEmissions.Report/definition/          PBIR: 10 pages, 83 visuals (from b
 | What changed | Why did emissions move on the prior year? | Like-for-like change against change including new sites, a 2025 waterfall of change by site, change by site and year |
 | Sites | How do the six sites compare? | Per site: emissions, per FTE, per million euros, like-for-like change; scope 2 by month and site |
 | Data quality | Do the figures reconcile? | Reconciliation difference (location-based and market-based), row count and sites reporting, by year |
+| Portfolio overview | What do we sell, at what price and margin? | Units, net sales, average price, margin and margin %; sales by month and family; margin by group |
+| Price, volume and mix | Why did margin move against last year? | Price, mix, quantity, cost and not-comparable effects; effects by family and by group |
+| Portfolio balance | Where do sales and margin come from? | Share of sales by family and by family and region; share of margin by group; sales by region |
+| Product sustainability | What do the products emit in use? | Category 11 in total, per unit and per thousand euros; by group, region and product |
+| Quarterly scorecard | How does each product group score? | Weighted score by group and quarter; criteria and weights; score beside the figures |
+| Classification and data quality | What did the ERP data get wrong? | Issues with actions for the data owner; quarantined sales; sales reconciliation; the classification |
 
 Every chart has a title that says what it shows. Scopes, countries and sites keep one
 colour on every page; each colour set was checked for colour-blind separation and contrast
@@ -111,7 +129,7 @@ You need Power BI Desktop (free, Microsoft Store) and Python 3.10 or newer with 
 python -m pytest
 ```
 
-The offline tests always run. The 68 live measure tests run when Power BI Desktop has the
+The offline tests always run. The 109 live measure tests run when Power BI Desktop has the
 model open and refreshed; otherwise they are skipped.
 
 To change the report, edit `scripts/build_report.py` and run it; to refresh the data
@@ -122,17 +140,17 @@ dictionary after a model change, run `scripts/build_data_dictionary.py`. Close D
 
 ```
 python -m pytest -q
-225 passed in 4.08s
+371 passed in 3.37s
 ```
 
 (31 October 2026, Power BI Desktop open and refreshed; raw output in
-`evidence/pytest-value-chain-2026-10-31.txt`, live results in
-`evidence/live-measures-2026-10-31-value-chain.txt`.)
+`evidence/pytest-portfolio-2026-10-31.txt`, live results in
+`evidence/live-measures-2026-10-31-portfolio.txt`.)
 
 | Test file | What it proves |
 | --- | --- |
-| `test_measures_live.py` (68) | Every measure, run as DAX against the open model, matches an independent Python calculation from the CSVs: market-based scope 2 and total (zero for Gothenburg's electricity, blank under a scope 1 filter), guarantee of origin kWh and share, each scope 3 category measure, spend, tonne-km and emissions per thousand euros, totals under a scope 3 category filter (blank for category 11), RLS on the new tables; totals by year, scope, site and country; the scope and source measures under a conflicting filter (blank); reconciliation; revenue, average FTE and both intensities; blank per-euro intensity for the head office; prior year (blank for 2023); like-for-like change for the company, for Tartu and across all years; change including new sites (Tartu's first year counts in full; blank for 2023); each activity measure in its own unit; row and site counts; and each security role, including that the Sweden role sees nothing when filtered to Finland |
-| `test_model_files.py` (154) | Table and column names match the shared schema; every measure has a description, format string and display folder, carries its unit in its name, divides with `DIVIDE()`, and contains no typed-in rates (only unit conversions and the date-key shift); three country roles; every field used by a visual exists in the model; page and visual names follow the PBIR rules; the report files are exactly what `build_report.py` writes |
+| `test_measures_live.py` (109) | Every measure, run as DAX against the open model, matches an independent Python calculation from the CSVs: sales, margin and average price; every bridge effect for the company, a family and a month with a quarantined line (not comparable); shares; use-phase per unit and per euro; the weighted score; sales reconciliation; each region role (own sales only, blank site figures); market-based scope 2 and total (zero for Gothenburg's electricity, blank under a scope 1 filter), guarantee of origin kWh and share, each scope 3 category measure, spend, tonne-km and emissions per thousand euros, totals under a scope 3 category filter (blank for category 11), RLS on the new tables; totals by year, scope, site and country; the scope and source measures under a conflicting filter (blank); reconciliation; revenue, average FTE and both intensities; blank per-euro intensity for the head office; prior year (blank for 2023); like-for-like change for the company, for Tartu and across all years; change including new sites (Tartu's first year counts in full; blank for 2023); each activity measure in its own unit; row and site counts; and each security role, including that the Sweden role sees nothing when filtered to Finland |
+| `test_model_files.py` (259) | Table and column names match the shared schema; every measure has a description, format string and display folder, carries its unit in its name, divides with `DIVIDE()`, and contains no typed-in rates (only unit conversions and the date-key shift); three country roles; every field used by a visual exists in the model; page and visual names follow the PBIR rules; the report files are exactly what `build_report.py` writes |
 | `test_docs.py`, `test_data.py` (3) | The data dictionary matches the model; the shared data matches its manifest's checksums, and `DataFolder` points at it |
 
 The tests were checked by planting mistakes: a typed-in factor (`* 0.95`) in a measure and
@@ -158,8 +176,11 @@ exposed a fault in the first version of the change measure, which compared Tartu
   production model would read a database or lakehouse, with a gateway for refresh.
 - **Monthly grain** and illustrative emission factors (see the
   [data README](../data/README.md)).
-- **Scope 3 is incomplete.** Categories 2, 7, 11 and 12 are not yet calculated; the Value
-  chain page lists each with its reason.
+- **Scope 3 is incomplete.** Categories 2, 7 and 12 are not yet calculated and category 11
+  leaves out Rest of world; the Value chain page lists each with its reason.
+- **The bridge mixes units** across families at company level (pumps and spare parts), so
+  mix and quantity are large and offset; the page asks for one family.
+- **Incremental refresh is designed, not built**: it needs a database source.
 - **Live tests need Desktop open.** In a team, the same DAX queries would run in CI
   (continuous integration) against a published model through the XMLA endpoint.
 - **Screenshots are from the first version.** The two images on this page show the

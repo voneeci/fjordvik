@@ -5,8 +5,10 @@ industry and buildings, from six sites in Finland, Sweden and Estonia
 ([company profile](../docs/company-profile.md)). It reports its greenhouse gas emissions
 every month. This folder holds the one dataset behind those figures: 36 months (January
 2023 to December 2025) of emissions by site and source, each site's revenue and
-headcount, and the value chain: market-based scope 2 from energy contracts, and scope 3
-from purchases, freight and the upstream emissions of the energy the sites use. The Power BI report, the Claude connector and the
+headcount, the value chain (market-based scope 2 from energy contracts, and scope 3 from
+purchases, freight, the upstream emissions of the energy used and the lifetime electricity
+of the pumps sold), and the product portfolio: sales by product and region from the
+enterprise resource planning (ERP) system, cleaned and reconciled to finance by SQL. The Power BI report, the Claude connector and the
 intake checks all read it, so every answer comes from the same numbers. All four parts are
 folders of the [fjordvik](https://github.com/voneeci/fjordvik) repository:
 
@@ -44,6 +46,20 @@ files have not been edited by hand.
 | Freight | Freight invoices and shipments (tonnes, origin, destination, mode), with the Incoterms on each order saying who pays | Logistics Manager | Transport management system and the carriers' invoices | Monthly | `fact_freight` (scope 3 categories 4 and 9) |
 | Upstream fuel and grid losses | Nothing new: the fuel and kWh the sites already report | Group Sustainability Manager | Worked out from `fact_emissions` | Monthly, with the site data | `fact_energy_upstream` (scope 3 category 3) |
 | Scope 3 category list | The 15 Greenhouse Gas (GHG) Protocol categories, with a status and reason for each | Group Sustainability Manager | Reference list, reviewed with the yearly inventory | Yearly | `dim_scope3_category` |
+| Sales order lines | Every invoiced line: business unit, local item number, customer region, quantity, amount, cost, currency | Regional controllers | Oracle Fusion Cloud ERP, Data Extraction tool: ZIP files of CSV with a SHA-256 manifest, landed in storage and loaded by the SQL in `sql/` | Monthly, after the close | `fact_sales`, `fact_data_issue` |
+| Product classification | Each business unit's local item number for each global product, and the hierarchy (family, group, model) | Portfolio governance | Mapping table kept with the ERP master data | When a product or code is added | `dim_product_code`, `dim_product`, `dim_product_group` |
+| Product specification | Rated power, yearly electricity use and lifetime of each model | Product Managers, from engineering | Product data sheets | When a model changes | `dim_product` |
+| Exchange rates | ECB monthly average EUR/SEK reference rates | Group Financial Controller | ECB Data Portal (published) | Monthly | `reference/ecb_eur_sek_monthly.csv`, used by the SQL |
+| Scorecard ratings and weights | Each quarter's 1 to 10 rating per product group and criterion; the weight of each criterion | Portfolio governance, with Product Managers | Quarterly review record | Quarterly; weights yearly | `fact_product_rating`, `dim_score_criterion` |
+
+**The ERP extract in `erp-extract/` is simulated.** It follows the shape of Oracle's Data
+Extraction tool, which Oracle's documentation calls the long-term replacement for its BI
+Cloud Connector: monthly ZIP files of CSV with a manifest of SHA-256 checksums. It carries
+the problems real extracts have: legacy item numbers, codes not yet mapped, a re-sent
+file and a month with no currency code. The SQL in `sql/` checks the manifest, stages the
+lines, removes duplicates, converts kronor at the ECB rate, maps to the global
+classification, validates, publishes, and reconciles to finance revenue to the cent.
+What it cannot resolve (unmapped codes) it quarantines and lists in `fact_data_issue`.
 | Calendar | The reporting months | Data and AI Specialist | Built with the dataset | Once per month added | `dim_date` |
 
 The full monthly process, step by step with owners and checks, is in the
@@ -73,9 +89,9 @@ The full monthly process, step by step with owners and checks, is in the
   months before it opened.
 - **Provably unedited.** `tables/manifest.json` records each file's row count and SHA-256
   checksum, and every part's tests check the files against it before relying on them.
-- **Tested.** 38 automated tests check the schema, the data quality rules, the
-  value-chain rules, that the business events below show in the data, and that the
-  files match their manifest.
+- **Tested.** 58 automated tests check the schema, the data quality rules, the
+  value-chain and portfolio rules, that each planted extract problem is caught, that the
+  business events below show in the data, and that the files match their manifest.
 
 ### What happened in the period
 
@@ -152,6 +168,21 @@ customers (category 9).
 largest for a pump maker and needs product and sales data); 8, 10, 13, 14 and 15 are
 not relevant to Fjordvik; 3(b), 5 and 6 are counted only in part.
 
+### The SQL checks
+
+| Check | Fails when | What happens |
+| --- | --- | --- |
+| Manifest | A ZIP is missing, extra or changed | Nothing is loaded |
+| Duplicates are exact copies | One line id carries two different lines | Nothing is loaded |
+| Business units, exchange rates, regions, products known | A code has no reference row | Nothing is loaded |
+| Currency matches the ledger | A line is in another currency than its business unit's ledger | Nothing is loaded |
+| Quantities positive, amounts not negative | A line has zero or negative units, or a negative amount | Nothing is loaded |
+| Reconciles to finance | Sales plus quarantined lines differ from revenue in any site-month | Nothing is loaded |
+
+Problems the rules can fix are fixed and logged: exact duplicates are removed, a missing
+currency code takes the business unit's ledger currency. Unmapped item numbers are
+quarantined for portfolio governance. All four planted issues appear in `fact_data_issue`.
+
 ### Dataset at a glance
 
 | Table | Rows |
@@ -168,20 +199,33 @@ not relevant to Fjordvik; 3(b), 5 and 6 are counted only in part.
 | dim_supplier | 14 |
 | fact_purchases | 864 |
 | fact_freight | 666 |
+| dim_product_group | 10 |
+| dim_product | 24 |
+| dim_region | 4 |
+| dim_product_code | 26 |
+| fact_sales | 3,379 |
+| fact_data_issue | 4 |
+| fact_use_phase | 1,940 |
+| dim_score_criterion | 6 |
+| fact_product_rating | 720 |
 
 Total emissions (illustrative, location-based):
 
 | Year | Scope 1 | Scope 2 location-based | Scope 3 | Total | Scope 2 market-based |
 | --- | --- | --- | --- | --- | --- |
-| 2023 | 3,482.8 | 5,294.0 | 52,644.5 | 61,421.3 | 8,003.2 |
-| 2024 | 3,745.2 | 5,718.1 | 54,317.0 | 63,780.3 | 8,437.6 |
-| 2025 | 3,948.6 | 6,243.6 | 56,430.3 | 66,622.5 | 7,383.5 |
+| 2023 | 3,482.8 | 5,294.0 | 2,364,017.1 | 2,372,794.0 | 8,003.2 |
+| 2024 | 3,745.2 | 5,718.1 | 2,375,528.8 | 2,384,992.1 | 8,437.6 |
+| 2025 | 3,948.6 | 6,243.6 | 2,318,494.4 | 2,328,686.6 | 7,383.5 |
 
-Purchased goods and services is 77% of the 2025 total. Market-based scope 2 is higher
+Use of sold products (category 11), the lifetime electricity of the pumps sold, is 97% of
+the 2025 total; purchased goods and services comes next. Sales: EUR 137.4 million in
+2023, 146.2 million in 2024 and 154.7 million in 2025, at a margin of 39.0%, 39.7% and
+40.2%. Market-based scope 2 is higher
 than location-based because each country's residual mix is higher than its grid
 average; it falls in 2025 when Tampere's wind guarantees of origin start. Tampere Plant
-is the largest emitter overall (it buys the most), and Tallinn Plant has the largest
-scope 2, because Estonia's illustrative grid factor is the highest.
+is the largest emitter overall (its large process pumps carry the most use-phase
+emissions), and Tallinn Plant has the largest scope 2, because Estonia's illustrative grid
+factor is the highest.
 
 ## How to run
 
@@ -201,16 +245,17 @@ them against the SHA-256 checksums in `tables/manifest.json`.
 
 ```
 python -m pytest -q
-38 passed in 0.32s
+58 passed in 4.23s
 ```
 
-(31 October 2026; raw output in `evidence/pytest-value-chain-2026-10-31.txt`.)
+(31 October 2026; raw output in `evidence/pytest-portfolio-2026-10-31.txt`.)
 
 | Test file | What it proves |
 | --- | --- |
 | `test_schema.py` | Table and column names match the shared schema exactly; 36 months; dates and keys agree |
 | `test_integrity.py` | Unique keys; every fact row joins to its dimensions; `tco2e` equals the formula; no negatives; one unit per source; factors match the reference values; every site reports every source every month from its opening (a zero is a row, never a gap) |
 | `test_value_chain.py` | Unique keys and joins in the value-chain tables; `tco2e` equals the formula; market-based scope 2 covers exactly the location-based kWh, with contract or residual-mix factors; category 3 rows are worked out from the reported fuel and kWh; purchases are spend-based in euros; freight is tonnes times distance, and customer-paid outbound freight is category 9; all 15 scope 3 categories have a status and a reason |
+| `test_portfolio.py` | Sales plus quarantined lines equal finance revenue to the cent; margin is sales minus cost; every product sells every month; the four planted issues are listed; kronor convert at the ECB rate (recomputed from the raw extract); category 11 follows its method and leaves out Rest of world; ratings are 1 to 10, one per quarter; and nine planted problems (changed checksum, file not in the manifest, exact and conflicting duplicates, unmapped code, missing currency, kronor labelled as euros, unknown region, missing line) each hit their own check |
 | `test_story.py` | The business events show in the data: the solar effect against a control site; Tartu starting in July 2024; winter heating peaks; revenue growth; Gothenburg's guarantees of origin covering all its electricity; Tampere's from 2025; purchased goods as the largest category |
 | `test_generator.py`, `test_reproducible.py` | The demonstration data is built as described below, the files match their manifest's checksums and row counts, and the four original tables kept their checksums when the value chain was added |
 
@@ -218,9 +263,10 @@ python -m pytest -q
 
 - **Illustrative emission factors**, one per source and country for the whole period.
   Real reporting needs cited factors for each year and country.
-- **Scope 3 is incomplete.** Categories 2, 7, 11 and 12 are not yet calculated, and
-  category 1 is spend-based, the least precise method. Category 11, use of sold products,
-  is likely the largest of all for a pump maker.
+- **Scope 3 is incomplete.** Categories 2, 7 and 12 are not yet calculated, category 11
+  leaves out Rest of world, and category 1 is spend-based, the least precise method.
+- **The ERP extract is simulated**, and the sales split finance revenue by settings, not
+  from real orders.
 - **Freight uses one average distance per lane**, and category 3(b) is not calculated
   because no factor source for Finland, Sweden or Estonia has been found.
 - **Monthly grain.** No daily or meter-level data.
@@ -233,8 +279,7 @@ python -m pytest -q
 ## Next steps
 
 - Design the monthly revenue and headcount exports from the finance and HR systems.
-- Add category 11 (use of sold products) from units sold by model, once product and
-  sales data exist; then categories 2, 7 and 12.
+- Find a grid factor source for Rest of world, then categories 2, 7 and 12.
 - Replace spend-based rows with supplier-specific data for the largest suppliers.
 - Add yearly factor versions to show how restating a factor changes past totals.
 
@@ -243,7 +288,11 @@ python -m pytest -q
 Fjordvik is fictional, so `tables/` cannot come from real sites. For this portfolio the
 files are made by a small generator instead: `src/fjordvik_data/generate.py` builds every
 table from the settings in `src/fjordvik_data/config.py` (sites, sources, suppliers,
-freight lanes, energy contracts, illustrative factors, and the business events above). It uses the Python standard library only, and a
+freight lanes, energy contracts, products, regions, illustrative factors, and the business
+events above). `src/fjordvik_data/portfolio.py` turns each site-month's revenue into sales
+order lines, writes them as the simulated extract in `erp-extract/` with its planted
+problems, and runs the SQL in `sql/` to publish `fact_sales`, so the tables come out of the
+same pipeline a company would run. It uses the Python standard library only, and a
 fixed seed with a separate random stream for each site and source, so every run gives
 byte-identical files and changing one site never changes the others.
 

@@ -172,7 +172,7 @@ const LANES = [
   { id: "sec", name: "Site Energy Coordinator", note: "One per site; the site contact", h: 110 },
   { id: "das", name: "Data and AI Specialist", note: "Technical owner: flows, model, connector", h: 200 },
   { id: "gsm", name: "Group Sustainability Manager", note: "Business and data owner", h: 200 },
-  { id: "fin", name: "Group Financial Controller, HR Manager", note: "Revenue and headcount", h: 110 },
+  { id: "fin", name: "Group Financial Controller, HR Manager, regional controllers", note: "Revenue, headcount and ERP sales", h: 200 },
   { id: "vc", name: "Procurement Manager, Logistics Manager", note: "Purchase ledger and freight", h: 200 },
   { id: "mgr", name: "Country Managers", note: "Finland, Sweden, Estonia; and group management", h: 110 }
 ];
@@ -181,7 +181,7 @@ const PHASES = [
   { from: 1, to: 3, name: "Early month M+1", note: "Site prepares and uploads its file" },
   { from: 4, to: 8, name: "On upload", note: "Automated intake and exceptions" },
   { from: 9, to: 11, name: "Reporting", note: "Model refresh, review, dashboard" },
-  { from: 12, to: 12, name: "Year end", note: "Sign-off" }
+  { from: 12, to: 12, name: "Quarter and year end", note: "Portfolio review, sign-off" }
 ];
 const OWNERS = [
   ["Site Manager", "Runs the site. Owns the activity itself: fuel burnt, energy bought, equipment serviced, waste sent."],
@@ -189,6 +189,7 @@ const OWNERS = [
   ["Data and AI Specialist", "Technical owner. Builds and runs the two flows, the Power BI model and report, row-level security and the Claude connector. Owns every automated step."],
   ["Group Sustainability Manager", "Business and data owner. Owns the reference lists and factors, the central Emissions list and the rules, the energy contracts and guarantees of origin, the list of scope 3 categories and the reason for each one left out; handles failed runs and corrections, reviews data quality, signs off the year."],
   ["Group Financial Controller and HR Manager", "Supply each site's monthly revenue and full-time equivalent (FTE) headcount for the intensity measures."],
+  ["Regional controllers", "Own sales and cost in the ERP for their business unit, and sign off that the month's sales reconcile to finance."],
   ["Procurement Manager and Logistics Manager", "Export the purchase ledger from the enterprise resource planning (ERP) system and the freight shipments from the transport management system, for scope 3 categories 1, 4 and 9."],
   ["Country Managers", "Read the report for their own country's sites only, and ask follow-up questions through Claude."]
 ];
@@ -427,6 +428,20 @@ const STEPS = [
     checks: "Like-for-like change: for 2025 the company shows +3.5%, where a plain comparison of totals would show +4.5%.",
     timing: "Whenever opened, after each refresh.",
     project: "<strong>Built</strong> in Power BI Desktop. Publishing the report to a workspace is a next step." },
+  { n: "16e", name: "ERP sales extract, cleaned by SQL", lane: "fin", row: 1, col: 8, status: "built", phase: 2,
+    owner: "Regional controllers (sales and cost in the ERP); the Data and AI Specialist runs the SQL", tool: "Oracle Fusion Cloud ERP, Data Extraction tool (simulated here); DuckDB SQL in <code>data/sql</code>",
+    dataIn: "Monthly ZIP files of sales order lines with a manifest of SHA-256 checksums; the product classification; ECB monthly EUR/SEK rates.",
+    dataOut: "<code>fact_sales</code> (3,379 rows: month, site, product, region) and <code>fact_data_issue</code> (one row per problem found), then <code>fact_use_phase</code> for category 11.",
+    checks: ul(["Manifest checksums; exact duplicates only; known business units, regions, products and rates; currency matches the ledger; no negative amounts", "Clean sales plus quarantined lines equal finance revenue for every site-month, to the cent"]),
+    timing: "Monthly, after the ERP close.",
+    project: "<strong>SQL built and tested</strong> (nine planted-problem tests). The extract is <strong>simulated</strong>: legacy item numbers, two unmapped codes, a re-sent file and a month with no currency code." },
+  { n: "22a", name: "Quarterly portfolio review", lane: "mgr", col: 12, status: "built", phase: 4,
+    owner: "Portfolio governance with the Product Managers; data prepared by the Data and AI Specialist", tool: "Power BI report, Quarterly scorecard page; <code>docs/scorecard-method.md</code>",
+    dataIn: "Each product group's sales, margin, share, price effect and use-phase emissions for the quarter.",
+    dataOut: "A 1 to 10 rating per product group on each of six criteria, entered in <code>fact_product_rating</code>; the weighted score.",
+    checks: "Every group rated on every criterion; weights are Fjordvik's own choice, held in a table.",
+    timing: "Quarterly, in the month after each quarter.",
+    project: "<strong>Page and method built</strong>, with synthetic ratings. The review itself is a business routine." },
   { n: 23, name: "Year-end sign-off", lane: "gsm", col: 12, status: "outside", phase: 4,
     owner: "Group Sustainability Manager; approved by group management", tool: "Power BI report (full-year figures); the annual sustainability report",
     dataIn: "Twelve months of figures by site, country and scope, intensities and like-for-like change, and a clean Data quality page.",
@@ -456,13 +471,13 @@ const EDGES = [
   { a: 13, b: 4, label: "corrected file", lab: (A, B, mx, ry) => [(A.x + B.x + CW) / 2, ry - 4, "middle"] },
   { a: 12, b: 14, mode: "vh", dashed: true },
   { a: 10, b: 15, dx: -12 }, { a: 14, b: 15, dashed: true },
-  { a: 15, b: 17, dx: -14 }, { a: 16, b: 17 },
+  { a: 15, b: 17, dx: -14 }, { a: 16, b: 17 }, { a: "16e", b: 17, dx: -6 },
   { a: 15, b: "16d" }, { a: "16d", b: 17, dx: -4 },
   { a: "16a", b: 17, dx: -8 }, { a: "16b", b: 17, dx: -10 }, { a: "16c", b: 15 },
   { a: 17, b: 18 }, { a: 17, b: 19, mode: "vh" },
   { a: 18, b: 20 }, { a: 18, b: 22, dx: -10 }, { a: 19, b: 22 },
   { a: 15, b: 21, label: "same data", dashed: true, dx: -2, lab: (A, B, mx) => [mx + 5, (A.y + B.y + CH) / 2, "start"] },
-  { a: 20, b: 23 }, { a: 22, b: 23 }
+  { a: 20, b: 23 }, { a: 22, b: 23 }, { a: 22, b: "22a" }
 ];
 const MAP_H = y, MAP_W = LABEL_W + PAD + 13 * PITCH;
 const pos = s => {
@@ -555,6 +570,8 @@ const SUMMARY = {
   20: "Once the month's files are in, the Group Sustainability Manager checks the Data quality page: the recalculated emissions should match the stored ones exactly, and every open site should be reporting. Anything wrong goes back for correction.",
   21: "Managers can ask Claude questions the dashboard was not built for, in plain language. Claude answers through a read-only connector that reads the same data and uses tested logic for the calculations that are easy to get wrong.",
   22: "The report shows the month's figures on ten pages, opening on an Introduction that explains the company and what each page answers. Country managers see their own sites; the Group Sustainability Manager sees all six.",
+  "16e": "Each month, after the books close, the ERP's extract of sales order lines lands as ZIP files with a checksum list. SQL checks the files, removes a re-sent copy, converts Swedish kronor at the European Central Bank's monthly rate, maps every local item number to the global product classification, and proves that sales add up to the revenue finance booked. What it cannot fix, it holds back and lists for the data owner.",
+  "22a": "Each quarter, Product Managers and portfolio governance rate every product group on six criteria, with the quarter's sales, margin and use-phase emissions beside them. The weighted score shows which groups to invest in, fix or review.",
   23: "After December, the Group Sustainability Manager checks that all twelve months are in and clean, then signs off the year's figures for the annual sustainability report, with group management's approval."
 };
 document.getElementById("steps").innerHTML = PHASES.map((p, i) => {

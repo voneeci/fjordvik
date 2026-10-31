@@ -6,7 +6,9 @@ industry and buildings, from six sites in Finland, Sweden and Estonia
 of the fuel, energy, refrigerant, flights and waste it used, and the sustainability team
 turns those, with purchasing, freight and energy contract data, into the company's
 greenhouse gas figures. Customers increasingly ask for the whole footprint: market-based
-scope 2 and the scope 3 emissions of what Fjordvik buys and ships. Done by
+scope 2 and the scope 3 emissions of what Fjordvik buys, ships and sells. Product
+management needs the other half of the picture: what each product sells, earns and emits
+in use, scored each quarter from one set of figures that reconciles to finance. Done by
 hand, that is slow, error-prone and hard to trust: a unit slip makes a line 1,000 times
 too big, copies of the central file drift, and country managers see all or nothing.
 
@@ -15,7 +17,9 @@ each site's file against ten written rules, a Power BI model and report give man
 and each country manager one tested set of figures, and a Claude connector answers
 plain-language questions from the same data. It covers 36 months, January 2023 to
 December 2025: scope 1, location-based and market-based scope 2, and scope 3 categories
-1, 3, 4, 5, 6 and 9, with every category not yet calculated listed with its reason.
+1, 3, 4, 5, 6, 9 and 11, with every category not yet calculated listed with its reason; and
+product sales from a simulated Oracle ERP extract, cleaned and reconciled by SQL, with
+price, volume and mix, portfolio balance and a quarterly scorecard.
 
 > **Synthetic data only.** Fjordvik Manufacturing Oy is a fictional company, and this is a
 > portfolio project. No real company, client or person is described. The emission factors
@@ -23,9 +27,9 @@ December 2025: scope 1, location-based and market-based scope 2, and scope 3 cat
 
 | Folder | What it shows | Tests |
 | --- | --- | --- |
-| [`data`](data) | The governed dataset: a twelve-table star schema with fixed names, checksums and quality tests | 38 |
-| [`mcp`](mcp) | A Model Context Protocol (MCP) server that gives Claude six read-only tools over the data (Python, DuckDB) | 56 |
-| [`powerbi`](powerbi) | A Power BI Project: semantic model in Tabular Model Definition Language (TMDL), 36 Data Analysis Expressions (DAX) measures, row-level security, a ten-page report | 225 (68 need Power BI Desktop open) |
+| [`data`](data) | The governed dataset: 21 tables with fixed names, checksums and quality tests, and the SQL that cleans the simulated ERP extract | 58 |
+| [`mcp`](mcp) | A Model Context Protocol (MCP) server that gives Claude seven read-only tools over the data (Python, DuckDB) | 59 |
+| [`powerbi`](powerbi) | A Power BI Project: semantic model in Tabular Model Definition Language (TMDL), 62 Data Analysis Expressions (DAX) measures, seven row-level security roles, a 16-page report | 371 (109 need Power BI Desktop open) |
 | [`power-automate`](power-automate) | Power Automate intake and reminder flows with ten written rules, designed and tested offline | 26 |
 
 Each folder has its own README with the problem, approach, architecture, test evidence
@@ -41,8 +45,9 @@ tool, data and checks for each step (source: [docs/process-map.html](docs/proces
 Site workbooks ──> Power Automate intake flow (power-automate/) ──> central Emissions list
 Reference lists (sites, sources, factors), finance (revenue), HR (headcount) ──┐     │
 ERP purchase ledger, transport system, energy contracts ───────────────────────┤     │
+Oracle ERP sales extract ──SQL (data/sql): check, clean, map, reconcile ───────┤     │
                                                                                ▼     ▼
-                          governed dataset: twelve tables + manifest.json (data/tables/)
+                          governed dataset: 21 tables + manifest.json (data/tables/)
                                                     │
                               ┌─────────────────────┴─────────────────────┐
                               ▼                                           ▼

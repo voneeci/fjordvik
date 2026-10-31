@@ -28,7 +28,9 @@ the ones a machine can check.
 | Ratios say what they divide by | `Emissions per FTE (tCO2e)`, `Emissions per Million EUR (tCO2e)` | "Intensity" alone is ambiguous |
 | Percentages end in `(%)` and are stored as fractions with a percent format | `Emissions Change vs Prior Year (%)` | 0.075 displays as 7.5% |
 | Every measure has a description and a format string | | The description appears as a tooltip in Power BI |
-| Measures are grouped in display folders | `Emissions`, `Market-based scope 2`, `Value chain`, `Intensity`, `Activity`, `Time comparison`, `Data quality` | Finding a measure takes seconds, not scrolling |
+| Measures are grouped in display folders | `Emissions`, `Market-based scope 2`, `Value chain`, `Sales`, `Price, volume and mix`, `Portfolio balance`, `Product sustainability`, `Scorecard`, `Intensity`, `Activity`, `Time comparison`, `Data quality` | Finding a measure takes seconds, not scrolling |
+| A method's source is named in its description | `Price Effect (EUR)`: ACCA F5, prior year as standard | Anyone can check the formula against its source |
+| Counts and scores carry no unit | `Units Sold`, `Data Issues`, `Weighted Score` | There is no unit to bracket |
 | Market-based figures say so in the name; location-based is the default | `Scope 2 Market-based Emissions (tCO2e)` beside `Scope 2 Emissions (tCO2e)` | Nobody adds the two methods together by mistake |
 | Divide with `DIVIDE()`, never `/` between measures | `DIVIDE([Total Emissions (tCO2e)], [Average FTE])` | `DIVIDE` returns blank instead of an error when the divisor is zero or blank |
 | No typed-in rates or factors | | Every factor lives in the data. Only unit conversions (1,000 kg per tonne, 1,000,000 euros per million) appear in formulas, and each is named in its measure's description |
@@ -38,4 +40,6 @@ the ones a machine can check.
 | Rule | Example | Why |
 | --- | --- | --- |
 | One role per country, named after the country | `Finland` | Matches how access is granted: a country manager sees their country |
-| Filter the dimension, not the facts | `dim_site[country] = "Finland"` | One filter on `dim_site` flows to both fact tables through the relationships |
+| Filter the dimension, not the facts | `dim_site[country] = "Finland"` | One filter on `dim_site` flows to every fact table through the relationships |
+| Sales region roles are named after the region | `Nordics`, `'Western Europe'` | Matches how access is granted: a region manager sees their region |
+| Exception: region roles also deny the site tables | `fact_emissions = FALSE()` | Site emissions and finance revenue have no region, so a region filter cannot reach them; denying them keeps a region manager to their own sales (decided 31 October 2026) |

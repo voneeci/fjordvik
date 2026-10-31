@@ -5,7 +5,7 @@ Fjordvik Manufacturing Oy, a maker of electric pumps and pump systems
 no dashboard page was built for, from its own managers and from customers asking for its
 footprint. This connector lets them ask Claude in plain language and
 get an answer from the same governed data the Power BI report uses. It is a Model Context
-Protocol (MCP) server: Claude calls six read-only tools, and the server answers from a
+Protocol (MCP) server: Claude calls seven read-only tools, and the server answers from a
 locked-down DuckDB database (a file-based analytics database) built from the shared
 dataset in [`data/tables`](../data/tables).
 
@@ -26,8 +26,8 @@ example, averaging headcount over months instead of adding it up).
 
 - **Purpose-built tools first, SQL as a fallback.** Five tools answer the common
   questions with tested logic: `describe_dataset`, `emissions_total`,
-  `emissions_intensity`, `scope3_inventory` and `data_quality_report`. A sixth,
-  `run_sql`, handles anything else, but only as a single read-only `SELECT`.
+  `emissions_intensity`, `scope3_inventory`, `sales_summary` and `data_quality_report`.
+  A seventh, `run_sql`, handles anything else, but only as a single read-only `SELECT`.
 - **One view of the inventory.** An `all_emissions` view stacks the four location-based
   emission tables (site emissions, upstream energy, purchases, freight), so every total
   covers the same rows as the Power BI report. Market-based scope 2 is an option
@@ -68,8 +68,9 @@ Claude Desktop ──stdio──> fjordvik-mcp server (Python, MCP SDK 2.x)
 | `emissions_total` | tCO2e grouped by any of year, quarter, month, site, country, site type, scope, source, category, scope 3 category; filtered by year, site, country, scope, source or month range; scope 2 location-based (default) or market-based |
 | `emissions_intensity` | tCO2e per FTE or per million euros of revenue, by year, site, country or site type |
 | `scope3_inventory` | All 15 scope 3 categories with status, reason and tCO2e for a year or the whole period |
-| `data_quality_report` | Fourteen checks: unique keys, joins, the tCO2e formula, no negatives, one unit per source, complete monthly grid, emissions and metrics covering the same site-months; for the value-chain tables, keys, joins, formula, market-based kWh matching location-based kWh, the freight payer split, and a reason for every scope 3 category |
-| `run_sql` | Any single read-only `SELECT` against the twelve tables and the `all_emissions` view |
+| `sales_summary` | Units, net sales, margin and margin % from the cleaned ERP sales, by year, quarter, site, family, group, product or region |
+| `data_quality_report` | Fifteen checks (the last: sales reconcile to finance): unique keys, joins, the tCO2e formula, no negatives, one unit per source, complete monthly grid, emissions and metrics covering the same site-months; for the value-chain tables, keys, joins, formula, market-based kWh matching location-based kWh, the freight payer split, and a reason for every scope 3 category |
+| `run_sql` | Any single read-only `SELECT` against the 21 tables and the `all_emissions` view |
 
 Resources: `fjordvik://schema` (tables, grain and joins) and `fjordvik://source` (the
 data's manifest: dataset version, period, row counts and SHA-256 checksums).
@@ -124,17 +125,17 @@ point it somewhere else, set `FJORDVIK_DATA_DIR` (see [.env.example](.env.exampl
 ```
 .venv\Scripts\python -m pytest -q
 ................................................                         [100%]
-56 passed in 7.36s
+59 passed in 5.71s
 ```
 
-(31 October 2026; raw output in `evidence/pytest-value-chain-2026-10-31.txt`.)
+(31 October 2026; raw output in `evidence/pytest-portfolio-2026-10-31.txt`.)
 
 | Test file | What it proves |
 | --- | --- |
 | `test_queries.py` | Every tool's numbers reconcile with an independent calculation from the raw CSVs (totals by year, scope and country, month ranges, intensity per FTE and per euro, market-based scope 2, totals by scope 3 category, the 15-category inventory); bad filters explain the valid values |
 | `test_sql_guard.py` | `SELECT` and `WITH` work; `DROP`, `DELETE`, `INSERT`, `UPDATE`, `CREATE`, `SET`, `ATTACH`, `COPY`, `INSTALL` and multiple statements are refused; a `SELECT` cannot read local files |
 | `test_quality.py` | All fourteen checks pass on clean data, and each catches a planted problem: a duplicate row, a missing month, a unit error (kWh entered as MWh), an unknown site, a negative value, customer-paid freight put in category 4, market-based kWh that no longer match, a scope 3 category with no reason, a purchase from an unknown supplier |
-| `test_server.py` | Over the MCP protocol: six tools, all read-only; allowed values appear in the tool schema; results come back as structured content; errors carry a usable message; resources are readable; the server works as a real subprocess over stdio, as Claude Desktop runs it |
+| `test_server.py` | Over the MCP protocol: seven tools, all read-only; allowed values appear in the tool schema; results come back as structured content; errors carry a usable message; resources are readable; the server works as a real subprocess over stdio, as Claude Desktop runs it |
 | `test_data.py` | The shared CSVs match their manifest's checksums, and the server reads the shared data folder by default |
 
 The safety tests were checked by breaking the code on purpose. With the database lock
@@ -148,13 +149,13 @@ tests.
 - **Local and single-user.** The stdio transport runs on one machine for one person.
   A company-wide connector would run as a remote server over HTTP with sign-in (OAuth)
   and per-user permissions.
-- **Loads everything into memory at start-up.** Fine for about 4,500 rows; a large dataset
+- **Loads everything into memory at start-up.** Fine for about 10,600 rows; a large dataset
   would use a persistent DuckDB file or query the source system directly.
 - **Answers are only as good as Claude's reading of them.** The tools return correct
   numbers, but Claude still chooses which tool to call and how to explain the result.
   Check important answers against the Power BI model.
-- Illustrative emission factors, and scope 3 categories 2, 7, 11 and 12 not yet
-  calculated (see the [data README](../data/README.md)).
+- Illustrative emission factors, scope 3 categories 2, 7 and 12 not yet calculated, and a
+  simulated ERP extract (see the [data README](../data/README.md)).
 
 ## Next steps
 

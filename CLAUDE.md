@@ -28,8 +28,8 @@ One portfolio project in four parts over the synthetic Fjordvik dataset, one fol
 ## Commands
 
 ```bash
-cd data && .venv\Scripts\python -m pytest -q             # 38 tests
-cd mcp && .venv\Scripts\python -m pytest -q              # 56 tests
-cd powerbi && .venv\Scripts\python -m pytest -q          # 225 tests (68 need Desktop open)
+cd data && .venv\Scripts\python -m pytest -q             # 58 tests
+cd mcp && .venv\Scripts\python -m pytest -q              # 59 tests
+cd powerbi && .venv\Scripts\python -m pytest -q          # 371 tests (109 need Desktop open)
 cd power-automate && .venv\Scripts\python -m pytest -q   # 26 tests
 ```
