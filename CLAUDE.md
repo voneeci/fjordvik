@@ -1,6 +1,6 @@
 # fjordvik
 
-One repository holding four portfolio projects over the synthetic Fjordvik dataset:
+One portfolio project in four parts over the synthetic Fjordvik dataset, one folder each:
 `data` (source of the data), `mcp`, `powerbi` and `power-automate`. Permanent rules in
 `C:\Users\reece\Projects\knowledge\RULES.md` override this file. Each folder's own
 `CLAUDE.md` holds the rules for that part and applies to any file in it.
@@ -9,7 +9,9 @@ One repository holding four portfolio projects over the synthetic Fjordvik datas
 
 - Synthetic data only. Emission factors are illustrative, not cited (Reece's one-off
   exception for the Fjordvik project, 12 October 2026). Every README and doc says so.
-- On a CV these are "portfolio projects", never client work.
+- Fjordvik is one project, never "four projects": data, mcp, powerbi and power-automate
+  are parts of it (Reece, 31 October 2026). On a CV it is a "portfolio project", never
+  client work.
 - The shared schema in `data` is a contract the other three folders depend on.
 - Each consumer keeps its own checksum-verified copy of the data (Reece's choice, 30
   October 2026). Refresh with `python scripts/sync_data.py` from that folder (default

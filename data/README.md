@@ -2,8 +2,9 @@
 
 Fjordvik Manufacturing Oy is a **fictional** manufacturer with six sites in Finland,
 Sweden and Estonia. This repository generates 36 months (January 2023 to December 2025)
-of monthly greenhouse gas emissions and site metrics for it. Three portfolio pieces use
-the same data, so they tell one story. All four are folders of the
+of monthly greenhouse gas emissions and site metrics for it. It is one part of the
+Fjordvik portfolio project; the other three parts use the same data, so they tell one
+story. All four are folders of the
 [fjordvik](https://github.com/voneeci/fjordvik) repository:
 
 | Folder | What it shows |
@@ -19,8 +20,9 @@ the same data, so they tell one story. All four are folders of the
 
 ## Problem
 
-Portfolio pieces on business intelligence, automation and AI connectors need data that is
-realistic enough to be interesting, safe to publish, and identical everywhere it is used.
+A portfolio project on business intelligence, automation and artificial intelligence (AI)
+connectors needs data that is realistic enough to be interesting, safe to publish, and
+identical everywhere it is used.
 Real client data fails the second test. Hand-made spreadsheets fail the third: copies
 drift, and nobody can tell which version a dashboard was built on.
 

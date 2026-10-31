@@ -1,8 +1,8 @@
 # Fjordvik: emissions data, Power BI, Power Automate and a Claude connector
 
-Four portfolio projects built on one synthetic dataset for Fjordvik Manufacturing Oy, a
-**fictional** manufacturer with six sites in Finland, Sweden and Estonia and 36 months of
-monthly data (January 2023 to December 2025).
+One portfolio project in four parts, built on one synthetic dataset for Fjordvik
+Manufacturing Oy, a **fictional** manufacturer with six sites in Finland, Sweden and
+Estonia and 36 months of monthly data (January 2023 to December 2025).
 
 > **Synthetic data only.** No real company, client or person is described. The emission
 > factors are **illustrative**, not cited, and must not be used for real reporting.

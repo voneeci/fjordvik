@@ -1,8 +1,10 @@
 # How the Fjordvik portfolio was built
 
-This guide walks through how the four Fjordvik projects were built, in the order they
-were built, and why each main decision was made. The folder READMEs hold the full detail
-and test evidence; this page shows how the parts fit together and the reasoning behind them.
+Fjordvik is one portfolio project with four parts: the data, a Claude connector, a Power
+BI model and Power Automate flows. This guide walks through how the parts were built, in
+the order they were built, and why each main decision was made. The folder READMEs hold
+the full detail and test evidence; this page shows how the parts fit together and the
+reasoning behind them.
 
 > **Synthetic data only.** Fjordvik Manufacturing Oy is a fictional manufacturer. No real
 > company, client or person is described. The emission factors are **illustrative**, not
