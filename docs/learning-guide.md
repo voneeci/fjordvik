@@ -1,25 +1,130 @@
-# How the Fjordvik portfolio was built
+# Fjordvik emissions reporting: how it was built
 
-Fjordvik is one portfolio project with four parts: the data, a Claude connector, a Power
-BI model and Power Automate flows. This guide walks through how the parts were built, in
-the order they were built, and why each main decision was made. The folder READMEs hold
-the full detail and test evidence; this page shows how the parts fit together and the
-reasoning behind them.
+Fjordvik Manufacturing Oy needs one set of monthly greenhouse gas figures that it can
+trust, explain and show to the right people. This project delivers that in four parts:
+Power Automate flows that collect and check each site's monthly file, a governed dataset,
+a Power BI model and report for management and country managers, and a Claude connector
+that answers plain-language questions from the same data. This guide sets out the business
+need, what the data is, and how and why each part was built.
 
-> **Synthetic data only.** Fjordvik Manufacturing Oy is a fictional manufacturer. No real
-> company, client or person is described. The emission factors are **illustrative**, not
-> cited, and must not be used for real reporting.
+> **Synthetic data only.** Fjordvik Manufacturing Oy is a fictional company, and this is a
+> portfolio project. No real company, client or person is described. The emission factors
+> are **illustrative**, not cited, and must not be used for real reporting.
+
+## The business
+
+Fjordvik Manufacturing Oy is a manufacturer with six sites in three countries:
+
+| Site | Country | Type |
+| --- | --- | --- |
+| Tampere Plant | Finland | Manufacturing plant |
+| Helsinki Head Office | Finland | Office |
+| Oulu Warehouse | Finland | Warehouse |
+| Gothenburg Plant | Sweden | Manufacturing plant |
+| Tallinn Plant | Estonia | Manufacturing plant |
+| Tartu Warehouse | Estonia | Warehouse |
+
+The sites burn gas and fuel, buy electricity and district heating, and lose some
+refrigerant from cooling equipment. Staff fly on business, and the sites send waste to
+landfill. Each of these produces greenhouse gas emissions, which the company reports
+every month and in its annual sustainability report.
+
+The Group Sustainability Manager owns the figures. Country managers in Finland, Sweden and
+Estonia are responsible for their own sites and should see only those. Over the three
+years covered, the business also changed: Tampere Plant installed rooftop solar panels in
+July 2024, and Tartu Warehouse opened the same month.
+
+## The problem
+
+Each month, every site sends the sustainability team a spreadsheet of what it used. The
+team opens each file, checks the numbers by eye, copies them into a central file, works
+out the emissions, and emails sites whose files are late or wrong. That routine has
+predictable failures:
+
+- **It is slow, and the checks depend on who does them.**
+- **Small slips become large errors.** Electricity entered in megawatt hours (MWh)
+  instead of kilowatt hours (kWh) makes that line 1,000 times too big. A duplicated row
+  counts emissions twice, and a missing row looks like zero emissions.
+- **Nobody can say which numbers are current.** Copies of the central file drift, so two
+  charts built a week apart can disagree.
+- **Comparisons mislead.** A site that opened mid-year makes the company's year-on-year
+  growth look larger than it is.
+- **Access is all or nothing.** A country manager either sees every country or nothing.
+- **Every new question means a new spreadsheet.** "Which site emits most per euro of
+  revenue?" waits until someone has time to build it.
+
+## What the data is
+
+Each month, each site reports how much of each emission source it used (its activity
+data), plus its revenue and its headcount as full-time equivalent employees (FTE).
+
+| Scope | What it covers | Sources at Fjordvik |
+| --- | --- | --- |
+| 1 | Direct emissions from fuel the company burns or gas it releases | Natural gas, diesel, liquefied petroleum gas (LPG), refrigerant leakage |
+| 2 | Emissions from the energy it buys, using the average factor of the grid or heat network in each site's country (location-based) | Purchased electricity, district heating |
+| 3 | Other emissions in its value chain | Business flights, waste to landfill |
+
+Emissions in tonnes of carbon dioxide equivalent (tCO2e) are worked out as activity
+amount × emission factor ÷ 1,000, with the factor in kilograms per unit. Revenue and FTE
+turn totals into intensities, emissions per million euros and per employee, so a growing
+business can see whether it is getting cleaner as well as bigger.
+
+The dataset covers 36 months, January 2023 to December 2025: 1,422 monthly emission rows
+and 198 rows of revenue and FTE. Illustrative totals are 9,454.0 tCO2e in 2023, 10,158.2
+in 2024 and 10,921.8 in 2025. Tallinn Plant is the largest emitter, because Estonia's
+illustrative grid factor is the highest.
+
+## Why automate the intake, and why Power BI
+
+**Power Automate takes over the monthly collection.** A site uploads its file to
+SharePoint and the intake flow starts on its own. Every file is checked against the same
+ten written rules every month, whoever is on duty. A file that passes is loaded whole, with
+the emission factor looked up and tCO2e worked out. A file that fails loads nothing, and
+the site gets an email listing what to fix. A month can never be loaded twice, every run
+is logged, and a second flow chases sites with no accepted file on day 5.
+
+**Power BI gives one trusted view of the figures.**
+
+- One set of tested measures (totals, emissions per FTE and per million euros, change on
+  the year) means every page and every user sees the same answer.
+- Year-on-year change compares like for like: only site-months reported in both years.
+  For 2025 that gives +2.9% for the company instead of a misleading +7.5%.
+- Row-level security (RLS) gives each country manager their own sites only.
+- The model is saved as text in git, so every change can be reviewed, and a certification
+  checklist sets out what is checked before the report is endorsed.
+
+**The Claude connector answers new questions without a new spreadsheet.** A manager asks
+in plain language and Claude answers from the same data, read-only, using tested logic for
+the calculations that are easy to get wrong.
+
+## How it fits together
+
+```
+Site spreadsheet ──upload──> SharePoint ──> Power Automate intake flow (ten rules)
+                                               │ accepted              │ rejected
+                                               ▼                       ▼
+                                      central Emissions list   email to the site
+                                               │
+                             ┌─────────────────┴─────────────────┐
+                             ▼                                   ▼
+                  Power BI model and report         Claude connector (MCP)
+```
+
+In this portfolio version, the flows are designed and tested offline, ready to build in a
+Microsoft 365 tenant. The dataset in `data/data` stands in for the central Emissions list,
+so Power BI and the connector read it directly. The intake tests prove the link: loading
+the six clean December files onto the earlier months rebuilds that dataset exactly.
 
 ## At a glance
 
-| Part | Skill it shows | Built | Tests |
+| Part | What it does for the business | Built | Tests |
 | --- | --- | --- | --- |
-| [`data`](../data) | Reproducible synthetic data with a fixed schema and quality tests | 12 October 2026 | 24 |
-| [`mcp`](../mcp) | A Model Context Protocol (MCP) server that gives Claude safe, read-only access to the data | 12 October 2026 | 48 |
-| [`powerbi`](../powerbi) | A version-controlled Power BI semantic model whose every measure is reconciled against Python | 12 to 16 October 2026 | 100 |
-| [`power-automate`](../power-automate) | Power Automate flows that take in, check and chase monthly site files, designed and tested offline | 12 October 2026 | 26 |
+| [`data`](../data) | The governed dataset: five tables with fixed names, checksums and quality tests | 12 October 2026 | 24 |
+| [`mcp`](../mcp) | A Model Context Protocol (MCP) server that lets Claude answer questions from the data, read-only | 12 October 2026 | 48 |
+| [`powerbi`](../powerbi) | The Power BI model and report, with every measure reconciled against an independent calculation | 12 to 16 October 2026 | 100 |
+| [`power-automate`](../power-automate) | The flows that take in, check and chase the monthly site files, designed and tested offline | 12 October 2026 | 26 |
 
-All 198 tests passed on 30 October 2026, including the 31 Power BI tests that run live
+All 198 tests passed on 31 October 2026, including the 31 Power BI tests that run live
 Data Analysis Expressions (DAX) queries against the open model. The raw output is saved
 in each folder's `evidence/` folder.
 

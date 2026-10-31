@@ -1,11 +1,20 @@
-# Fjordvik: emissions data, Power BI, Power Automate and a Claude connector
+# Fjordvik: monthly emissions reporting with Power Automate, Power BI and Claude
 
-One portfolio project in four parts, built on one synthetic dataset for Fjordvik
-Manufacturing Oy, a **fictional** manufacturer with six sites in Finland, Sweden and
-Estonia and 36 months of monthly data (January 2023 to December 2025).
+Fjordvik Manufacturing Oy has six sites in Finland, Sweden and Estonia. Every month each
+site sends a spreadsheet of the fuel, energy, refrigerant, flights and waste it used, and
+the sustainability team turns those into the company's greenhouse gas figures. Done by
+hand, that is slow, error-prone and hard to trust: a unit slip makes a line 1,000 times
+too big, copies of the central file drift, and country managers see all or nothing.
 
-> **Synthetic data only.** No real company, client or person is described. The emission
-> factors are **illustrative**, not cited, and must not be used for real reporting.
+This project automates and governs that routine. Power Automate flows collect and check
+each site's file against ten written rules, a Power BI model and report give management
+and each country manager one tested set of figures, and a Claude connector answers
+plain-language questions from the same data. It covers 36 months, January 2023 to
+December 2025.
+
+> **Synthetic data only.** Fjordvik Manufacturing Oy is a fictional company, and this is a
+> portfolio project. No real company, client or person is described. The emission factors
+> are **illustrative**, not cited, and must not be used for real reporting.
 
 | Folder | What it shows | Tests |
 | --- | --- | --- |
@@ -15,8 +24,9 @@ Estonia and 36 months of monthly data (January 2023 to December 2025).
 | [`power-automate`](power-automate) | Power Automate intake and reminder flows with ten written rules, designed and tested offline | 26 |
 
 Each folder has its own README with the problem, approach, architecture, test evidence
-and limitations. [docs/learning-guide.md](docs/learning-guide.md) explains how the four
-were built, in order, and why each main decision was made.
+and limitations. [docs/learning-guide.md](docs/learning-guide.md) sets out the business
+need and the data, then explains how each part was built and why each main decision was
+made.
 
 ## How the parts fit
 
