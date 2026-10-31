@@ -85,7 +85,7 @@ the flow).
 
 After run 9, export the Emissions list to Excel and save it as
 `evidence/emissions_after_december.xlsx`. The test
-`tests/test_evidence.py` (added with the evidence) compares it with the shared data in `..\data\data`: all
+`tests/test_evidence.py` (added with the evidence) compares it with the shared data in `..\data\tables`: all
 1,422 rows must match.
 
 ## Part E: the reminder flow

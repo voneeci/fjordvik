@@ -1,0 +1,5 @@
+﻿pytest -q in mcp, 31 October 2026, after renaming data/data to data/tables
+
+................................................                         [100%]
+48 passed in 5.07s
+

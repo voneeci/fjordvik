@@ -31,15 +31,18 @@ check.
   and the report pages are text files, so every change shows up as a readable git diff.
 - **A star schema** on the shared Fjordvik dataset: three dimensions (date, site, source)
   and two fact tables (emissions, site metrics), with single-direction relationships.
-- **Fourteen measures** in one `_Measures` table, grouped in four display folders
-  (Emissions, Intensity, Time comparison, Data quality), each with a description and a
-  format string.
+- **Twenty-four measures** in one `_Measures` table, grouped in five display folders
+  (Emissions, Intensity, Activity, Time comparison, Data quality), each with a description
+  and a format string. The Activity measures give each source in the unit the sites report
+  it in (kWh, litres, kg, passenger-km, tonnes).
 - **Grain handled explicitly.** Full-time equivalent employees (FTE) is a level, so
   `Average FTE` sums sites within each month and averages the months; summing FTE over a
   year would make emissions per FTE twelve times too small.
 - **Like-for-like year-on-year change.** Only site-months with emissions in both years
   count. Without this, Tartu Warehouse (opened July 2024) shows +136.5% for 2025 instead of
-  +10.7%, and the company shows +7.5% instead of +2.9%.
+  +10.7%, and the company shows +7.5% instead of +2.9%. The What changed page shows both
+  views side by side, with `Emissions Change Including New Sites` beside the like-for-like
+  measure.
 - **No date-table shortcut.** The date table has one row per month, which Power BI will
   not mark as a date table (it needs every day). The prior-year measure shifts month keys
   in plain DAX instead of using `SAMEPERIODLASTYEAR`.
@@ -54,22 +57,32 @@ check.
 ## Architecture
 
 ```
-checksums checked by tests/test_data.py ──> ../data/data/*.csv  (the shared dataset)
+checksums checked by tests/test_data.py ──> ../data/tables/*.csv  (the shared dataset)
                                                     │  Power Query, en-US locale
                                                     ▼
 FjordvikEmissions.SemanticModel/definition/   TMDL: tables, relationships, measures, roles
-FjordvikEmissions.Report/definition/          PBIR: 3 pages, 19 visuals (from build_report.py)
+FjordvikEmissions.Report/definition/          PBIR: 8 pages, 58 visuals (from build_report.py)
                                                     │
                Power BI Desktop (local engine) <────┘
                        ▲
-  tests/test_measures_live.py ──run_dax.ps1──┘  31 DAX queries, compared with tests/expected.py
+  tests/test_measures_live.py ──run_dax.ps1──┘  44 DAX queries, compared with tests/expected.py
 ```
 
-| Page | Shows |
-| --- | --- |
-| Overview | Total and scope 1, 2 and 3 emissions, emissions per FTE, monthly trend, emissions by site; year and country slicers |
-| Sites | Per site: emissions, per FTE, per million euros, like-for-like change; scope 2 by month and site (Tampere's solar panels show in its summer 2025 dip) |
-| Data quality | Reconciliation difference, row count and sites reporting, by year |
+| Page | Question it answers | Shows |
+| --- | --- | --- |
+| Introduction | What is this report? | The company and its six sites, who owns the figures, what each page answers, how to read the figures; a button for every page |
+| Overview | How much does Fjordvik emit, and where? | Total and scope 1, 2 and 3 emissions, emissions per FTE, monthly trend, emissions by site |
+| Emissions breakdown | What are the emissions made of? | Scope 1, 2 and 3 stacked by month, each scope's share, emissions by source, by country |
+| Intensity and growth | Is Fjordvik getting cleaner as it grows? | Emissions per FTE and per million euros by month, revenue and headcount trends, like-for-like change by site |
+| Energy and activity | What did the sites use? | Energy, fuel, refrigerant, flights and waste in their own units; energy by month; electricity by site (Tampere's solar panels from July 2024); an activity table by site |
+| What changed | Why did emissions move on the prior year? | Like-for-like change against change including new sites, a 2025 waterfall of change by site, change by site and year |
+| Sites | How do the six sites compare? | Per site: emissions, per FTE, per million euros, like-for-like change; scope 2 by month and site |
+| Data quality | Do the figures reconcile? | Reconciliation difference, row count and sites reporting, by year |
+
+Every chart has a title that says what it shows. Scopes, countries and sites keep one
+colour on every page; each colour set was checked for colour-blind separation and contrast
+on white, and the charts whose site colours are below 3:1 contrast share their page with a
+site table.
 
 ## How to run
 
@@ -78,7 +91,7 @@ You need Power BI Desktop (free, Microsoft Store) and Python 3.10 or newer with 
 1. Clone the repository. If it is not at `C:\Users\reece\Projects\fjordvik` (this folder is `powerbi`),
    change the `DataFolder` value in
    `FjordvikEmissions.SemanticModel/definition/expressions.tmdl` (or in Desktop:
-   **Transform data > Edit parameters**) to your clone's shared `data\data` folder.
+   **Transform data > Edit parameters**) to your clone's shared `data\tables` folder.
 2. Open `FjordvikEmissions.pbip` in Power BI Desktop. It opens without data; select
    **Refresh now** on the yellow bar.
 3. Run the tests:
@@ -87,7 +100,7 @@ You need Power BI Desktop (free, Microsoft Store) and Python 3.10 or newer with 
 python -m pytest
 ```
 
-The offline tests always run. The 31 live measure tests run when Power BI Desktop has the
+The offline tests always run. The 44 live measure tests run when Power BI Desktop has the
 model open and refreshed; otherwise they are skipped.
 
 To change the report, edit `scripts/build_report.py` and run it; to refresh the data
@@ -98,14 +111,16 @@ dictionary after a model change, run `scripts/build_data_dictionary.py`. Close D
 
 ```
 python -m pytest -q
-....................................................................................................
-100 passed in 9.55s
+153 passed in 4.06s
 ```
+
+(31 October 2026, Power BI Desktop open and refreshed; raw output in
+`evidence/pytest-dashboard-2026-10-31.txt`.)
 
 | Test file | What it proves |
 | --- | --- |
-| `test_measures_live.py` (31) | Every measure, run as DAX against the open model, matches an independent Python calculation from the CSVs: totals by year, scope, site and country; the scope measures under a conflicting filter (blank); reconciliation; revenue, average FTE and both intensities; blank per-euro intensity for the head office; prior year (blank for 2023); like-for-like change for the company, for Tartu and across all years; row and site counts; and each security role, including that the Sweden role sees nothing when filtered to Finland |
-| `test_model_files.py` (66) | Table and column names match the shared schema; every measure has a description, format string and display folder, carries its unit in its name, divides with `DIVIDE()`, and contains no typed-in rates (only unit conversions and the date-key shift); three country roles; every field used by a visual exists in the model; page and visual names follow the PBIR rules; the report files are exactly what `build_report.py` writes |
+| `test_measures_live.py` (44) | Every measure, run as DAX against the open model, matches an independent Python calculation from the CSVs: totals by year, scope, site and country; the scope and source measures under a conflicting filter (blank); reconciliation; revenue, average FTE and both intensities; blank per-euro intensity for the head office; prior year (blank for 2023); like-for-like change for the company, for Tartu and across all years; change including new sites (Tartu's first year counts in full; blank for 2023); each activity measure in its own unit; row and site counts; and each security role, including that the Sweden role sees nothing when filtered to Finland |
+| `test_model_files.py` (106) | Table and column names match the shared schema; every measure has a description, format string and display folder, carries its unit in its name, divides with `DIVIDE()`, and contains no typed-in rates (only unit conversions and the date-key shift); three country roles; every field used by a visual exists in the model; page and visual names follow the PBIR rules; the report files are exactly what `build_report.py` writes |
 | `test_docs.py`, `test_data.py` (3) | The data dictionary matches the model; the shared data matches its manifest's checksums, and `DataFolder` points at it |
 
 The tests were checked by planting mistakes: a typed-in factor (`* 0.95`) in a measure and
@@ -133,7 +148,8 @@ exposed a fault in the first version of the change measure, which compared Tartu
   [data README](../data/README.md)).
 - **Live tests need Desktop open.** In a team, the same DAX queries would run in CI
   (continuous integration) against a published model through the XMLA endpoint.
-- Report layout is functional rather than polished; formatting is left at defaults.
+- **Screenshots are from the first version.** The two images on this page show the
+  original Overview and Data quality pages, before the 31 October 2026 redesign.
 
 ## Next steps
 

@@ -6,7 +6,7 @@ import pytest
 from fjordvik_mcp import db
 from fjordvik_mcp.queries import Warehouse
 
-DATA = Path(__file__).resolve().parents[2] / "data" / "data"
+DATA = Path(__file__).resolve().parents[2] / "data" / "tables"
 
 
 @pytest.fixture(scope="session")

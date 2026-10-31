@@ -62,7 +62,7 @@ Details: [flow design](docs/flow-design.md), [SharePoint lists](docs/sharepoint-
 
 | Folder | Holds |
 | --- | --- |
-| `intake/clean/` | December 2025 file for each of the six sites, built from the shared data in `../data/data` |
+| `intake/clean/` | December 2025 file for each of the six sites, built from the shared data in `../data/tables` |
 | `intake/problems/` | The same month with planted problems: Tampere's electricity in MWh, Oulu's district heating left out, Gothenburg's diesel entered twice, and no file from Tartu |
 | `sharepoint/seed/` | Workbooks to create the Sites, Sources, EmissionFactors and Emissions lists (Emissions: January 2023 to November 2025) |
 | `expected/` | What the flows must produce for every file |
@@ -75,7 +75,7 @@ The offline part needs Python 3.10 or newer with pytest and openpyxl.
 python -m pytest
 ```
 
-The rules read the repository's shared `../data/data` folder. To rebuild the test files
+The rules read the repository's shared `../data/tables` folder. To rebuild the test files
 after a data change: `python scripts/build_intake_files.py`. Building the flows: [docs/tenant-setup.md](docs/tenant-setup.md).
 
 ## Test evidence

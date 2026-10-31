@@ -1,0 +1,5 @@
+﻿pytest -q in data, 31 October 2026, after renaming data/data to data/tables
+
+........................                                                 [100%]
+24 passed in 0.23s
+

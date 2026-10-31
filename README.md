@@ -20,7 +20,7 @@ December 2025.
 | --- | --- | --- |
 | [`data`](data) | The dataset: a seeded Python generator, a five-table star schema and its quality tests | 24 |
 | [`mcp`](mcp) | A Model Context Protocol (MCP) server that gives Claude five read-only tools over the data (Python, DuckDB) | 48 |
-| [`powerbi`](powerbi) | A Power BI Project: semantic model in Tabular Model Definition Language (TMDL), 14 Data Analysis Expressions (DAX) measures, row-level security, a three-page report | 100 (31 need Power BI Desktop open) |
+| [`powerbi`](powerbi) | A Power BI Project: semantic model in Tabular Model Definition Language (TMDL), 24 Data Analysis Expressions (DAX) measures, row-level security, an eight-page report | 153 (44 need Power BI Desktop open) |
 | [`power-automate`](power-automate) | Power Automate intake and reminder flows with ten written rules, designed and tested offline | 26 |
 
 Each folder has its own README with the problem, approach, architecture, test evidence
@@ -33,16 +33,16 @@ tool, data and checks for each step (source: [docs/process-map.html](docs/proces
 ## How the parts fit
 
 ```
-data/ ──generator──> data/data/*.csv + manifest.json (SHA-256 checksums)
+data/ ──generator──> data/tables/*.csv + manifest.json (SHA-256 checksums)
                           │
         ┌─────────────────┼──────────────────┐
         ▼                 ▼                  ▼
        mcp/            powerbi/        power-automate/
 ```
 
-The other three parts all read the one shared dataset in `data/data/`, so they always
+The other three parts all read the one shared dataset in `data/tables/`, so they always
 show the same numbers. Each part's tests check the files against the checksums in
-`data/data/manifest.json` before relying on them. After a data change, regenerate in
+`data/tables/manifest.json` before relying on them. After a data change, regenerate in
 `data` and rerun every part's tests.
 
 ## How to run

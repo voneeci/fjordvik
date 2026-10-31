@@ -5,7 +5,7 @@ dashboard page was built for. This connector lets them ask Claude in plain langu
 get an answer from the same governed data the Power BI report uses. It is a Model Context
 Protocol (MCP) server: Claude calls five read-only tools, and the server answers from a
 locked-down DuckDB database (a file-based analytics database) built from the shared
-dataset in [`data/data`](../data).
+dataset in [`data/tables`](../data/tables).
 
 > **Synthetic data only.** Fjordvik Manufacturing Oy is a fictional company, and this is a
 > portfolio project. No real company, client or person is described. The emission factors
@@ -52,7 +52,7 @@ Claude Desktop ──stdio──> fjordvik-mcp server (Python, MCP SDK 2.x)
                               │  queries.py  SQL with bound parameters, guard for run_sql
                               │  db.py       loads CSVs, then locks the database
                               ▼
-                          DuckDB in memory  <── ../data/data/*.csv (the shared dataset,
+                          DuckDB in memory  <── ../data/tables/*.csv (the shared dataset,
                                                  checked against SHA-256 checksums)
 ```
 
@@ -108,7 +108,7 @@ Try:
 
 ### Where the data comes from
 
-The server reads the repository's shared `..\data\data` folder, so there is nothing to
+The server reads the repository's shared `..\data\tables` folder, so there is nothing to
 refresh here: a data change in `data` reaches the server the next time it starts. To
 point it somewhere else, set `FJORDVIK_DATA_DIR` (see [.env.example](.env.example)).
 

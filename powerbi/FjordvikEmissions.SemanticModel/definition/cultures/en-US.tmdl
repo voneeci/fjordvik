@@ -109,6 +109,48 @@ cultureInfo en-US
 			          }
 			        }
 			      ]
+			    },
+			    "dim_source.source_name": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "dim_source",
+			          "ConceptualProperty": "source_name"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Source": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "dim_source.scope": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "dim_source",
+			          "ConceptualProperty": "scope"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Scope": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
 			    }
 			  }
 			}

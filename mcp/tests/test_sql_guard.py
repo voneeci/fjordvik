@@ -42,8 +42,8 @@ def test_anything_but_one_select_is_refused(wh, query):
 
 
 @pytest.mark.parametrize("query", [
-    "SELECT * FROM read_csv('../data/data/dim_site.csv')",
-    "SELECT * FROM '../data/data/dim_site.csv'",
+    "SELECT * FROM read_csv('../data/tables/dim_site.csv')",
+    "SELECT * FROM '../data/tables/dim_site.csv'",
     "SELECT * FROM read_text('README.md')",
     "SELECT * FROM read_csv('https://example.com/x.csv')",
 ])

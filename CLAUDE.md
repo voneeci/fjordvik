@@ -13,10 +13,10 @@ One portfolio project in four parts over the synthetic Fjordvik dataset, one fol
   are parts of it (Reece, 31 October 2026). On a CV it is a "portfolio project", never
   client work.
 - The shared schema in `data` is a contract the other three folders depend on.
-- One shared copy of the data: mcp, powerbi and power-automate read `data/data/`
+- One shared copy of the data: mcp, powerbi and power-automate read `data/tables/`
   directly, and each part's `tests/test_data.py` checks it against `manifest.json`
   (Reece's choice, 31 October 2026, replacing the per-folder copies of 30 October).
-  Never edit `data/data/` by hand; change it only through the generator in `data`, then
+  Never edit `data/tables/` by hand; change it only through the generator in `data`, then
   rerun every part's tests.
 - One virtual environment per folder (`<folder>\.venv`); run each folder's tests from
   that folder.
@@ -30,6 +30,6 @@ One portfolio project in four parts over the synthetic Fjordvik dataset, one fol
 ```bash
 cd data && .venv\Scripts\python -m pytest -q             # 24 tests
 cd mcp && .venv\Scripts\python -m pytest -q              # 48 tests
-cd powerbi && .venv\Scripts\python -m pytest -q          # 100 tests (31 need Desktop open)
+cd powerbi && .venv\Scripts\python -m pytest -q          # 153 tests (44 need Desktop open)
 cd power-automate && .venv\Scripts\python -m pytest -q   # 26 tests
 ```

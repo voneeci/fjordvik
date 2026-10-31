@@ -4,14 +4,14 @@
     {
       "ordinal": 0,
       "scrollPosition": {
-        "x": 0,
+        "x": 114.66666412353516,
         "y": 0
       },
       "nodes": [
         {
           "location": {
-            "x": 956.64364473800538,
-            "y": 140.53698881715138
+            "x": 1021.6436447380054,
+            "y": 107.53698881715138
           },
           "nodeIndex": "_Measures",
           "nodeLineageTag": "fab0b0d6-ec8d-4b05-93d5-cdc75cc9aa13",
@@ -23,8 +23,8 @@
         },
         {
           "location": {
-            "x": 151.69750017475121,
-            "y": 71.213811655056645
+            "x": 76.697500174751212,
+            "y": 0
           },
           "nodeIndex": "dim_date",
           "nodeLineageTag": "1792d929-f54f-416f-863c-c4f86adb16af",
@@ -36,8 +36,8 @@
         },
         {
           "location": {
-            "x": 337.02931724425639,
-            "y": 347.90299937848391
+            "x": 397.02931724425639,
+            "y": 355.90299937848391
           },
           "nodeIndex": "dim_site",
           "nodeLineageTag": "14b53f24-4536-4f48-85ce-fc698839c633",
@@ -49,8 +49,8 @@
         },
         {
           "location": {
-            "x": 436.099686639236,
-            "y": -18.592575759845772
+            "x": 370.099686639236,
+            "y": 14
           },
           "nodeIndex": "dim_source",
           "nodeLineageTag": "de6426e1-d0b4-4cfa-8587-eaaeecfaa15d",
@@ -62,8 +62,8 @@
         },
         {
           "location": {
-            "x": 722.64364473800549,
-            "y": -50
+            "x": 685.64364473800549,
+            "y": 126
           },
           "nodeIndex": "fact_emissions",
           "nodeLineageTag": "6b6f4c7e-4f77-42bb-a469-03948a7c105e",
@@ -75,7 +75,7 @@
         },
         {
           "location": {
-            "x": 50,
+            "x": 77,
             "y": 355.07397763430276
           },
           "nodeIndex": "fact_site_metrics",

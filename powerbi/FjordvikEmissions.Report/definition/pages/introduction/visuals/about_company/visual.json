@@ -1,0 +1,67 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "about_company",
+  "position": {
+    "x": 20,
+    "y": 155,
+    "z": 200,
+    "height": 175,
+    "width": 600,
+    "tabOrder": 200
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "About the company",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "13pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Fjordvik Manufacturing Oy is a manufacturer with three plants, two warehouses and a head office in Finland, Sweden and Estonia.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Each month every site reports the energy, fuel, refrigerant, business flights and waste it used. This report turns those figures into the company's greenhouse gas emissions, from January 2023 to December 2025.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Tartu Warehouse opened in July 2024, and Tampere Plant installed rooftop solar panels the same month.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

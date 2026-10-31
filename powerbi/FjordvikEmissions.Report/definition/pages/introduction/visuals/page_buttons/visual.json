@@ -1,0 +1,16 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "page_buttons",
+  "position": {
+    "x": 20,
+    "y": 90,
+    "z": 100,
+    "height": 50,
+    "width": 1240,
+    "tabOrder": 100
+  },
+  "visual": {
+    "visualType": "pageNavigator",
+    "drillFilterOtherVisuals": true
+  }
+}

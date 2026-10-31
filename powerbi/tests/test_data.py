@@ -20,4 +20,4 @@ def test_shared_files_match_manifest_checksums(data_dir):
 def test_data_folder_parameter_points_at_the_shared_folder():
     text = EXPRESSIONS.read_text(encoding="utf-8")
     folder = re.search(r'expression DataFolder = "([^"]+)"', text).group(1)
-    assert folder.endswith(r"\data\data"), folder
+    assert folder.endswith(r"\data\tables"), folder

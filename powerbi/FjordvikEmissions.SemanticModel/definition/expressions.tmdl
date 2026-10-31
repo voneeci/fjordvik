@@ -1,5 +1,5 @@
-/// Folder holding the five Fjordvik CSV files (the repository's shared data\data folder). No trailing backslash.
-expression DataFolder = "C:\Users\reece\Projects\fjordvik\data\data" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+/// Folder holding the five Fjordvik CSV files (the repository's shared data\tables folder). No trailing backslash.
+expression DataFolder = "C:\Users\reece\Projects\fjordvik\data\tables" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
 	lineageTag: fac63a75-b421-4b3d-a8c6-c80dea564fa6
 
 	annotation PBI_ResultType = Text

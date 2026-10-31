@@ -20,8 +20,8 @@ power-automate. Permanent rules in
 - Statuses: Accepted, Rejected, Failed. Changing one by hand does nothing; see
   docs/run-statuses.md. Keep that page current if a status changes.
 - Planted problems live only in `intake/problems/`; the clean files must reproduce the
-  shared data in `..\data\data` exactly.
-- The data is the repository's shared `..\data\data` folder (`intake_rules.DATA`). Never
+  shared data in `..\data\tables` exactly.
+- The data is the repository's shared `..\data\tables` folder (`intake_rules.DATA`). Never
   edit it from here; after a data change, rebuild the intake files and rerun the tests.
 - Power Automate facts in the docs come from Microsoft Learn pages read on 12 October
   2026; mark anything unconfirmed as "to check during the build".

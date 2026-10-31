@@ -1,6 +1,6 @@
 # Data licence
 
-The files in `data/` are licensed under the Creative Commons Attribution 4.0
+The files in `tables/` are licensed under the Creative Commons Attribution 4.0
 International licence (CC BY 4.0): https://creativecommons.org/licenses/by/4.0/
 
 You may share and adapt them for any purpose, provided you give credit

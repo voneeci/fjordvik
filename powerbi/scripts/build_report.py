@@ -178,6 +178,24 @@ def textbox(name, x, y, w, h, z, lines):
         "drillFilterOtherVisuals": True})
 
 
+def section(name, x, y, w, h, z, heading, lines):
+    """A text block with a heading, for the Introduction page."""
+    paragraphs = [{"textRuns": [{"value": heading,
+                                 "textStyle": {"fontWeight": "bold", "fontSize": "13pt"}}]}]
+    paragraphs += [{"textRuns": [{"value": text, "textStyle": {"fontSize": "10pt"}}]}
+                   for text in lines]
+    return container(name, x, y, w, h, z, {
+        "visualType": "textbox",
+        "objects": {"general": [{"properties": {"paragraphs": paragraphs}}]},
+        "drillFilterOtherVisuals": True})
+
+
+def page_navigator(name, x, y, w, h, z):
+    """Power BI's built-in page navigator: one button per page, kept in step with the pages."""
+    return container(name, x, y, w, h, z, {"visualType": "pageNavigator",
+                                           "drillFilterOtherVisuals": True})
+
+
 # ---------------------------------------------------------------------------
 # Pages
 # ---------------------------------------------------------------------------
@@ -222,6 +240,54 @@ def header(title, note, slicers=(YEAR, COUNTRY)):
 
 def single(colour=ACCENT):
     return [(None, colour)]
+
+
+def introduction():
+    return [
+        textbox("title", 20, 10, 1240, 70, 0, [
+            "Fjordvik Manufacturing Oy: monthly emissions report",
+            "A portfolio project on synthetic data. " + CAVEAT]),
+        page_navigator("page_buttons", 20, 90, 1240, 50, 100),
+        section("about_company", 20, 155, 600, 175, 200, "About the company", [
+            "Fjordvik Manufacturing Oy is a manufacturer with three plants, two warehouses and a "
+            "head office in Finland, Sweden and Estonia.",
+            "Each month every site reports the energy, fuel, refrigerant, business flights and "
+            "waste it used. This report turns those figures into the company's greenhouse gas "
+            "emissions, from January 2023 to December 2025.",
+            "Tartu Warehouse opened in July 2024, and Tampere Plant installed rooftop solar panels "
+            "the same month.",
+        ]),
+        table("table_sites", 20, 340, 600, 210, 300, [
+            SITE, COUNTRY, column("dim_site", "site_type", "Site type")], title="The six sites"),
+        section("owners", 20, 560, 600, 145, 400, "Who owns the figures", [
+            "Business owner: Group Sustainability Manager, who signs off the figures.",
+            "Technical owner: Data and AI Specialist, who maintains the model and this report.",
+            "Country managers see only their own country's sites, through row-level security.",
+        ]),
+        section("page_guide", 640, 155, 620, 250, 500, "What each page answers", [
+            "Overview: how much does Fjordvik emit, and where?",
+            "Emissions breakdown: what are the emissions made of, by scope, source and country?",
+            "Intensity and growth: is Fjordvik getting cleaner as it grows?",
+            "Energy and activity: how much energy, fuel and other activity did each site use?",
+            "What changed: why did emissions move on the prior year?",
+            "Sites: how do the six sites compare?",
+            "Data quality: do the figures reconcile, and is every site reporting?",
+        ]),
+        section("reading_guide", 640, 415, 620, 290, 600, "How to read the figures", [
+            "Scope 1: direct emissions from fuel burned on site and refrigerant leaks. Scope 2: "
+            "electricity and heat bought, using each country's average factor (location-based). "
+            "Scope 3: business flights and waste to landfill.",
+            "tCO2e is tonnes of carbon dioxide equivalent: activity amount times emission factor, "
+            "divided by 1,000.",
+            "Intensity divides emissions by average full-time equivalent employees (FTE) or by "
+            "revenue in millions of euros, so a growing business can see whether it is getting "
+            "cleaner as well as bigger.",
+            "Like-for-like change compares only site-months reported in both years, so a new "
+            "site does not inflate growth. The What changed page shows both views.",
+            "Most pages have Year or Country slicers at the top right: pick a value to filter "
+            "that page.",
+        ]),
+    ]
 
 
 def overview():
@@ -356,7 +422,8 @@ def data_quality():
     ]
 
 
-PAGES = [("overview", "Overview", overview), ("breakdown", "Emissions breakdown", breakdown),
+PAGES = [("introduction", "Introduction", introduction), ("overview", "Overview", overview),
+         ("breakdown", "Emissions breakdown", breakdown),
          ("intensity", "Intensity and growth", intensity), ("energy", "Energy and activity", energy),
          ("changed", "What changed", changed), ("sites", "Sites", sites),
          ("data_quality", "Data quality", data_quality)]

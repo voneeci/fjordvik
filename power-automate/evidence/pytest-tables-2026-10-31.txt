@@ -1,0 +1,5 @@
+﻿pytest -q in power-automate, 31 October 2026, after renaming data/data to data/tables
+
+..........................                                               [100%]
+26 passed in 1.20s
+

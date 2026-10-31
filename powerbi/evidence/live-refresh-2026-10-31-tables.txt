@@ -1,0 +1,6 @@
+﻿Refresh before the live tests, 31 October 2026 (dataset folder renamed to data\tables; Introduction page added)
+DataFolder = C:\Users\reece\Projects\fjordvik\data\tables
+Command: scripts\run_dax_table.ps1 -QueryFile <empty query list> -Port 64064 -Refresh
+Output:
+refreshed database c287226a-2782-4cd6-a1f7-b0f9f70988c8
+

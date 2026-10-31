@@ -158,7 +158,7 @@ footer { font-size: 13px; color: var(--muted); display: grid; gap: 6px; }
   <footer>
     <span>Sources: the project's own documents, read 31 October 2026: <code>power-automate/docs/flow-design.md</code>,
       <code>sharepoint-lists.md</code>, <code>intake-rules.md</code>, <code>run-statuses.md</code>, the Power BI model in
-      <code>powerbi/</code>, the MCP server in <code>mcp/</code> and the dataset in <code>data/data</code>.</span>
+      <code>powerbi/</code>, the MCP server in <code>mcp/</code> and the dataset in <code>data/tables</code>.</span>
     <span>Typical source evidence (step 2) and revenue and headcount feeds (step 16) describe common practice; the project does not model them.</span>
   </footer>
 </div>
@@ -321,7 +321,7 @@ const STEPS = [
     checks: "Rule R10 refuses a site-month that is already loaded, so a month cannot be loaded twice by accident.",
     timing: "As needed.", project: "Designed in <code>run-statuses.md</code>." },
   { n: 15, name: "Central Emissions list", lane: "gsm", col: 8, status: "built", phase: 2,
-    owner: "Group Sustainability Manager (data owner)", tool: "SharePoint list <em>Emissions</em>. In this project the shared dataset <code>data/data</code> stands in for it.",
+    owner: "Group Sustainability Manager (data owner)", tool: "SharePoint list <em>Emissions</em>. In this project the shared dataset <code>data/tables</code> stands in for it.",
     dataIn: "Rows from step 10; corrections from step 14.",
     dataOut: "The system of record for emissions: one row per month, site and source.",
     checks: ul(["Every row joins to a site and a source; one unit per source; <code>tco2e</code> equals the formula (data tests)", "Checksums in <code>manifest.json</code>, checked by every part's tests"]),
@@ -346,12 +346,12 @@ const STEPS = [
     timing: "Today on demand; target after each accepted file.",
     project: "<strong>Built</strong> in Power BI Desktop. <code>scripts/run_dax_table.ps1 -Refresh</code> refreshes with no clicks. Publishing and scheduled refresh are next steps." },
   { n: 18, name: "Calculate the measures", lane: "das", row: 0, col: 10, status: "built", auto: true, phase: 3,
-    owner: "Data and AI Specialist", tool: "14 Data Analysis Expressions (DAX) measures in the <code>_Measures</code> table",
+    owner: "Data and AI Specialist", tool: "24 Data Analysis Expressions (DAX) measures in the <code>_Measures</code> table",
     dataIn: "The refreshed model.",
-    dataOut: ul(["Emissions: Total, Scope 1, Scope 2, Scope 3 (tCO2e)", "Intensity: Revenue (EUR), Average FTE, Emissions per FTE, Emissions per Million EUR", "Time comparison: Emissions Prior Year, Emissions Change vs Prior Year (%), like for like", "Data quality: Recalculated Emissions, Reconciliation Difference, Emission Rows, Sites Reporting"]),
-    checks: ul(["31 live tests compare every measure with an independent Python calculation", "No typed-in rates; every division uses <code>DIVIDE()</code>"]),
+    dataOut: ul(["Emissions: Total, Scope 1, Scope 2, Scope 3 (tCO2e)", "Intensity: Revenue (EUR), Average FTE, Emissions per FTE, Emissions per Million EUR", "Activity, in the sites' own units: Energy Used, Natural Gas Used, Electricity Purchased and District Heating Purchased (kWh), Vehicle Fuel Used (litres), Refrigerant Leakage (kg), Business Flights (passenger-km), Waste to Landfill (tonnes)", "Time comparison: Emissions Prior Year, Emissions Change vs Prior Year (%) like for like, Emissions Change Including New Sites (tCO2e and %)", "Data quality: Recalculated Emissions, Reconciliation Difference, Emission Rows, Sites Reporting"]),
+    checks: ul(["44 live tests compare every measure with an independent Python calculation", "No typed-in rates; every division uses <code>DIVIDE()</code>"]),
     timing: "When a report page is opened.",
-    project: "<strong>Built and tested.</strong> 31 of 31 live tests passed on 31 October 2026 (<code>powerbi/evidence/live-measures-2026-10-31.txt</code>)." },
+    project: "<strong>Built and tested.</strong> 44 of 44 live tests passed on 31 October 2026 (<code>powerbi/evidence/live-measures-2026-10-31-dashboard.txt</code>)." },
   { n: 19, name: "Apply row-level security", lane: "das", row: 1, col: 11, status: "built", auto: true, phase: 3,
     owner: "Data and AI Specialist; the Group Sustainability Manager decides who sees what", tool: "Power BI roles <em>Finland</em>, <em>Sweden</em>, <em>Estonia</em>",
     dataIn: "The viewer's role.",
@@ -372,12 +372,17 @@ const STEPS = [
     dataOut: "An answer from five read-only tools: <code>describe_dataset</code>, <code>emissions_total</code>, <code>emissions_intensity</code>, <code>data_quality_report</code>, <code>run_sql</code>.",
     checks: ul(["Read-only; one <code>SELECT</code> only; file and network access locked off; 1,000-row cap", "FTE averaged over months, never summed"]),
     timing: "Any time.",
-    project: "<strong>Built</strong> (48 tests) and registered in Claude Desktop on 31 October 2026. It reads the same <code>data/data</code> files. Next steps: a remote server with sign-in, and a tool that queries the published model's DAX measures." },
+    project: "<strong>Built</strong> (48 tests) and registered in Claude Desktop on 31 October 2026. It reads the same <code>data/tables</code> files. Next steps: a remote server with sign-in, and a tool that queries the published model's DAX measures." },
   { n: 22, name: "The dashboard shows the figures", lane: "mgr", col: 11, status: "built", phase: 3,
-    owner: "Country Managers (own sites) and the Group Sustainability Manager (all sites)", tool: "Power BI report: three pages, 19 visuals",
+    owner: "Country Managers (own sites) and the Group Sustainability Manager (all sites)", tool: "Power BI report: eight pages, 58 visuals",
     dataIn: "The measures (step 18), filtered by the viewer's role (step 19).",
     dataOut: table(["Page", "Shows"], [
-      ["Overview", "Total and scope 1, 2 and 3 emissions, emissions per FTE, monthly trend, emissions by site; year and country slicers"],
+      ["Introduction", "The company and its sites, who owns the figures, what each page answers, how to read the figures; a button for every page"],
+      ["Overview", "Total and scope 1, 2 and 3 emissions, emissions per FTE, monthly trend, emissions by site"],
+      ["Emissions breakdown", "Scopes stacked by month, each scope's share, emissions by source and by country"],
+      ["Intensity and growth", "Emissions per FTE and per million euros by month, revenue and headcount, like-for-like change by site"],
+      ["Energy and activity", "Energy, fuel, refrigerant, flights and waste in their own units; electricity by site, where Tampere's solar panels show"],
+      ["What changed", "Like-for-like change against change including new sites; a 2025 waterfall of change by site"],
       ["Sites", "Per site: emissions, per FTE, per million euros, like-for-like change; scope 2 by month and site"],
       ["Data quality", "Reconciliation difference, row count and sites reporting, by year"]
     ]),
@@ -501,11 +506,11 @@ const SUMMARY = {
   15: "The central Emissions list is the single record of every site's monthly emissions, one row per month, site and source. Every report and every answer from Claude comes from here.",
   16: "Revenue and headcount come from finance and HR, not from the sites' workbooks. They let the report show emissions per employee and per million euros, so the business can see whether it is getting cleaner as it grows. This feed is not built in the project.",
   17: "The Power BI model pulls in the latest emissions, revenue and headcount and arranges them as five linked tables. Today the refresh runs in Power BI Desktop; in production it would run in the Power BI Service after each accepted file.",
-  18: "The model's 14 measures work out the figures people read: totals by scope, emissions per employee and per million euros, and change on the year compared like for like. Each one is tested against an independent calculation.",
+  18: "The model's 24 measures work out the figures people read: totals by scope, emissions per employee and per million euros, and change on the year compared like for like. Each one is tested against an independent calculation.",
   19: "Security roles make sure each country manager sees only their own country's sites. The rule sits in the model, so every page and every number respects it.",
   20: "Once the month's files are in, the Group Sustainability Manager checks the Data quality page: the recalculated emissions should match the stored ones exactly, and every open site should be reporting. Anything wrong goes back for correction.",
   21: "Managers can ask Claude questions the dashboard was not built for, in plain language. Claude answers through a read-only connector that reads the same data and uses tested logic for the calculations that are easy to get wrong.",
-  22: "The report shows the month's figures on three pages: an overview, a page comparing sites, and a data quality page. Country managers see their own sites; the Group Sustainability Manager sees all six.",
+  22: "The report shows the month's figures on eight pages, opening on an Introduction that explains the company and what each page answers. Country managers see their own sites; the Group Sustainability Manager sees all six.",
   23: "After December, the Group Sustainability Manager checks that all twelve months are in and clean, then signs off the year's figures for the annual sustainability report, with group management's approval."
 };
 document.getElementById("steps").innerHTML = PHASES.map((p, i) => {

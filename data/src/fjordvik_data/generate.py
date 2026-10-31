@@ -1,6 +1,6 @@
 """Build the five Fjordvik tables and write them as CSV files.
 
-Run with:  python -m fjordvik_data --out data
+Run with:  python -m fjordvik_data --out tables
 
 The output is deterministic: the same code and seed always give byte-identical
 files. Each (site, source) pair gets its own random stream, seeded from its
@@ -246,8 +246,8 @@ def write_all(out_dir: Path) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate the Fjordvik dataset.")
-    parser.add_argument("--out", default="data", type=Path,
-                        help="folder to write the CSV files to (default: data)")
+    parser.add_argument("--out", default="tables", type=Path,
+                        help="folder to write the CSV files to (default: tables)")
     args = parser.parse_args()
     manifest = write_all(args.out)
     for name, info in manifest["tables"].items():

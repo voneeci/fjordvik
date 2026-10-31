@@ -11,7 +11,7 @@ powerbi, power-automate. Permanent rules in
   is git-ignored.
 - Emission factors are illustrative, not cited (Reece's one-off exception for the
   Fjordvik project, 12 October 2026). Every doc says so.
-- The server reads the repository's shared `..\data\data` folder (`db.DEFAULT_DATA_DIR`;
+- The server reads the repository's shared `..\data\tables` folder (`db.DEFAULT_DATA_DIR`;
   `FJORDVIK_DATA_DIR` overrides it). Never edit that folder from here;
   `tests/test_data.py` checks it against its manifest.
 - Every tool stays read-only. `run_sql` keeps all three guards: one SELECT only,

@@ -16,15 +16,15 @@ folders of the fjordvik repository: mcp, powerbi and power-automate. Permanent r
   power-automate.
 - No backfilling: a site's series starts at its first month.
 - Change the data only through `src/fjordvik_data/config.py` or `generate.py`, then
-  regenerate (`python -m fjordvik_data --out data`) and commit code and data together.
+  regenerate (`python -m fjordvik_data --out tables`) and commit code and data together.
   `tests/test_reproducible.py` fails if they drift. mcp, powerbi and power-automate read
-  `data/data/` in place (no copies), so rerun their tests after any data change.
+  `data/tables/` in place (no copies), so rerun their tests after any data change.
 - A deliberate change to an expected value in a test says which change and why.
 - Writing: no em dashes, Australian spelling, spell out acronyms on first use.
 
 ## Commands
 
 ```bash
-python -m fjordvik_data --out data   # regenerate (after pip install -e ".[dev]")
+python -m fjordvik_data --out tables   # regenerate (after pip install -e ".[dev]")
 python -m pytest -q                  # 24 tests
 ```

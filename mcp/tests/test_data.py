@@ -6,7 +6,7 @@ from pathlib import Path
 
 from fjordvik_mcp import db
 
-SHARED = Path(__file__).resolve().parents[2] / "data" / "data"
+SHARED = Path(__file__).resolve().parents[2] / "data" / "tables"
 
 
 def test_shared_files_match_manifest_checksums(data_dir):

@@ -9,7 +9,7 @@ power-automate. Permanent rules in
 
 - Synthetic data only. Emission factors are illustrative, not cited (Reece's one-off
   exception for the Fjordvik project, 12 October 2026). Every page and doc says so.
-- The `DataFolder` parameter points at the repository's shared `data\data` folder; never
+- The `DataFolder` parameter points at the repository's shared `data\tables` folder; never
   edit that folder from here. `tests/test_data.py` checks its checksums and the parameter.
 - Report JSON is generated: edit `scripts/build_report.py`, never the visual.json files.
   The rebuild test compares JSON content (not bytes), so a Desktop save that changes
@@ -36,5 +36,5 @@ power-automate. Permanent rules in
 ```bash
 python scripts/build_report.py            # regenerate report pages
 python scripts/build_data_dictionary.py   # regenerate docs/data-dictionary.md
-python -m pytest -q                       # 100 tests (31 need Desktop open)
+python -m pytest -q                       # 153 tests (44 need Desktop open)
 ```

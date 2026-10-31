@@ -27,8 +27,12 @@ used. The business needs one dataset that every report reads: fixed table and co
 names that tools can rely on, checks that catch impossible values, and a way to prove the
 files have not been edited by hand.
 
-In this portfolio version the dataset is generated, so it is safe to publish. It stands in
-for the central Emissions list that the Power Automate intake flow fills each month.
+In this portfolio version the dataset is generated, so it is safe to publish. The
+generator exists only because there is no real data: it invents plausible figures for
+six fictional sites. It does not combine the sites' files; in the real process the
+Power Automate intake flow does that, adding each accepted site file to the central
+Emissions list. The generated `tables/` folder stands in for that list, and for the
+revenue and headcount that finance and HR would supply.
 
 ## Approach
 
@@ -54,14 +58,14 @@ for the central Emissions list that the Power Automate intake flow fills each mo
 ## Architecture
 
 ```
-config.py ──> generate.py ──> data/*.csv + manifest.json ──> read directly by
+config.py ──> generate.py ──> tables/*.csv + manifest.json ──> read directly by
  (sites,       (builds the       (five tables, row counts,      │
   sources,      five tables)      SHA-256 checksums)            ├─> mcp/
   factors,                                                      ├─> powerbi/
   story)                                                        └─> power-automate/
 ```
 
-This `data/data` folder is the project's one copy of the dataset: the other three parts
+This `data/tables` folder is the project's one copy of the dataset: the other three parts
 read it in place and check it against `manifest.json` in their own tests.
 
 Shared schema (names are a contract; the other three parts depend on them):
@@ -107,18 +111,18 @@ You need Python 3.10 or newer. No other installs are needed to generate the data
 git clone https://github.com/voneeci/fjordvik.git
 cd fjordvik/data
 python -m pip install -e ".[dev]"
-python -m fjordvik_data --out data
+python -m fjordvik_data --out tables
 python -m pytest
 ```
 
 Without installing, from the repository folder in PowerShell:
 
 ```powershell
-$env:PYTHONPATH = "src"; python -m fjordvik_data --out data
+$env:PYTHONPATH = "src"; python -m fjordvik_data --out tables
 ```
 
-To use the data elsewhere, take the CSV files from `data/` at a known commit and check
-them against the SHA-256 checksums in `data/manifest.json`. After any change, rerun the
+To use the data elsewhere, take the CSV files from `tables/` at a known commit and check
+them against the SHA-256 checksums in `tables/manifest.json`. After any change, rerun the
 tests of every part, because they all read this folder.
 
 ## Test evidence
