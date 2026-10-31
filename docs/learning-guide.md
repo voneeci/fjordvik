@@ -156,7 +156,7 @@ tests prove the link: loading the six clean December files onto the earlier mont
 rebuilds that dataset exactly.
 
 The [process map](https://voneeci.github.io/fjordvik/docs/process-map.html) shows all 29
-steps, from energy being used at a site to the figures on the Power BI report,
+steps, from energy being used at a site to the figures in the Power BI reports,
 with the owner, tool, data and checks for each, and which steps are built, designed or
 outside the project.
 
@@ -166,7 +166,7 @@ outside the project.
 | --- | --- | --- | --- |
 | [`data`](../data) | The governed dataset: 22 tables with fixed names, checksums and quality tests, and the SQL that cleans the ERP extract | 12 to 31 October 2026 | 60 |
 | [`mcp`](../mcp) | A Model Context Protocol (MCP) server that lets Claude answer questions from the data, read-only | 12 to 31 October 2026 | 59 |
-| [`powerbi`](../powerbi) | The Power BI model and two reports on it, with every measure reconciled against an independent calculation | 12 to 31 October 2026 | 701 |
+| [`powerbi`](../powerbi) | The Power BI model and two reports on it, with every measure reconciled against an independent calculation | 12 to 31 October 2026 | 727 |
 | [`power-automate`](../power-automate) | The flows that take in, check and chase the monthly site files, designed and tested offline | 12 October 2026 | 26 |
 
 All 514 tests passed on 31 October 2026, including the 109 Power BI tests that run live

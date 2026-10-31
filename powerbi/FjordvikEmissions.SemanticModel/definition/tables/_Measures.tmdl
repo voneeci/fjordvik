@@ -1115,6 +1115,43 @@ table _Measures
 		displayFolder: Text
 		lineageTag: f5008522-8433-4f19-8089-ae455a40685b
 
+	/// Where each waterfall step's label sits: the top of the step's bar. Its format string turns the label into the step's own value (for example +4.4M), so even a step too short to hold a label inside its bar is labelled above it.
+	measure 'Bridge Label Position (EUR)' =
+			VAR ThisStep = SELECTEDVALUE ( dim_bridge_step[step_order] )
+			VAR StepStart = SUMX ( FILTER ( ALL ( dim_bridge_step ), dim_bridge_step[step_order] < ThisStep ), CALCULATE ( [Bridge Value (EUR)] ) )
+			VAR StepValue = [Bridge Value (EUR)]
+			VAR IsTotal = SELECTEDVALUE ( dim_bridge_step[step] ) IN { "Prior-year margin", "This year's margin" }
+			RETURN
+				IF ( NOT IsTotal && NOT ISBLANK ( StepValue ), MAX ( StepStart, StepStart + StepValue ) )
+		displayFolder: Bridge
+		lineageTag: 1848117b-ad0e-4314-b4a7-33ae8776d056
+
+		formatStringDefinition = """" & FORMAT ( DIVIDE ( [Bridge Value (EUR)], 1000000 ), "+#,0.0;-#,0.0" ) & "M"""
+
+	/// Margin % for all product groups together, whatever group or product a visual shows: the company average line on the scatter charts.
+	measure 'Company Margin (%)' = CALCULATE ( [Margin (%)], REMOVEFILTERS ( dim_product_group ), REMOVEFILTERS ( dim_product ) )
+		formatString: 0.0%
+		displayFolder: Portfolio balance
+		lineageTag: 38e24372-2dd6-4c26-ac22-30713e591e33
+
+	/// Sales growth on the prior year for all product groups together: the company average line.
+	measure 'Company Sales Growth (%)' = CALCULATE ( [Sales Growth vs Prior Year (%)], REMOVEFILTERS ( dim_product_group ), REMOVEFILTERS ( dim_product ) )
+		formatString: 0.0%
+		displayFolder: Portfolio balance
+		lineageTag: 6a4dea77-285d-433d-bf5b-df8bcdd826f3
+
+	/// Weighted score of all product groups together: the average line on the score against margin chart.
+	measure 'Company Weighted Score' = CALCULATE ( [Weighted Score], REMOVEFILTERS ( dim_product_group ) )
+		formatString: 0.0
+		displayFolder: Scorecard
+		lineageTag: 090ca408-5e0c-4041-b4b8-4b9d0319be04
+
+	/// Use-phase emissions per thousand euros of sales for all product groups together: the company average line.
+	measure 'Company Use-phase Emissions per Thousand EUR (tCO2e)' = CALCULATE ( [Use-phase Emissions per Thousand EUR (tCO2e)], REMOVEFILTERS ( dim_product_group ), REMOVEFILTERS ( dim_product ) )
+		formatString: #,0.00
+		displayFolder: Product sustainability
+		lineageTag: abbcb7c6-c510-49a9-b7dd-58b6d9004319
+
 	column Placeholder
 		dataType: string
 		isHidden

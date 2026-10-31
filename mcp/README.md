@@ -4,7 +4,7 @@ Fjordvik Manufacturing Oy, a maker of electric pumps and pump systems
 ([company profile](../docs/company-profile.md)), gets questions about its emissions that
 no dashboard page was built for, from its own managers and from customers asking for its
 footprint. This connector lets them ask Claude in plain language and
-get an answer from the same governed data the Power BI report uses. It is a Model Context
+get an answer from the same governed data the Power BI reports use. It is a Model Context
 Protocol (MCP) server: Claude calls seven read-only tools, and the server answers from a
 locked-down DuckDB database (a file-based analytics database) built from the shared
 dataset in [`data/tables`](../data/tables). It runs two ways: inside Claude Desktop for
@@ -32,7 +32,7 @@ example, averaging headcount over months instead of adding it up).
   A seventh, `run_sql`, handles anything else, but only as a single read-only `SELECT`.
 - **One view of the inventory.** An `all_emissions` view stacks the four location-based
   emission tables (site emissions, upstream energy, purchases, freight), so every total
-  covers the same rows as the Power BI report. Market-based scope 2 is an option
+  covers the same rows as the Power BI reports. Market-based scope 2 is an option
   (`scope2_method="market"`) that swaps scope 2 rows; it is never added to the total.
 - **Defence in depth for `run_sql`.** Three layers, each tested on its own:
   1. DuckDB parses the SQL and anything that is not exactly one `SELECT` is refused

@@ -50,6 +50,11 @@
         }
       ]
     },
+    "syncGroup": {
+      "groupName": "country",
+      "fieldChanges": true,
+      "filterChanges": true
+    },
     "drillFilterOtherVisuals": true
   }
 }

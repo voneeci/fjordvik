@@ -621,6 +621,23 @@ def redesign_cases():
              f"{month_names[int(start[4:6]) - 1]} {start[:4]}", contract=contract),
         case("report_footer", "Report Footer", "Data Jan 2023 to Dec 2025, monthly. Refreshed ", prefix=True),
     ]
+    pumps_sales = (sales("net_sales_eur", year=2025), sales("net_sales_eur", year=2024))
+    out += [
+        # The label of each step sits on top of its bar: after the step if it rose, before if it fell.
+        case("bridge_label_sales_prices_2025", "Bridge Label Position (EUR)", m24 + b25["price"],
+             year=2025, step="Sales prices", tolerance=0.01),
+        case("bridge_label_mix_2025", "Bridge Label Position (EUR)", m24 + b25["price"],
+             year=2025, step="Mix", tolerance=0.01),
+        case("bridge_label_total_is_blank", "Bridge Label Position (EUR)", None, year=2025,
+             step="This year's margin"),
+        # Company averages ignore the product group a visual shows.
+        case("company_margin_under_a_group_2025", "Company Margin (%)", m25 / s25, year=2025,
+             group="Booster sets", tolerance=0.00001),
+        case("company_growth_under_a_group_2025", "Company Sales Growth (%)",
+             pumps_sales[0] / pumps_sales[1] - 1, year=2025, group="Booster sets", tolerance=0.00001),
+        case("company_score_under_a_group_2025", "Company Weighted Score", weighted_score(year=2025),
+             year=2025, group="Booster sets", tolerance=0.00001),
+    ]
     # Each step of the waterfall equals its measure, and the steps add from one total to the other.
     for name, value in steps:
         if value is not None:

@@ -16,8 +16,8 @@ the same model (`FjordvikEmissions.pbip`).
   own country's sites. The Group Sustainability Manager and portfolio governance see
   everything.
 - **One year at a time.** Each page opens on the latest full year (2025); pick another in
-  the **Year** slicer at the top right. The slicers filter that page only. Charts by month
-  or quarter always show all three years.
+  the **Year** slicer at the top right and every page follows (the Region and Family
+  choices too). Charts by month or quarter always show all three years.
 - **Under every headline number**: the same months a year earlier and the change on them,
   then the budget and the variance on it. A rate (margin %) moves in percentage points
   (pts).

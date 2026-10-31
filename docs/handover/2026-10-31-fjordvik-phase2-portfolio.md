@@ -156,9 +156,13 @@ and name the bridge steps as segment reports do.
 - **Model.** 72 new measures (134 in all): comparisons, budget, bridge, scorecard, text;
   `dim_bridge_step` and `dim_refresh` hold no figures. Desktop saved the model in its own
   form on opening it after the change (blank lines, diagram layout, language metadata).
-- **Not built:** labels on the two smallest waterfall steps (too short; the table gives
-  them), synced slicers across pages, average lines on the scatter charts, the gap list's
-  forecast, cost split, currency effect, segments and market share.
+- **Then finished (Reece asked the same evening):** every waterfall step labelled (an invisible
+  line along the step tops carries each value through a dynamic format string), Year,
+  Country and Region slicers synced across each report's pages, and dashed company-average
+  lines on the three scatter charts. Evidence: `powerbi/evidence/pytest-labels-sync-live-2026-10-31.txt`
+  (727 passed). All 17 pages are on [powerbi/docs/report-pages.md](../../powerbi/docs/report-pages.md).
+- **Not built:** the gap list's forecast, cost split, currency effect, customer segments
+  and market share (each needs data Fjordvik does not hold yet).
 
 Evidence: `powerbi/evidence/pytest-redesign-live-2026-10-31.txt` (701 passed, Desktop open
 and refreshed), `powerbi/evidence/pytest-redesign-offline-2026-10-31.txt` (553 passed, 148

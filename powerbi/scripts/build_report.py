@@ -137,9 +137,12 @@ LABELS_K = label_units(1000, 0)
 
 
 def chart(kind, name, x, y, w, h, z, category, values, series=None, sort_by_value=False,
-          title=None, colours=None, labels=False, legend=False, extra=None, sort_field=None):
+          title=None, colours=None, labels=False, legend=False, extra=None, sort_field=None,
+          line_values=None):
     state = {"Category": {"projections": [projection(category, active=True)]},
              "Y": {"projections": [projection(v) for v in values]}}
+    if line_values:
+        state["Y2"] = {"projections": [projection(v) for v in line_values]}
     if series:
         state["Series"] = {"projections": [projection(series)]}
     sort_on = sort_field or (values[0] if sort_by_value else category)
@@ -152,14 +155,29 @@ def chart(kind, name, x, y, w, h, z, category, values, series=None, sort_by_valu
     return container(name, x, y, w, h, z, visual)
 
 
-def scatter(name, x, y, w, h, z, details, x_field, y_field, size=None, title=None, colour=None):
-    """One bubble per item: two measures against each other, size for a third."""
+def average_line(m, label):
+    """A dashed reference line whose value is a measure (the company average), labelled."""
+    return [{"properties": {
+        "show": lit("true"), "value": {"expr": field_expr(measure(m))},
+        "lineColor": fill(PREVIOUS), "style": lit("'dashed'"), "transparency": lit("0D"),
+        "displayName": text(label), "dataLabelShow": lit("true"), "dataLabelColor": fill(TEXT_MID),
+        "dataLabelText": lit("'ValueAndName'")}, "selector": {"id": "1"}}]
+
+
+def scatter(name, x, y, w, h, z, details, x_field, y_field, size=None, title=None, colour=None,
+            x_average=None, y_average=None):
+    """One bubble per item: two measures against each other, size for a third, and dashed
+    company-average lines (measures) splitting the chart into quadrants."""
     state = {"Category": {"projections": [projection(details, active=True)]},
              "X": {"projections": [projection(x_field)]},
              "Y": {"projections": [projection(y_field)]}}
     if size:
         state["Size"] = {"projections": [projection(size)]}
     extra = {"categoryLabels": [{"properties": {"show": lit("true")}}]}
+    if x_average:
+        extra["xAxisReferenceLine"] = average_line(x_average, "Company")
+    if y_average:
+        extra["y1AxisReferenceLine"] = average_line(y_average, "Company")
     return container(name, x, y, w, h, z, style(
         {"visualType": "scatterChart", "query": {"queryState": state}, "drillFilterOtherVisuals": True},
         title, [(None, colour or ACCENT)], extra=extra))
@@ -243,6 +261,7 @@ def slicer(name, x, y, w, h, z, field, default=None):
         "visualType": "slicer",
         "query": {"queryState": {"Values": {"projections": [projection(field, active=True)]}}},
         "objects": objects,
+        "syncGroup": {"groupName": field[1], "fieldChanges": True, "filterChanges": True},
         "drillFilterOtherVisuals": True})
 
 
@@ -779,6 +798,7 @@ def portfolio_overview():
 
 
 # Fills light enough for dark labels (4.3:1 or more) and dark enough to see on white (3:1).
+LABEL_LINE = "Bridge Label Position (EUR)"
 BRIDGE = [("Bridge Base (EUR)", "#FFFFFF"), ("Bridge Prior Year Total (EUR)", PREVIOUS),
           ("Bridge Increase (EUR)", "#4C9A50"), ("Bridge Decrease (EUR)", "#D0555B"),
           ("Bridge This Year Total (EUR)", "#5B8DB8")]
@@ -794,13 +814,20 @@ def price_volume_mix():
                 ("Margin vs Budget (EUR)", "Against budget (EUR)", "Margin Budget Context", 1000000, None)]),
         # A waterfall drawn as stacked columns: an invisible base lifts each step to where the
         # running total stands, so the bars run from prior-year margin to this year's margin.
-        chart("columnChart", "waterfall_margin", 20, 198, 700, 194, 400, STEP,
+        chart("lineStackedColumnComboChart", "waterfall_margin", 20, 198, 700, 194, 400, STEP,
               [measure(m) for m, _c in BRIDGE],
               title="Margin bridge: prior year to this year (EUR)",
-              colours=[(for_measure(m), c) for m, c in BRIDGE], sort_field=column("dim_bridge_step", "step_order"),
+              colours=[(for_measure(m), c) for m, c in BRIDGE] + [(for_measure(LABEL_LINE), "#FFFFFF")],
+              sort_field=column("dim_bridge_step", "step_order"), line_values=[measure(LABEL_LINE)],
               extra={"labels": [{"properties": {"show": lit("true"), "labelDisplayUnits": lit("1000000D"),
-                                                "labelPrecision": lit("1L"), "labelOverflow": lit("true"),
-                                                "color": fill(TEXT_DARK)}}] + hide_base,
+                                                "labelPrecision": lit("1L"), "color": fill(TEXT_DARK)}}]
+                     + hide_base + [{"properties": {"show": lit("false")}, "selector": for_measure(m)}
+                                    for m in ("Bridge Increase (EUR)", "Bridge Decrease (EUR)")]
+                     + [{"properties": {"show": lit("true"), "labelPosition": lit("'Above'"),
+                                        "labelDisplayUnits": lit("1D")},
+                         "selector": for_measure(LABEL_LINE)}],
+                     "lineStyles": [{"properties": {"strokeWidth": lit("0L"), "showMarker": lit("false")}}],
+                     "valueAxis": [{"properties": {"secShow": lit("false")}}],
                      "legend": [{"properties": {"show": lit("false")}}]}),
         table("table_effects_by_family", 740, 198, 520, 194, 500, [
             FAMILY, labelled("Price Effect (EUR)", "Prices"),
@@ -839,7 +866,8 @@ def portfolio_balance():
         scatter("scatter_growth_margin", 600, CONTENT, 660, 330, 400, GROUP,
                 labelled("Sales Growth vs Prior Year (%)", "Sales growth on the prior year"),
                 labelled("Margin (%)", "Margin"), size=measure("Net Sales (EUR)"),
-                title="Growth against margin by product group (bubble size: net sales)"),
+                title="Growth against margin by product group (bubble size: net sales; dashed: company)",
+                x_average="Company Sales Growth (%)", y_average="Company Margin (%)"),
         matrix("matrix_share_family_region", 600, 444, 660, 240, 500, [FAMILY], [REGION],
                [measure("Share of Net Sales (%)")], title="Share of net sales by family and region (%)",
                shading="Share of Net Sales (%)"),
@@ -868,7 +896,8 @@ def scorecard():
             sort=(column("dim_score_criterion", "weight"), "Descending")),
         scatter("scatter_score_margin", 800, 304, 460, 380, 600, GROUP,
                 labelled("Weighted Score", "Score"), labelled("Margin (%)", "Margin"),
-                title="Score against margin: a high score with a weak margin stands out"),
+                title="Score against margin (dashed: company)",
+                x_average="Company Weighted Score", y_average="Company Margin (%)"),
     ]
 
 
@@ -886,8 +915,9 @@ def product_sustainability():
         scatter("scatter_margin_emissions", 440, 200, 420, 264, 500, GROUP,
                 labelled("Margin (%)", "Margin"),
                 labelled("Use-phase Emissions per Thousand EUR (tCO2e)", "Use-phase per EUR 1,000"),
-                title="Margin against tCO2e per EUR 1,000 of sales",
-                colour=SCOPE_COLOURS[3]),
+                title="Margin against tCO2e per EUR 1,000 (dashed: company)",
+                colour=SCOPE_COLOURS[3], x_average="Company Margin (%)",
+                y_average="Company Use-phase Emissions per Thousand EUR (tCO2e)"),
         chart("clusteredBarChart", "bar_use_phase_by_region", 880, 200, 380, 264, 600, REGION,
               [measure("Use-phase Emissions (tCO2e)")], sort_by_value=True,
               title="By region of use; Rest of world not calculated (tCO2e)",

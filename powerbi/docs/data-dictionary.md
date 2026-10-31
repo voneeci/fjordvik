@@ -506,6 +506,18 @@ DIVIDE ( [Net Sales (EUR)], CALCULATE ( [Net Sales (EUR)], REMOVEFILTERS ( dim_p
 DIVIDE ( [Margin (EUR)], CALCULATE ( [Margin (EUR)], REMOVEFILTERS ( dim_product ), REMOVEFILTERS ( dim_product_group ), REMOVEFILTERS ( dim_region ) ) )
 ```
 
+**Company Margin (%)**: Margin % for all product groups together, whatever group or product a visual shows: the company average line on the scatter charts. Format: `0.0%`.
+
+```dax
+CALCULATE ( [Margin (%)], REMOVEFILTERS ( dim_product_group ), REMOVEFILTERS ( dim_product ) )
+```
+
+**Company Sales Growth (%)**: Sales growth on the prior year for all product groups together: the company average line. Format: `0.0%`.
+
+```dax
+CALCULATE ( [Sales Growth vs Prior Year (%)], REMOVEFILTERS ( dim_product_group ), REMOVEFILTERS ( dim_product ) )
+```
+
 ### Product sustainability
 
 **Use-phase Emissions (tCO2e)**: Scope 3 category 11: the lifetime electricity of the pumps sold, at the grid factor of the region of use (GHG Protocol direct use-phase method). Rest of world is not calculated. Factors are illustrative. Format: `#,0.0`.
@@ -524,6 +536,12 @@ DIVIDE ( [Use-phase Emissions (tCO2e)], SUM ( fact_use_phase[units] ) )
 
 ```dax
 DIVIDE ( [Use-phase Emissions (tCO2e)], DIVIDE ( SUM ( fact_use_phase[net_sales_eur] ), 1000 ) )
+```
+
+**Company Use-phase Emissions per Thousand EUR (tCO2e)**: Use-phase emissions per thousand euros of sales for all product groups together: the company average line. Format: `#,0.00`.
+
+```dax
+CALCULATE ( [Use-phase Emissions per Thousand EUR (tCO2e)], REMOVEFILTERS ( dim_product_group ), REMOVEFILTERS ( dim_product ) )
 ```
 
 ### Scorecard
@@ -546,6 +564,12 @@ RETURN
 
 ```dax
 IF ( NOT ISBLANK ( [Weighted Score Prior Quarter] ), [Weighted Score] - [Weighted Score Prior Quarter] )
+```
+
+**Company Weighted Score**: Weighted score of all product groups together: the average line on the score against margin chart. Format: `0.0`.
+
+```dax
+CALCULATE ( [Weighted Score], REMOVEFILTERS ( dim_product_group ) )
 ```
 
 ### Budget
@@ -645,6 +669,17 @@ IF ( SELECTEDVALUE ( dim_bridge_step[step] ) = "Prior-year margin", [Bridge Valu
 
 ```dax
 IF ( SELECTEDVALUE ( dim_bridge_step[step] ) = "This year's margin", [Bridge Value (EUR)] )
+```
+
+**Bridge Label Position (EUR)**: Where each waterfall step's label sits: the top of the step's bar. Its format string turns the label into the step's own value (for example +4.4M), so even a step too short to hold a label inside its bar is labelled above it. Format: ``.
+
+```dax
+VAR ThisStep = SELECTEDVALUE ( dim_bridge_step[step_order] )
+VAR StepStart = SUMX ( FILTER ( ALL ( dim_bridge_step ), dim_bridge_step[step_order] < ThisStep ), CALCULATE ( [Bridge Value (EUR)] ) )
+VAR StepValue = [Bridge Value (EUR)]
+VAR IsTotal = SELECTEDVALUE ( dim_bridge_step[step] ) IN { "Prior-year margin", "This year's margin" }
+RETURN
+	IF ( NOT IsTotal && NOT ISBLANK ( StepValue ), MAX ( StepStart, StepStart + StepValue ) )
 ```
 
 ### Text

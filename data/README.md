@@ -8,7 +8,7 @@ every month. This folder holds the one dataset behind those figures: 36 months (
 headcount, the value chain (market-based scope 2 from energy contracts, and scope 3 from
 purchases, freight, the upstream emissions of the energy used and the lifetime electricity
 of the pumps sold), and the product portfolio: sales by product and region from the
-enterprise resource planning (ERP) system, cleaned and reconciled to finance by SQL. The Power BI report, the Claude connector and the
+enterprise resource planning (ERP) system, cleaned and reconciled to finance by SQL. The Power BI reports, the Claude connector and the
 intake checks all read it, so every answer comes from the same numbers. All four parts are
 folders of the [fjordvik](https://github.com/voneeci/fjordvik) repository:
 
@@ -125,7 +125,7 @@ flowchart LR
     G[("Governed dataset<br/>tables/: 22 CSV files<br/>+ manifest.json")]
     subgraph OUT["Read by"]
         direction TB
-        H["Power BI report<br/>powerbi/"]
+        H["Power BI reports<br/>powerbi/"]
         I["Claude connector<br/>mcp/"]
         J["Intake checks<br/>power-automate/"]
     end

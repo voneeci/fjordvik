@@ -73,7 +73,7 @@ UNITLESS = {"Average FTE", "Emission Rows", "Sites Reporting", "Units Sold",
             # Added with the report redesign (31 October 2026): planned units, open issues and
             # scorecard points are counts or scores, with no unit to bracket.
             "Budget Units", "Open Data Issues", "Weighted Score Prior Quarter",
-            "Weighted Score Change vs Prior Quarter"}
+            "Weighted Score Change vs Prior Quarter", "Company Weighted Score"}
 # Text measures (display folder "Text") build the words on the report: card context lines,
 # page titles and the footer. They return text, so they carry no unit and no number format
 # (report redesign, 31 October 2026).
@@ -99,6 +99,8 @@ def parse_tables():
                 measures[m.group(1)] = current
             elif current is not None and line.startswith("\t\t\t"):
                 current["dax"] += "\n" + line.strip()
+            elif current is not None and line.startswith("\t\tformatStringDefinition ="):
+                current["props"]["formatStringDefinition"] = line.split("=", 1)[1].strip()
             elif current is not None and line.startswith("\t\t") and ":" in line:
                 key, value = line.strip().split(":", 1)
                 current["props"][key] = value.strip()
@@ -136,7 +138,10 @@ def test_measure_has_description_format_and_folder(name):
     assert m["description"], "no /// description"
     assert m["props"].get("displayFolder"), "no displayFolder"
     if m["props"]["displayFolder"] != TEXT_FOLDER:
-        assert m["props"].get("formatString"), "no formatString"
+        # A dynamic format string (formatStringDefinition) is a format too: the waterfall's
+        # label position shows each step's value through one (31 October 2026).
+        assert m["props"].get("formatString") or m["props"].get("formatStringDefinition"), \
+            "no formatString"
 
 
 @pytest.mark.parametrize("name", sorted(MEASURES))

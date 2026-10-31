@@ -22,6 +22,8 @@ Project (PBIP): plain text files in git, written in Tabular Model Definition Lan
 
 ![Overview page of the emissions report](docs/images/overview.jpg)
 
+**[See all 17 pages of both reports, full size](docs/report-pages.md).**
+
 ## Problem
 
 Fjordvik's charts used to be built by hand from copies of a central spreadsheet. Each
@@ -49,7 +51,9 @@ check.
   `FjordvikEmissions.pbip` and `FjordvikPortfolio.pbip` read the same semantic model, so a
   figure is defined once and both audiences see the same number.
 - **One year at a time.** Every Year slicer is single-select and opens on the latest full
-  year (2025); charts by month, quarter or year ignore it and keep all three years. With
+  year (2025), and a choice on one page carries to every page of the report (Year, Country
+  and Region slicers are synced); charts by month, quarter or year ignore it and keep all
+  three years. With
   "All" years selected, cards used to add three years together and the prior-year
   comparisons broke.
 - **Every headline number has its comparison** underneath: the same months a year earlier
@@ -63,7 +67,8 @@ check.
   label and axis text to 4.5:1 contrast or more on white, at 10 points or larger; the
   defaults measured about 1.5:1 for titles. One colour system: scopes, countries and sites
   keep their colours, families and energy carriers have their own, previous periods are
-  grey, and a variance is green or red and always carries a sign.
+  grey, and a variance is green or red and always carries a sign. The three scatter charts
+  have dashed company-average lines (measures), splitting them into quadrants.
 - **Portfolio tables:** `dim_product` in a global hierarchy (`dim_product_group`: family
   and group), `dim_region`, `fact_sales` cleaned by SQL from the simulated ERP extract,
   `fact_budget` (Fjordvik's plan by month, site, product group and region), `fact_data_issue`,
@@ -73,7 +78,9 @@ check.
   earlier as the standard, product by product; prior-year margin plus the effects equals
   this year's margin exactly. The page draws it as a waterfall from prior-year margin
   through sales prices, mix, delivery volumes (quantity), variable costs (cost per unit) and
-  not comparable to this year's margin. The bridge table's mix and quantity are worked out
+  not comparable to this year's margin. Every step is labelled above its bar, however short:
+  an invisible line runs along the top of the steps, and its labels show each step's value
+  through a dynamic format string. The bridge table's mix and quantity are worked out
   within each product group, so every row and every column adds up; a note under it gives
   the mix between groups that the company-level waterfall also holds.
 - **Location-based totals, market-based beside them.** `Total Emissions (tCO2e)` adds
@@ -122,7 +129,7 @@ FjordvikPortfolio.Report/definition/          PBIR: portfolio report, 7 pages, 9
                                                     │
                Power BI Desktop (local engine) <────┘
                        ▲
-  tests/test_measures_live.py ──run_dax.ps1──┘  148 DAX queries, compared with tests/expected.py
+  tests/test_measures_live.py ──run_dax.ps1──┘  154 DAX queries, compared with tests/expected.py
 ```
 
 Emissions report (`FjordvikEmissions.pbip`):
@@ -172,7 +179,7 @@ You need Power BI Desktop (free, Microsoft Store) and Python 3.10 or newer with 
 python -m pytest
 ```
 
-The offline tests always run. The 148 live measure tests run when Power BI Desktop has the
+The offline tests always run. The 154 live measure tests run when Power BI Desktop has the
 model open and refreshed (either report); otherwise they are skipped.
 
 To change either report, edit `scripts/build_report.py` and run it; to refresh the data
@@ -183,16 +190,16 @@ dictionary after a model change, run `scripts/build_data_dictionary.py`. Close D
 
 ```
 python -m pytest -q
-701 passed in 5.90s
+727 passed in 6.06s
 ```
 
 (31 October 2026, Power BI Desktop open and refreshed; raw output in
-`evidence/pytest-redesign-live-2026-10-31.txt`.)
+`evidence/pytest-labels-sync-live-2026-10-31.txt`.)
 
 | Test file | What it proves |
 | --- | --- |
-| `test_measures_live.py` (148) | Since the redesign also: budget and the variances on it (and the Nordics role sees only its budget), every bridge step and the waterfall's totals and base, mix and quantity within groups (they add to the volume effect), the mix between groups, the score of the prior quarter and its change, open issues, operational emissions per FTE, the market-minus-location difference, sales growth, and the exact words of card context lines, page titles, the contract months and the footer. Before it: every measure, run as DAX against the open model, matches an independent Python calculation from the CSVs: sales, margin and average price; every bridge effect for the company, a family and a month with a quarantined line (not comparable); shares; use-phase per unit and per euro; the weighted score; sales reconciliation; each region role (own sales only, blank site figures); market-based scope 2 and total (zero for Gothenburg's electricity, blank under a scope 1 filter), guarantee of origin kWh and share, each scope 3 category measure, spend, tonne-km and emissions per thousand euros, totals under a scope 3 category filter (blank for category 11), RLS on the new tables; totals by year, scope, site and country; the scope and source measures under a conflicting filter (blank); reconciliation; revenue, average FTE and both intensities; blank per-euro intensity for the head office; prior year (blank for 2023); like-for-like change for the company, for Tartu and across all years; change including new sites (Tartu's first year counts in full; blank for 2023); each activity measure in its own unit; row and site counts; and each security role, including that the Sweden role sees nothing when filtered to Finland |
-| `test_model_files.py` (550) | Table and column names match the shared schema; every measure has a description and display folder, and every number measure a format string and its unit in its name; measures divide with `DIVIDE()` and contain no typed-in rates (only unit conversions, the date-key shift and zero); three country roles; in both reports, every field a visual uses exists in the model, page and visual names follow the PBIR rules, every page has page buttons, a footer with the synthetic-data caveat and the theme, every Year slicer opens on one year, and every link between visuals names visuals that exist; the report files are exactly what `build_report.py` writes |
+| `test_measures_live.py` (154) | Since the redesign also: where each waterfall label sits (blank for the two totals), the company averages under a product group filter, budget and the variances on it (and the Nordics role sees only its budget), every bridge step and the waterfall's totals and base, mix and quantity within groups (they add to the volume effect), the mix between groups, the score of the prior quarter and its change, open issues, operational emissions per FTE, the market-minus-location difference, sales growth, and the exact words of card context lines, page titles, the contract months and the footer. Before it: every measure, run as DAX against the open model, matches an independent Python calculation from the CSVs: sales, margin and average price; every bridge effect for the company, a family and a month with a quarantined line (not comparable); shares; use-phase per unit and per euro; the weighted score; sales reconciliation; each region role (own sales only, blank site figures); market-based scope 2 and total (zero for Gothenburg's electricity, blank under a scope 1 filter), guarantee of origin kWh and share, each scope 3 category measure, spend, tonne-km and emissions per thousand euros, totals under a scope 3 category filter (blank for category 11), RLS on the new tables; totals by year, scope, site and country; the scope and source measures under a conflicting filter (blank); reconciliation; revenue, average FTE and both intensities; blank per-euro intensity for the head office; prior year (blank for 2023); like-for-like change for the company, for Tartu and across all years; change including new sites (Tartu's first year counts in full; blank for 2023); each activity measure in its own unit; row and site counts; and each security role, including that the Sweden role sees nothing when filtered to Finland |
+| `test_model_files.py` (570) | Table and column names match the shared schema; every measure has a description and display folder, and every number measure a format string and its unit in its name; measures divide with `DIVIDE()` and contain no typed-in rates (only unit conversions, the date-key shift and zero); three country roles; in both reports, every field a visual uses exists in the model, page and visual names follow the PBIR rules, every page has page buttons, a footer with the synthetic-data caveat and the theme, every Year slicer opens on one year, and every link between visuals names visuals that exist; the report files are exactly what `build_report.py` writes |
 | `test_docs.py`, `test_data.py` (3) | The data dictionary matches the model; the shared data matches its manifest's checksums, and `DataFolder` points at it |
 
 The tests were checked by planting mistakes: a typed-in factor (`* 0.95`) in a measure and
@@ -228,11 +235,8 @@ exposed a fault in the first version of the change measure, which compared Tartu
 - **The bridge mixes units** across families at company level (pumps and spare parts), so
   the company mix and delivery volumes steps are large and offset; the note under the bridge
   table gives the shift between groups. Pick one family for a cleaner mix.
-- **Small waterfall steps have no label** when the bar is too short to hold one (sales
-  prices and variable costs in 2025); the bridge table under it gives every value.
 - **The budget is by product group**, so it is blank for a single product and the same for
   every product of a group.
-- **Year slicers are not synced across pages**: each page opens on 2025 by itself.
 - **Plan only, no forecast**: actual against budget and prior year; a year-end forecast
   needs data Fjordvik does not hold yet.
 - **Incremental refresh is designed, not built**: it needs a database source.

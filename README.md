@@ -13,13 +13,14 @@ hand, that is slow, error-prone and hard to trust: a unit slip makes a line 1,00
 too big, copies of the central file drift, and country managers see all or nothing.
 
 This project automates and governs that routine. Power Automate flows collect and check
-each site's file against ten written rules, a Power BI model and report give management
-and each country manager one tested set of figures, and a Claude connector answers
-plain-language questions from the same data. It covers 36 months, January 2023 to
+each site's file against ten written rules, one Power BI model with two reports (emissions
+and product portfolio) gives management, country managers and product managers one tested
+set of figures, and a Claude connector answers plain-language questions from the same data. It covers 36 months, January 2023 to
 December 2025: scope 1, location-based and market-based scope 2, and scope 3 categories
 1, 3, 4, 5, 6, 9 and 11, with every category not yet calculated listed with its reason; and
 product sales from a simulated Oracle ERP extract, cleaned and reconciled by SQL, with
-price, volume and mix, portfolio balance and a quarterly scorecard.
+price, volume and mix against last year and budget, portfolio balance and a quarterly
+scorecard.
 
 > **Synthetic data only.** Fjordvik Manufacturing Oy is a fictional company, and this is a
 > portfolio project. No real company, client or person is described. The emission factors
@@ -27,17 +28,25 @@ price, volume and mix, portfolio balance and a quarterly scorecard.
 
 | Folder | What it shows | Tests |
 | --- | --- | --- |
-| [`data`](data) | The governed dataset: 22 tables with fixed names, checksums and quality tests, and the SQL that cleans the simulated ERP extract | 58 |
+| [`data`](data) | The governed dataset: 22 tables with fixed names, checksums and quality tests, and the SQL that cleans the simulated ERP extract | 60 |
 | [`mcp`](mcp) | A Model Context Protocol (MCP) server that gives Claude seven read-only tools over the data (Python, DuckDB), in Claude Desktop or over HTTP with sign-in and per-role access | 76 |
-| [`powerbi`](powerbi) | A Power BI Project: one semantic model in Tabular Model Definition Language (TMDL), 134 Data Analysis Expressions (DAX) measures, seven row-level security roles, and two reports on it (emissions, 10 pages; portfolio, 7 pages) | 701 (148 need Power BI Desktop open) |
+| [`powerbi`](powerbi) | A Power BI Project: one semantic model in Tabular Model Definition Language (TMDL), 134 Data Analysis Expressions (DAX) measures, seven row-level security roles, and two reports on it (emissions, 10 pages; portfolio, 7 pages) | 727 (154 need Power BI Desktop open) |
 | [`power-automate`](power-automate) | Power Automate intake and reminder flows with ten written rules, designed and tested offline | 26 |
 
 Each folder has its own README with the problem, approach, architecture, test evidence
 and limitations. [docs/learning-guide.md](docs/learning-guide.md) sets out the business
 need and the data, then explains how each part was built and why each main decision was
 made. The [process map](https://voneeci.github.io/fjordvik/docs/process-map.html) shows the
-whole monthly process, from energy being used to the Power BI report, with the owner,
+whole monthly process, from energy being used to the Power BI reports, with the owner,
 tool, data and checks for each step (source: [docs/process-map.html](docs/process-map.html)).
+
+## What the reports look like
+
+Every page title is a sentence worked out from the data, every headline number sits beside
+last year (and budget, for the portfolio), and each page opens on the latest full year.
+**[See all 17 pages, full size](powerbi/docs/report-pages.md).**
+
+[![The Price, volume and mix page: a waterfall from last year's margin to this year's](powerbi/docs/images/pages/portfolio-03-price-volume-mix.jpg)](powerbi/docs/report-pages.md)
 
 ## How the parts fit
 
@@ -74,7 +83,7 @@ flowchart LR
 | 1. Data arrives | Each month, sites upload a workbook of what they used; finance, HR, purchasing, logistics and the ERP send their exports | Described in [data/README.md](data/README.md) |
 | 2. Checks | Site files pass ten written rules before they are loaded; the ERP sales extract is cleaned by SQL and must add up to finance revenue to the cent | [power-automate](power-automate), [data/sql](data/sql) |
 | 3. One dataset | Everything lands in 22 tables with fixed names, and a manifest of checksums proves nobody edited them by hand | [data/tables](data/tables) |
-| 4. Reading it | The Power BI report and the Claude connector read the same files, so they always show the same numbers | [powerbi](powerbi), [mcp](mcp) |
+| 4. Reading it | The two Power BI reports and the Claude connector read the same files, so they always show the same numbers | [powerbi](powerbi), [mcp](mcp) |
 
 ## How to run it on your own computer
 
@@ -127,7 +136,7 @@ python -m venv .venv
 .venv\Scripts\python -m pytest -q
 ```
 
-**powerbi** (the report's model and measures):
+**powerbi** (the model, its measures and both reports):
 
 ```powershell
 cd powerbi
@@ -146,18 +155,19 @@ python -m venv .venv
 ```
 
 Each should end with a line such as `60 passed`: 60 for data, 76 for mcp, 26 for
-power-automate, and 553 for powerbi (with 148 skipped until Power BI Desktop is open).
+power-automate, and 573 for powerbi (with 154 skipped until Power BI Desktop is open).
 On macOS or Linux, use `.venv/bin/python` in place of `.venv\Scripts\python`.
 
-### 4. Open the Power BI report
+### 4. Open the Power BI reports
 
-1. Open `powerbi\FjordvikEmissions.pbip` in Power BI Desktop.
+1. Open `powerbi\FjordvikEmissions.pbip` (emissions) or `powerbi\FjordvikPortfolio.pbip`
+   (product portfolio) in Power BI Desktop, one at a time; both read the same model.
 2. The report reads the CSV files through a parameter that points at the author's folder.
    Select **Transform data**, then **Edit parameters**, and set **DataFolder** to your
    copy's `data\tables` folder, for example `C:\Users\you\fjordvik\data\tables` (no
    backslash at the end).
 3. Select **Refresh** on the Home tab. The Introduction page explains every page.
-4. With the report open and refreshed, run the powerbi tests again: the 148 live tests now
+4. With a report open and refreshed, run the powerbi tests again: the 154 live tests now
    run too, comparing every measure with an independent Python calculation.
 5. Close Power BI Desktop with **Don't save** if you only wanted to look; saving rewrites
    the project files.
