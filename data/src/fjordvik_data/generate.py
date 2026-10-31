@@ -1,4 +1,4 @@
-"""Build the five Fjordvik tables and write them as CSV files.
+"""Build the Fjordvik tables and write them as CSV files.
 
 Run with:  python -m fjordvik_data --out tables
 
@@ -19,15 +19,29 @@ from pathlib import Path
 
 from fjordvik_data import config as c
 
-GENERATOR_VERSION = "1.0.0"
+GENERATOR_VERSION = "1.1.0"
 
 COLUMNS = {
     "dim_date": ["date_key", "date", "year", "quarter", "month", "month_name"],
     "dim_site": ["site_id", "site_name", "country", "site_type"],
-    "dim_source": ["source_id", "source_name", "scope", "category"],
+    "dim_source": ["source_id", "source_name", "scope", "category",
+                   "scope3_category", "method"],
     "fact_emissions": ["date_key", "site_id", "source_id", "activity_amount",
                        "unit", "emission_factor", "tco2e"],
     "fact_site_metrics": ["date_key", "site_id", "revenue_eur", "fte"],
+    "dim_scope3_category": ["scope3_category", "category_name", "status", "reason"],
+    "dim_contract": ["contract_id", "site_id", "source_id", "supplier_name", "instrument",
+                     "start_date_key", "end_date_key", "covered_share"],
+    "fact_scope2_market": ["date_key", "site_id", "source_id", "contract_id", "instrument",
+                           "activity_amount", "unit", "emission_factor", "tco2e"],
+    "fact_energy_upstream": ["date_key", "site_id", "source_id", "based_on_source_id",
+                             "activity_amount", "unit", "emission_factor", "tco2e"],
+    "dim_supplier": ["supplier_id", "supplier_name", "country", "spend_category"],
+    "fact_purchases": ["date_key", "site_id", "source_id", "supplier_id", "spend_category",
+                       "method", "activity_amount", "unit", "emission_factor", "tco2e"],
+    "fact_freight": ["date_key", "site_id", "source_id", "direction", "mode", "paid_by",
+                     "tonnes", "distance_km", "activity_amount", "unit", "emission_factor",
+                     "tco2e"],
 }
 
 
@@ -109,8 +123,9 @@ def build_dim_site() -> list[dict]:
 
 def build_dim_source() -> list[dict]:
     return [
-        {"source_id": s, "source_name": n, "scope": sc, "category": cat}
-        for s, n, sc, cat, _unit in c.SOURCES
+        {"source_id": s, "source_name": n, "scope": sc, "category": cat,
+         "scope3_category": c.SOURCE_METHOD[s][0], "method": c.SOURCE_METHOD[s][1]}
+        for s, n, sc, cat, _unit in c.SOURCES + c.VALUE_CHAIN_SOURCES
     ]
 
 
@@ -188,13 +203,146 @@ def build_fact_site_metrics() -> list[dict]:
     return rows
 
 
+def build_dim_scope3_category() -> list[dict]:
+    return [{"scope3_category": n, "category_name": name, "status": st, "reason": why}
+            for n, name, st, why in c.SCOPE3_CATEGORIES]
+
+
+def build_dim_contract() -> list[dict]:
+    return [
+        {"contract_id": cid, "site_id": site, "source_id": src, "supplier_name": who,
+         "instrument": inst, "start_date_key": date_key(start), "end_date_key": date_key(end),
+         "covered_share": share}
+        for cid, site, src, who, inst, start, end, share in c.CONTRACTS
+    ]
+
+
+def emission_row(row: dict, amount: float, unit: str, factor: float) -> dict:
+    """Fill the activity, unit, factor and tco2e columns the same way everywhere."""
+    amount = round(amount, 2)
+    return {**row, "activity_amount": amount, "unit": unit, "emission_factor": factor,
+            "tco2e": round(amount * factor / 1000, 6)}
+
+
+def build_fact_scope2_market(fact_emissions: list[dict]) -> list[dict]:
+    """Market-based scope 2 from the same kWh as location-based (Scope 2 Guidance):
+    kWh covered by a contract's guarantees of origin get the GO factor, the rest
+    the country's residual mix. Heat uses the network's declared value."""
+    country = {s: co for s, _n, co, _t, _f in c.SITES}
+    rows = []
+    for r in fact_emissions:
+        site, src, key = r["site_id"], r["source_id"], r["date_key"]
+        base = {"date_key": key, "site_id": site, "source_id": src}
+        if src == "S06":
+            rows.append(emission_row({**base, "contract_id": None,
+                                      "instrument": "Network declared value"},
+                                     r["activity_amount"], "kWh",
+                                     c.HEAT_NETWORK_FACTOR[country[site]]))
+        if src != "S05":
+            continue
+        covered = 0.0
+        for cid, c_site, c_src, _who, inst, start, end, share in c.CONTRACTS:
+            if c_site == site and c_src == src and date_key(start) <= key <= date_key(end):
+                covered = round(r["activity_amount"] * share, 2)
+                rows.append(emission_row({**base, "contract_id": cid, "instrument": inst},
+                                         covered, "kWh", c.GO_FACTOR))
+        rows.append(emission_row({**base, "contract_id": None, "instrument": "Residual mix"},
+                                 r["activity_amount"] - covered, "kWh",
+                                 c.RESIDUAL_MIX_FACTOR[country[site]]))
+    rows.sort(key=lambda r: (r["date_key"], r["site_id"], r["source_id"], r["instrument"]))
+    return rows
+
+
+def build_fact_energy_upstream(fact_emissions: list[dict]) -> list[dict]:
+    """Category 3 (a) and (c), worked out from the fuel and kWh already reported."""
+    country = {s: co for s, _n, co, _t, _f in c.SITES}
+    rows = []
+    for r in fact_emissions:
+        parent, site = r["source_id"], r["site_id"]
+        if parent in c.WTT_FACTOR:
+            source, factor = "S09", c.WTT_FACTOR[parent]
+        elif parent in c.TD_FACTOR:
+            source, factor = "S10", c.TD_FACTOR[parent][country[site]]
+        else:
+            continue
+        rows.append(emission_row({"date_key": r["date_key"], "site_id": site,
+                                  "source_id": source, "based_on_source_id": parent},
+                                 r["activity_amount"], r["unit"], factor))
+    rows.sort(key=lambda r: (r["date_key"], r["site_id"], r["source_id"],
+                             r["based_on_source_id"]))
+    return rows
+
+
+def build_dim_supplier() -> list[dict]:
+    return [{"supplier_id": s, "supplier_name": n, "country": co, "spend_category": cat}
+            for s, n, co, cat in c.SUPPLIERS]
+
+
+def build_fact_purchases() -> list[dict]:
+    category = {s: cat for s, _n, _co, cat in c.SUPPLIERS}
+    rows = []
+    for site_id, _name, _country, site_type, site_first in c.SITES:
+        for supplier_id, base in c.BASE_SPEND_EUR[site_id].items():
+            rng = rng_for(site_id, supplier_id, "spend")
+            cat = category[supplier_id]
+            for d in months():
+                if d < site_first:
+                    continue
+                i = months_between(c.FIRST_MONTH, d)
+                spend = base * noise(rng) * ramp(site_first, d)
+                if cat not in c.SERVICE_CATEGORIES:
+                    spend *= (1 + c.ANNUAL_OUTPUT_GROWTH) ** (i / 12)
+                    if site_type == "Manufacturing plant":
+                        spend *= c.SUMMER_SHUTDOWN_FACTOR.get(d.month, 1.0)
+                rows.append(emission_row(
+                    {"date_key": date_key(d), "site_id": site_id, "source_id": "S11",
+                     "supplier_id": supplier_id, "spend_category": cat,
+                     "method": c.SOURCE_METHOD["S11"][1]},
+                    spend, "EUR", c.SPEND_FACTOR[cat]))
+    rows.sort(key=lambda r: (r["date_key"], r["site_id"], r["supplier_id"]))
+    return rows
+
+
+def build_fact_freight() -> list[dict]:
+    rows = []
+    for site_id, _name, _country, site_type, site_first in c.SITES:
+        for direction, mode, paid_by, base, km in c.FREIGHT_LANES.get(site_id, []):
+            rng = rng_for(site_id, direction, mode, paid_by, "freight")
+            source = "S13" if (direction, paid_by) == ("Outbound", "Customer") else "S12"
+            for d in months():
+                if d < site_first:
+                    continue
+                i = months_between(c.FIRST_MONTH, d)
+                tonnes = base * noise(rng) * ramp(site_first, d)
+                tonnes *= (1 + c.ANNUAL_OUTPUT_GROWTH) ** (i / 12)
+                if site_type == "Manufacturing plant":
+                    tonnes *= c.SUMMER_SHUTDOWN_FACTOR.get(d.month, 1.0)
+                tonnes = round(tonnes, 2)
+                rows.append(emission_row(
+                    {"date_key": date_key(d), "site_id": site_id, "source_id": source,
+                     "direction": direction, "mode": mode, "paid_by": paid_by,
+                     "tonnes": tonnes, "distance_km": km},
+                    tonnes * km, "tonne-km", c.FREIGHT_FACTOR[mode]))
+    rows.sort(key=lambda r: (r["date_key"], r["site_id"], r["direction"], r["mode"],
+                             r["paid_by"]))
+    return rows
+
+
 def build_all() -> dict[str, list[dict]]:
+    emissions = build_fact_emissions()
     return {
         "dim_date": build_dim_date(),
         "dim_site": build_dim_site(),
         "dim_source": build_dim_source(),
-        "fact_emissions": build_fact_emissions(),
+        "fact_emissions": emissions,
         "fact_site_metrics": build_fact_site_metrics(),
+        "dim_scope3_category": build_dim_scope3_category(),
+        "dim_contract": build_dim_contract(),
+        "fact_scope2_market": build_fact_scope2_market(emissions),
+        "fact_energy_upstream": build_fact_energy_upstream(emissions),
+        "dim_supplier": build_dim_supplier(),
+        "fact_purchases": build_fact_purchases(),
+        "fact_freight": build_fact_freight(),
     }
 
 
@@ -208,6 +356,8 @@ FORMATS = {
     "tco2e": "{:.6f}",
     "revenue_eur": "{:.2f}",
     "fte": "{:.1f}",
+    "tonnes": "{:.2f}",
+    "covered_share": "{:.2f}",
 }
 
 
@@ -216,7 +366,9 @@ def write_csv(path: Path, columns: list[str], rows: list[dict]) -> None:
         w = csv.writer(f, lineterminator="\n")
         w.writerow(columns)
         for row in rows:
-            w.writerow([FORMATS.get(col, "{}").format(row[col]) for col in columns])
+            # None is written as an empty field: a blank, not the text "None"
+            w.writerow(["" if row[col] is None else FORMATS.get(col, "{}").format(row[col])
+                        for col in columns])
 
 
 def sha256(path: Path) -> str:
@@ -251,5 +403,5 @@ def main() -> None:
     args = parser.parse_args()
     manifest = write_all(args.out)
     for name, info in manifest["tables"].items():
-        print(f"{name:<18} {info['rows']:>5} rows")
+        print(f"{name:<21} {info['rows']:>5} rows")
     print(f"Written to {args.out.resolve()}")

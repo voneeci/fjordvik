@@ -49,6 +49,32 @@ def test_district_heating_peaks_in_winter(tables):
             assert heat[f"{year}0101"] > 2 * heat[f"{year}0701"], (site_id, year)
 
 
+def market_electricity(tables, site_id, year):
+    return sum(float(r["tco2e"]) for r in tables["fact_scope2_market"]
+               if r["site_id"] == site_id and r["source_id"] == "S05"
+               and r["date_key"].startswith(str(year)))
+
+
+def test_gothenburg_hydro_guarantees_cover_all_its_electricity(tables):
+    for year in (2023, 2024, 2025):
+        assert market_electricity(tables, "SE01", year) == 0.0
+
+
+def test_tampere_wind_guarantees_from_2025_cut_its_market_based_figure(tables):
+    """60% of Tampere's kWh is covered from January 2025, so its market-based
+    electricity falls to well under half of 2024's."""
+    assert market_electricity(tables, "FI01", 2025) < 0.5 * market_electricity(tables, "FI01", 2024)
+
+
+def test_purchased_goods_is_the_largest_category_counted(tables):
+    """As Jasila's note expects for a manufacturer (category 11 not yet calculated)."""
+    by_source = defaultdict(float)
+    for name in ("fact_emissions", "fact_energy_upstream", "fact_purchases", "fact_freight"):
+        for r in tables[name]:
+            by_source[r["source_id"]] += float(r["tco2e"])
+    assert max(by_source, key=by_source.get) == "S11"
+
+
 def test_revenue_grows_year_on_year_for_sites_open_all_period(tables):
     totals = defaultdict(float)
     for r in tables["fact_site_metrics"]:

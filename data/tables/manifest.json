@@ -1,6 +1,6 @@
 {
   "dataset": "Fjordvik Manufacturing Oy (synthetic)",
-  "generator_version": "1.0.0",
+  "generator_version": "1.1.0",
   "seed": 20230101,
   "period": "2023-01-01 to 2025-12-01",
   "emission_factors": "illustrative, not for real reporting",
@@ -17,8 +17,8 @@
     },
     "dim_source": {
       "file": "dim_source.csv",
-      "rows": 8,
-      "sha256": "03ace46acca1765c7a75e2f6c94d57c32ebc8b30938b50d630f477b2529da81e"
+      "rows": 13,
+      "sha256": "9f5ed22140237d6b4891fcb4b66d0d967d02971b45c4fcaa61bdc024ff774bc8"
     },
     "fact_emissions": {
       "file": "fact_emissions.csv",
@@ -29,6 +29,41 @@
       "file": "fact_site_metrics.csv",
       "rows": 198,
       "sha256": "b8d42f7af1259eafbe3884b9bb296eee3a213353bafaec04f93567c391c4c22e"
+    },
+    "dim_scope3_category": {
+      "file": "dim_scope3_category.csv",
+      "rows": 15,
+      "sha256": "4c31d762152e55118a8cf2ffbe19430ce676d3b8a2535dd9d6c64ee9c15802ce"
+    },
+    "dim_contract": {
+      "file": "dim_contract.csv",
+      "rows": 2,
+      "sha256": "2a5f5064a91afef07502bf8853e82969f081311846167c0416703d3583014f90"
+    },
+    "fact_scope2_market": {
+      "file": "fact_scope2_market.csv",
+      "rows": 444,
+      "sha256": "2ba2750f01dbe0ae2d6c69dd4cccbc023936c66fda4425bc34ad9a62fbc8987e"
+    },
+    "fact_energy_upstream": {
+      "file": "fact_energy_upstream.csv",
+      "rows": 828,
+      "sha256": "6c0d2c715ddec68f58fc061247470c5cc8cdde79d2467f88fd4f9d7a9bc9ff18"
+    },
+    "dim_supplier": {
+      "file": "dim_supplier.csv",
+      "rows": 14,
+      "sha256": "e143e9e034ba26dd7386943ce42441ca78ed7619615b51a53f69d6615cd22d2e"
+    },
+    "fact_purchases": {
+      "file": "fact_purchases.csv",
+      "rows": 864,
+      "sha256": "9d6d7046e1c510b4bf656ebfb811d1675fbebeda01ed303a484429eb70ba5598"
+    },
+    "fact_freight": {
+      "file": "fact_freight.csv",
+      "rows": 666,
+      "sha256": "2c0acc987a859eb10033005e7529863103fbde4d980f9471991c78027e64c837"
     }
   }
 }

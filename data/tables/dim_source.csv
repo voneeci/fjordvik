@@ -1,9 +1,14 @@
-source_id,source_name,scope,category
-S01,Natural gas,1,Stationary combustion
-S02,Diesel,1,Mobile combustion
-S03,Liquefied petroleum gas (LPG),1,Mobile combustion
-S04,Refrigerant leakage,1,Fugitive emissions
-S05,Purchased electricity,2,Purchased electricity
-S06,District heating,2,Purchased heat
-S07,Business flights,3,Business travel
-S08,Waste to landfill,3,Waste generated in operations
+source_id,source_name,scope,category,scope3_category,method
+S01,Natural gas,1,Stationary combustion,,Fuel quantity times factor
+S02,Diesel,1,Mobile combustion,,Fuel quantity times factor
+S03,Liquefied petroleum gas (LPG),1,Mobile combustion,,Fuel quantity times factor
+S04,Refrigerant leakage,1,Fugitive emissions,,Refrigerant mass times factor
+S05,Purchased electricity,2,Purchased electricity,,Location-based: grid average factor
+S06,District heating,2,Purchased heat,,Location-based: network average factor
+S07,Business flights,3,Business travel,6,Distance-based
+S08,Waste to landfill,3,Waste generated in operations,5,Waste-type-specific
+S09,Upstream emissions of purchased fuels,3,Fuel- and energy-related activities,3,Average-data: well-to-tank factors
+S10,Transmission and distribution losses,3,Fuel- and energy-related activities,3,Average-data: transmission and distribution loss factors
+S11,Purchased goods and services,3,Purchased goods and services,1,Spend-based
+S12,Freight paid by Fjordvik,3,Upstream transportation and distribution,4,Distance-based
+S13,Outbound freight paid by customers,3,Downstream transportation and distribution,9,Distance-based

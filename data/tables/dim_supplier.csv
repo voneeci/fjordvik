@@ -1,0 +1,15 @@
+supplier_id,supplier_name,country,spend_category
+SUP01,Castings supplier FI-1,Finland,Castings and steel
+SUP02,Castings supplier SE-1,Sweden,Castings and steel
+SUP03,Castings supplier EE-1,Estonia,Castings and steel
+SUP04,Machining supplier FI-1,Finland,Machined parts
+SUP05,Machining supplier SE-1,Sweden,Machined parts
+SUP06,Motor supplier DE-1,Germany,Motors and electronics
+SUP07,Electronics supplier EE-1,Estonia,Motors and electronics
+SUP08,Packaging supplier FI-1,Finland,Packaging
+SUP09,Packaging supplier SE-1,Sweden,Packaging
+SUP10,Packaging supplier EE-1,Estonia,Packaging
+SUP11,Facility services supplier FI-1,Finland,Maintenance and facility services
+SUP12,Facility services supplier SE-1,Sweden,Maintenance and facility services
+SUP13,Facility services supplier EE-1,Estonia,Maintenance and facility services
+SUP14,Professional services supplier FI-1,Finland,Professional services

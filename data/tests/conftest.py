@@ -3,6 +3,8 @@ from pathlib import Path
 
 import pytest
 
+from fjordvik_data.generate import COLUMNS
+
 DATA = Path(__file__).resolve().parents[1] / "tables"
 
 
@@ -19,5 +21,5 @@ def data_dir() -> Path:
 @pytest.fixture(scope="session")
 def tables() -> dict[str, list[dict]]:
     """The committed CSV files, read as text exactly as a consumer sees them."""
-    names = ["dim_date", "dim_site", "dim_source", "fact_emissions", "fact_site_metrics"]
+    names = list(COLUMNS)
     return {n: read(n) for n in names}

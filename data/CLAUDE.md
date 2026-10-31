@@ -26,5 +26,5 @@ folders of the fjordvik repository: mcp, powerbi and power-automate. Permanent r
 
 ```bash
 python -m fjordvik_data --out tables   # regenerate (after pip install -e ".[dev]")
-python -m pytest -q                  # 24 tests
+python -m pytest -q                  # 38 tests
 ```

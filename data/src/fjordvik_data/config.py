@@ -128,3 +128,189 @@ BASE_FTE = {
     "SE01": 165.0, "EE01": 190.0, "EE02": 28.0,
 }
 ANNUAL_FTE_GROWTH = 0.02
+
+# ===========================================================================
+# Value chain: market-based scope 2 and scope 3 categories 1, 3, 4 and 9.
+# Same rule as above: every factor here is ILLUSTRATIVE. Each block names the
+# published source a company would cite instead (see docs/emission-factors.md).
+# ===========================================================================
+
+# Sources that come from company systems, not from the site workbooks.
+# Same shape as SOURCES. S09 and S10 carry their parent source's unit.
+VALUE_CHAIN_SOURCES = [
+    ("S09", "Upstream emissions of purchased fuels", 3,
+     "Fuel- and energy-related activities", "kWh or litre"),
+    ("S10", "Transmission and distribution losses", 3,
+     "Fuel- and energy-related activities", "kWh"),
+    ("S11", "Purchased goods and services", 3, "Purchased goods and services", "EUR"),
+    ("S12", "Freight paid by Fjordvik", 3,
+     "Upstream transportation and distribution", "tonne-km"),
+    ("S13", "Outbound freight paid by customers", 3,
+     "Downstream transportation and distribution", "tonne-km"),
+]
+
+# GHG Protocol scope 3 category (None for scopes 1 and 2) and calculation
+# method of each source. Method names follow the GHG Protocol Technical
+# Guidance for Calculating Scope 3 Emissions (2013).
+SOURCE_METHOD = {
+    "S01": (None, "Fuel quantity times factor"),
+    "S02": (None, "Fuel quantity times factor"),
+    "S03": (None, "Fuel quantity times factor"),
+    "S04": (None, "Refrigerant mass times factor"),
+    "S05": (None, "Location-based: grid average factor"),
+    "S06": (None, "Location-based: network average factor"),
+    "S07": (6, "Distance-based"),
+    "S08": (5, "Waste-type-specific"),
+    "S09": (3, "Average-data: well-to-tank factors"),
+    "S10": (3, "Average-data: transmission and distribution loss factors"),
+    "S11": (1, "Spend-based"),
+    "S12": (4, "Distance-based"),
+    "S13": (9, "Distance-based"),
+}
+
+# The 15 scope 3 categories with Fjordvik's status for each. The GHG Protocol
+# Scope 3 Standard requires every excluded category to be listed with a reason.
+SCOPE3_CATEGORIES = [
+    (1, "Purchased goods and services", "Calculated",
+     "Spend-based, from the purchase ledger. Supplier-specific data should replace the "
+     "spend-based rows of the largest suppliers over time."),
+    (2, "Capital goods", "Not yet calculated",
+     "Relevant: needs capital spend by asset type from the fixed asset register, counted "
+     "in full in the year bought. Planned after categories 1, 3, 4 and 9."),
+    (3, "Fuel- and energy-related activities", "Calculated in part",
+     "Parts (a), upstream of purchased fuels, and (c), transmission and distribution "
+     "losses, are calculated from the fuel and kWh already reported. Part (b), upstream "
+     "of the fuels burnt to generate bought electricity and heat, is not calculated: no "
+     "source of these factors for Finland, Sweden or Estonia has been found. Part (d) "
+     "applies only to companies that resell energy."),
+    (4, "Upstream transportation and distribution", "Calculated",
+     "Distance-based (tonne-km) for all inbound freight and the outbound freight Fjordvik "
+     "pays for. No third-party warehouses: Fjordvik's own warehouses are in scopes 1 and 2."),
+    (5, "Waste generated in operations", "Calculated in part",
+     "Waste to landfill only. Recycling, incineration and hazardous waste need rows by "
+     "waste type and treatment from the waste contractors' reports."),
+    (6, "Business travel", "Calculated in part",
+     "Flights only. Rail, hire cars, private cars and hotel nights need the travel "
+     "agency's report and expense claims."),
+    (7, "Employee commuting", "Not yet calculated",
+     "Relevant but likely small: needs a yearly staff survey of distance, mode and days."),
+    (8, "Upstream leased assets", "Not relevant",
+     "Fjordvik leases no assets beyond its six sites, which are already in scopes 1 and 2."),
+    (9, "Downstream transportation and distribution", "Calculated",
+     "Distance-based (tonne-km) for outbound freight that customers pay for, identified "
+     "from the Incoterms on sales orders."),
+    (10, "Processing of sold products", "Not relevant",
+     "Fjordvik sells finished pumps and pump systems, which customers install rather "
+     "than process further."),
+    (11, "Use of sold products", "Not yet calculated",
+     "Relevant and likely the largest category: Fjordvik's pumps use electricity for many "
+     "years. Needs units sold by model and each model's yearly energy use and lifetime, "
+     "which the planned product and sales data will provide."),
+    (12, "End-of-life treatment of sold products", "Not yet calculated",
+     "Relevant but usually small: needs the mass and materials of products and packaging "
+     "sold, from the bill of materials."),
+    (13, "Downstream leased assets", "Not relevant", "Fjordvik does not lease out assets."),
+    (14, "Franchises", "Not relevant", "Fjordvik has no franchises."),
+    (15, "Investments", "Not relevant",
+     "Fjordvik holds no equity stakes, debt investments or project finance."),
+]
+
+# ---------------------------------------------------------------------------
+# Market-based scope 2. Named sources: AIB European Residual Mixes 2025 (FI, SE,
+# EE); Energimarknadsinspektionen residual mix 2025 (Sweden); Elering (Estonia);
+# for heat, each network's declared value (Energiföretagen local values 2025 in
+# Sweden). A guarantee of origin (GO) for renewable electricity carries a zero
+# generation factor under the GHG Protocol Scope 2 Guidance (2015).
+# ---------------------------------------------------------------------------
+# (contract_id, site_id, source_id, supplier_name, instrument, start, end, covered_share)
+CONTRACTS = [
+    ("C01", "SE01", "S05", "Electricity supplier SE-1 (synthetic)",
+     "Guarantee of origin (hydro)", date(2023, 1, 1), date(2027, 12, 1), 1.00),
+    ("C02", "FI01", "S05", "Electricity supplier FI-1 (synthetic)",
+     "Guarantee of origin (wind)", date(2025, 1, 1), date(2027, 12, 1), 0.60),
+]
+GO_FACTOR = 0.0  # per kWh covered by a renewable GO
+RESIDUAL_MIX_FACTOR = {"Finland": 0.350, "Sweden": 0.300, "Estonia": 0.650}  # per kWh
+HEAT_NETWORK_FACTOR = {"Finland": 0.140, "Sweden": 0.045, "Estonia": 0.240}  # per kWh
+
+# ---------------------------------------------------------------------------
+# Category 3. Named sources: UK Department for Energy Security and Net Zero
+# (DESNZ) conversion factors 2026, well-to-tank and transmission and
+# distribution (T&D); Joint Research Centre (JRC) 2019 fuel supply factors.
+# DESNZ T&D factors are for the UK grid; a company would need national loss
+# data for Finland, Sweden and Estonia.
+# ---------------------------------------------------------------------------
+WTT_FACTOR = {"S01": 0.030, "S02": 0.610, "S03": 0.190}  # per kWh or litre
+TD_FACTOR = {  # per kWh bought
+    "S05": {"Finland": 0.005, "Sweden": 0.001, "Estonia": 0.040},
+    "S06": {"Finland": 0.010, "Sweden": 0.003, "Estonia": 0.020},
+}
+
+# ---------------------------------------------------------------------------
+# Category 1, spend-based, from the purchase ledger. Named source: EXIOBASE 3
+# release 3.11.2 (check its licence); alternative US Supply Chain GHG Emission
+# Factors v1.4.0 (in US dollars). Factors in kg CO2e per euro spent.
+# ---------------------------------------------------------------------------
+SPEND_FACTOR = {
+    "Castings and steel": 1.20,
+    "Machined parts": 0.70,
+    "Motors and electronics": 0.45,
+    "Packaging": 0.60,
+    "Maintenance and facility services": 0.25,
+    "Professional services": 0.12,
+}
+# (supplier_id, supplier_name, country, spend_category). Names are synthetic.
+SUPPLIERS = [
+    ("SUP01", "Castings supplier FI-1", "Finland", "Castings and steel"),
+    ("SUP02", "Castings supplier SE-1", "Sweden", "Castings and steel"),
+    ("SUP03", "Castings supplier EE-1", "Estonia", "Castings and steel"),
+    ("SUP04", "Machining supplier FI-1", "Finland", "Machined parts"),
+    ("SUP05", "Machining supplier SE-1", "Sweden", "Machined parts"),
+    ("SUP06", "Motor supplier DE-1", "Germany", "Motors and electronics"),
+    ("SUP07", "Electronics supplier EE-1", "Estonia", "Motors and electronics"),
+    ("SUP08", "Packaging supplier FI-1", "Finland", "Packaging"),
+    ("SUP09", "Packaging supplier SE-1", "Sweden", "Packaging"),
+    ("SUP10", "Packaging supplier EE-1", "Estonia", "Packaging"),
+    ("SUP11", "Facility services supplier FI-1", "Finland", "Maintenance and facility services"),
+    ("SUP12", "Facility services supplier SE-1", "Sweden", "Maintenance and facility services"),
+    ("SUP13", "Facility services supplier EE-1", "Estonia", "Maintenance and facility services"),
+    ("SUP14", "Professional services supplier FI-1", "Finland", "Professional services"),
+]
+# Typical monthly spend in euros by site and supplier, before growth and noise.
+# Goods follow production (growth, July slowdown); services do not.
+BASE_SPEND_EUR = {
+    "FI01": {"SUP01": 690_000, "SUP04": 460_000, "SUP06": 690_000, "SUP08": 115_000,
+             "SUP11": 185_000, "SUP14": 160_000},
+    "FI02": {"SUP11": 40_000, "SUP14": 300_000},
+    "FI03": {"SUP08": 15_000, "SUP11": 20_000},
+    "SE01": {"SUP02": 560_000, "SUP05": 375_000, "SUP06": 560_000, "SUP09": 95_000,
+             "SUP12": 150_000, "SUP14": 130_000},
+    "EE01": {"SUP03": 460_000, "SUP04": 310_000, "SUP06": 230_000, "SUP07": 230_000,
+             "SUP10": 75_000, "SUP13": 125_000, "SUP14": 105_000},
+    "EE02": {"SUP10": 12_000, "SUP13": 15_000},
+}
+SERVICE_CATEGORIES = {"Maintenance and facility services", "Professional services"}
+
+# ---------------------------------------------------------------------------
+# Categories 4 and 9, distance-based, from freight invoices and the transport
+# management system. Named sources: Global Logistics Emissions Council (GLEC)
+# Framework v3.3; DESNZ 2026 freight factors. kg CO2e per tonne-km.
+# Inbound freight is category 4 whoever pays. Outbound freight is category 4
+# when Fjordvik pays and category 9 when the customer pays (Incoterms).
+# ---------------------------------------------------------------------------
+FREIGHT_FACTOR = {"Road": 0.100, "Rail": 0.025, "Sea": 0.015}
+# (direction, mode, paid_by, typical tonnes per month, average distance in km)
+FREIGHT_LANES = {
+    "FI01": [("Inbound", "Road", "Fjordvik", 900, 450), ("Inbound", "Sea", "Supplier", 300, 1600),
+             ("Outbound", "Road", "Fjordvik", 500, 600), ("Outbound", "Sea", "Customer", 250, 2500),
+             ("Outbound", "Road", "Customer", 150, 900)],
+    "FI03": [("Inbound", "Road", "Fjordvik", 80, 500), ("Outbound", "Road", "Fjordvik", 70, 450),
+             ("Outbound", "Road", "Customer", 20, 700)],
+    "SE01": [("Inbound", "Road", "Fjordvik", 700, 400), ("Inbound", "Sea", "Supplier", 250, 1200),
+             ("Outbound", "Road", "Fjordvik", 350, 550), ("Outbound", "Rail", "Fjordvik", 200, 800),
+             ("Outbound", "Road", "Customer", 180, 1000)],
+    "EE01": [("Inbound", "Road", "Fjordvik", 650, 500), ("Inbound", "Sea", "Supplier", 200, 1100),
+             ("Outbound", "Road", "Fjordvik", 300, 700), ("Outbound", "Sea", "Customer", 220, 1800)],
+    "EE02": [("Inbound", "Road", "Fjordvik", 60, 200), ("Outbound", "Road", "Fjordvik", 55, 400),
+             ("Outbound", "Road", "Customer", 15, 600)],
+}

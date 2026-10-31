@@ -1,0 +1,3 @@
+contract_id,site_id,source_id,supplier_name,instrument,start_date_key,end_date_key,covered_share
+C01,SE01,S05,Electricity supplier SE-1 (synthetic),Guarantee of origin (hydro),20230101,20271201,1.00
+C02,FI01,S05,Electricity supplier FI-1 (synthetic),Guarantee of origin (wind),20250101,20271201,0.60
