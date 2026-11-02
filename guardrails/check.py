@@ -2,8 +2,8 @@
 
 It also checks the fingerprints of the guardrail files (G9) and the layout (L1: every
 file matches an entry in guardrails/layout.md; L3: document names; L4: evidence names
-carry a real run date; L5: no scratch or temporary names), which needs Python 3.13 or
-later.
+carry the run date as a valid calendar date; L5: no scratch or temporary names), which
+needs Python 3.13 or later.
 
 Run from anywhere:  python guardrails/check.py
 Exit code 0 when clean, 1 with one line per finding otherwise. Every part's
@@ -61,21 +61,26 @@ SKIP_PROSE_CHECKS = {"GUARDRAILS.md"}
 LAYOUT = PurePosixPath("guardrails/layout.md")
 LAYOUT_ENTRY = re.compile(r"^- `([^`]+)`", re.MULTILINE)
 LAYOUT_PARTS = re.compile(r"^Parts:\s*(.+)$", re.MULTILINE)
-EVIDENCE_NAME = re.compile(r"^[a-z0-9-]*\d{4}-\d{2}-\d{2}[a-z0-9-]*\.[a-z0-9]+$")
-DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
+EVIDENCE_NAME = re.compile(r"^([a-z0-9-]*-)?20[2-9]\d-\d{2}-\d{2}(-[a-z0-9-]*)?\.[a-z0-9]+$")
+DATE = re.compile(r"(?<!\d)\d{4}-\d{2}-\d{2}(?!\d)")
 # L3: names in the folders that hold one kind of document each.
 DOCUMENT_NAMES = {
     "docs/handover": re.compile(r"^\d{4}-\d{2}-\d{2}-fjordvik-[a-z0-9-]+\.md$"),
     "docs/learning": re.compile(r"^phase\d+-[a-z0-9-]+\.md$"),
-    "guardrails/proposals": re.compile(r"^(\d{4}-\d{2}-\d{2}-[a-z0-9-]+|README)\.md$"),
+    "guardrails/proposals": re.compile(r"^(\d{4}-\d{2}-\d{2}-[a-z0-9]+-[a-z0-9-]+|README)\.md$"),
 }
-# L5: names that look like scratch, temporary or backup files.
-SCRATCH_NAME = re.compile(r"(?i)(^|[-_. ])(scratch|tmp|temp|debug|dump|backup|bak|old|copy"
-                          r"|untitled)([-_. ]|$)|\.(log|tmp|bak|orig|swp)$|~$|\s")
+# L5: names that look like scratch, temporary or backup files. Words a project needs
+# (temp for temperature, copy, old, debug) are left out.
+SCRATCH_NAME = re.compile(r"(?i)(^|[-_. ])(scratch|tmp|untitled|backup|bak)([-_. ]|$)"
+                          r"|\.(log|tmp|bak|orig|swp)$|~$|\s")
+GENERATED = ("data/tables/", "data/erp-extract/", "data/corpus/", "data/generator-truth/")
 # G9: the guardrail files GUARDRAILS.sha256 must fingerprint, so an edit the hook misses
 # still fails the tests.
 FINGERPRINTED = ("GUARDRAILS.md", "guardrails/claude_hook.py", "guardrails/check.py",
-                 "guardrails/shared_tests.py", "guardrails/layout.md", ".claude/settings.json")
+                 "guardrails/shared_tests.py", "guardrails/layout.md", ".claude/settings.json",
+                 "data/tests/test_guardrails.py", "mcp/tests/test_guardrails.py",
+                 "powerbi/tests/test_guardrails.py", "power-automate/tests/test_guardrails.py",
+                 "service-ai/tests/test_guardrails.py")
 
 
 def files(root: Path = ROOT) -> list[str]:
@@ -137,8 +142,9 @@ def name_findings(rel: str, parts: list[str], explicit: set[str]) -> list[str]:
     found = []
     # Power BI names the files in its project folders after model objects (a role named
     # "Rest of world" is "Rest of world.tmdl"), so L5 leaves those folders alone.
-    tool_named = len(p.parts) > 2 and p.parts[1].endswith((".Report", ".SemanticModel"))
-    if SCRATCH_NAME.search(name) and not tool_named:
+    tool_named = (len(p.parts) > 2 and p.parts[1].endswith((".Report", ".SemanticModel"))
+                  or rel.startswith(GENERATED))
+    if any(SCRATCH_NAME.search(part) for part in p.parts) and not tool_named:
         found.append(f"L5 {rel}: looks like a scratch, temporary or backup file; keep those "
                      "in the chat's scratchpad")
     rule = DOCUMENT_NAMES.get(folder)
@@ -152,6 +158,12 @@ def name_findings(rel: str, parts: list[str], explicit: set[str]) -> list[str]:
     return found
 
 
+def fingerprint(path: Path) -> str:
+    """SHA-256 of a file with CRLF line endings read as LF, so a checkout that converts
+    line endings (core.autocrlf) doesn't change the fingerprint."""
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+
+
 def fingerprint_findings(root: Path) -> list[str]:
     """GUARDRAILS.sha256 holds one line per guardrail file (hash, two spaces, path). Each
     must match, and every guardrail file that exists must be listed."""
@@ -162,13 +174,16 @@ def fingerprint_findings(root: Path) -> list[str]:
     for line in path.read_text(encoding="utf-8").splitlines():
         if not line.strip():
             continue
+        if len(line.split(None, 1)) < 2:
+            found.append(f"GUARDRAILS.sha256: a line without a path ({line.strip()[:16]}...)")
+            continue
         recorded, name = line.split(None, 1)
         name = name.strip()
         listed.add(name)
         target = root / name
         if not target.is_file():
             found.append(f"{name}: listed in GUARDRAILS.sha256 but missing")
-        elif recorded != hashlib.sha256(target.read_bytes()).hexdigest():
+        elif recorded != fingerprint(target):
             found.append(f"{name}: changed without updating GUARDRAILS.sha256 "
                          "(only Attena edits it; suggest changes in guardrails/proposals/)")
     for name in FINGERPRINTED:

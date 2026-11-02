@@ -11,8 +11,9 @@ never needs an entry: it stays in the chat's scratchpad (L5).
 **How entries read.** Each entry is a path pattern in backticks, then its purpose. `*`
 matches within one folder and `**` matches any depth. `<part>` stands for each part
 named on the next line. Only entries after that line count. `check.py` also checks names:
-handovers, learning notes and proposals follow GUARDRAILS.md L3, evidence names carry a
-real run date (L4), and no name looks like a scratch, temporary or backup file (L5).
+handovers, learning notes and proposals follow GUARDRAILS.md L3, evidence names carry the
+run date as a valid calendar date (L4), and no file or folder name looks like a scratch,
+temporary or backup file (L5).
 
 Parts: data, mcp, powerbi, power-automate, service-ai
 
@@ -35,7 +36,7 @@ Parts: data, mcp, powerbi, power-automate, service-ai
 - `guardrails/shared_tests.py`: the guardrail tests every part runs.
 - `guardrails/pre-commit`: runs `check.py` before each commit, once Reece installs it.
 - `guardrails/.gitattributes`: keeps PDF reports in `evidence/` binary, so git doesn't change their bytes.
-- `guardrails/proposals/*.md`: suggested rule changes, one file each, named `YYYY-MM-DD-<topic>.md`.
+- `guardrails/proposals/*.md`: suggested rule changes, one file each, named `YYYY-MM-DD-<chat>-<topic>.md`.
 - `guardrails/evidence/*`: raw output and reports of guardrails-only tests, named with the run date (L4).
 
 ## Project documents

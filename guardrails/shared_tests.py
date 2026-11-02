@@ -4,7 +4,6 @@ so a breach of GUARDRAILS.md fails every part's test run, not just one.
 Maintained by Attena (see GUARDRAILS.md).
 """
 
-import hashlib
 import json
 import os
 import subprocess
@@ -27,7 +26,7 @@ def test_guardrails_file_matches_its_fingerprint():
     recorded = {name.strip(): digest for digest, name in (l.split(None, 1) for l in lines if l.strip())}
     assert set(check.FINGERPRINTED) <= set(recorded)
     for name, digest in recorded.items():
-        assert digest == hashlib.sha256((ROOT / name).read_bytes()).hexdigest(), name
+        assert digest == check.fingerprint(ROOT / name), name
 
 
 def test_checker_catches_each_planted_breach(tmp_path):
@@ -57,7 +56,13 @@ def test_checker_catches_each_planted_breach(tmp_path):
         "- `**`: an example before the Parts line, which must not count\n\n"
         "Parts: part\n\n- `*.md`: x\n- `*.py`: x\n- `*.txt`: x\n- `GUARDRAILS.sha256`: x\n"
         "- `.env.example`: x\n- `guardrails/*`: x\n- `guardrails/evidence/*`: x\n"
-        "- `<part>/evidence/*`: x\n- `docs/handover/*.md`: x\n", encoding="utf-8")
+        "- `<part>/evidence/*`: x\n- `docs/handover/*.md`: x\n- `guardrails/proposals/*.md`: x\n"
+        "- `<part>/src/**/*.py`: x\n", encoding="utf-8")
+    (tmp_path / "guardrails" / "proposals").mkdir()
+    (tmp_path / "guardrails" / "proposals" / "2026-11-02-x.md").write_text("x\n", encoding="utf-8")
+    (tmp_path / "part" / "src" / "scratch").mkdir(parents=True)
+    (tmp_path / "part" / "src" / "scratch" / "x.py").write_text("x = 1\n", encoding="utf-8")
+    (tmp_path / "part" / "src" / "pump_temp.py").write_text("x = 1\n", encoding="utf-8")
     # L3, L4, L5 and G9: names and fingerprints
     (tmp_path / "scratch-notes.md").write_text("notes\n", encoding="utf-8")
     (tmp_path / "docs" / "handover").mkdir(parents=True)
@@ -92,6 +97,10 @@ def test_checker_catches_each_planted_breach(tmp_path):
     assert "L4 guardrails/evidence/run.txt" in found
     assert "L4 part/evidence/pytest-x-2026-13-45.txt" in found
     assert "guardrails/check.py: not fingerprinted" in found
+    assert "L3 guardrails/proposals/2026-11-02-x.md" in found
+    assert "L5 part/src/scratch/x.py" in found and "pump_temp" not in found
+    (tmp_path / "GUARDRAILS.sha256").write_text("0" * 64 + "\n", encoding="utf-8")
+    assert "GUARDRAILS.sha256: a line without a path" in "\n".join(check.check(tmp_path))
     (tmp_path / "guardrails" / "layout.md").write_text("- `**`: x\n", encoding="utf-8")
     assert "no 'Parts:' line" in "\n".join(check.check(tmp_path))
 
@@ -217,6 +226,28 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
                                              "glob": ".env"}},
         {"tool_name": "Grep", "tool_input": {"pattern": "x", "path": "C:\\Users\\x",
                                              "glob": "banned*"}},
+        # From the re-test of 2 November 2026: wrapped commands, writers, redirects, moves
+        bash("bash -c 'echo; rm data/tables/x.csv'"),
+        bash("cmd /c \"del data\\tables\\x.csv\""),
+        powershell("powershell -Command \"Remove-Item data\\tables\\x.csv\""),
+        bash("ls &>> data/tables/x.csv"),
+        bash("curl -o data/tables/x.csv https://example.test/x"),
+        powershell("Get-Date | Tee-Object -FilePath data\\tables\\x.csv"),
+        bash("(cd data/tables && rm x.csv)"),
+        bash("python - <<'EOF'\nopen('data/tables/x.csv', 'w').write('x')\nEOF"),
+        bash("mv data data-old"),
+        bash("git rm data/tables/x.csv"),
+        bash("git add ..", cwd=ROOT / "service-ai"),
+        bash("git commit -m x ."),
+        bash("git push --mirror origin"),
+        bash("git add \\\n -A"),
+        powershell("& git add -A"),
+        # G2: git hooks; D8: PowerShell wildcards and tools that send files
+        bash("rm .git/hooks/pre-commit"),
+        tool("Edit", ".git", "hooks", "pre-commit"),
+        powershell("Get-Content mcp\\*env"),
+        {"tool_name": "SendUserFile", "tool_input": {"files": ["mcp/.env"]}, "cwd": str(ROOT)},
+        {"tool_name": "Artifact", "tool_input": {"file_path": str(ROOT / "mcp" / ".env")}},
     ]
     allowed = [
         bash("git status"),
@@ -254,6 +285,18 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         bash("python -c \"print(1)\""),
         bash("rm *.pyc", cwd=ROOT / "service-ai"),
         {"tool_name": "Grep", "tool_input": {"pattern": "x", "path": str(ROOT), "glob": "*.py"}},
+        # Everyday work the re-test of 2 November 2026 found blocked
+        bash("git add a.py && git commit -m x -- a.py && git push -u origin main"),
+        bash("git commit -m x -- a.py && git log -n 3 --oneline"),
+        bash("git commit -m 'Ignore .env files' -- mcp/.gitignore"),
+        bash("cp data/tables/dim_part.csv mcp/tests/fixtures/dim_part.csv"),
+        bash("tar -czf /tmp/tables.tgz data/tables"),
+        bash("python -c \"print(open('a.txt').read())\""),
+        bash("git checkout -b feature/x"),
+        bash("git restore --staged guardrails/check.py"),
+        bash("echo \"Run 'echo x > data/tables/x.csv' to see the D3 block\" > notes.txt"),
+        {"tool_name": "SendUserFile", "tool_input": {"files": ["docs/company-profile.md"]},
+         "cwd": str(ROOT)},
     ]
     ask = [
         tool("Edit", "GUARDRAILS.md"),
@@ -281,6 +324,13 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         {"tool_name": "Edit", "tool_input": {"file_path": "\\\\?\\" + str(ROOT / "GUARDRAILS.md")}},
         tool("Edit", "GUARDRAILS.md."),
         tool("Edit", "GUARDRAILS.md::$DATA"),
+        # G9 rollbacks and moves, a part's guardrail test, and a command the hook can't read
+        bash("git reset --hard dd6370b"),
+        bash("git checkout dd6370b -- ."),
+        bash("mv .claude .claude-old"),
+        powershell("Rename-Item .claude x"),
+        tool("Edit", "service-ai", "tests", "test_guardrails.py"),
+        bash("powershell -EncodedCommand AAAA"),
     ]
     # A chat whose project folder is a part: the root still comes from git (G9, D3)
     part = ROOT / "service-ai"

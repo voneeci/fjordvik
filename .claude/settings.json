@@ -1,14 +1,42 @@
 {
+  "permissions": {
+    "deny": [
+      "Read(/**/.env)",
+      "Read(/**/.env.local)",
+      "Read(/**/.env.*.local)",
+      "Read(/**/.env.production)",
+      "Read(/**/.env.development)",
+      "Read(/**/.env.test)",
+      "Read(~/AppData/Local/fjordvik-guardrails/**)",
+      "Edit(/data/tables/**)",
+      "Edit(/data/erp-extract/**)",
+      "Edit(/data/corpus/**)",
+      "Edit(/data/generator-truth/**)",
+      "Edit(/.git/hooks/**)"
+    ],
+    "ask": [
+      "Edit(/GUARDRAILS.md)",
+      "Edit(/GUARDRAILS.sha256)",
+      "Edit(/guardrails/*.py)",
+      "Edit(/guardrails/*.md)",
+      "Edit(/guardrails/pre-commit)",
+      "Edit(/guardrails/.gitattributes)",
+      "Edit(/guardrails/evidence/**)",
+      "Edit(/.claude/**)",
+      "Edit(/*/tests/test_guardrails.py)"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash|PowerShell|Monitor|mcp__terminal__run_in_terminal|Read|Grep|Edit|Write|NotebookEdit",
+        "matcher": "Bash|PowerShell|Monitor|mcp__terminal__run_in_terminal|Read|Grep|Edit|Write|NotebookEdit|Artifact|SendUserFile",
         "hooks": [
           {
             "type": "command",
             "shell": "bash",
             "command": "r=$CLAUDE_PROJECT_DIR; [ -f \"$r/guardrails/claude_hook.py\" ] || r=$(git rev-parse --show-toplevel 2>/dev/null); python \"$r/guardrails/claude_hook.py\" || exit 2",
             "timeout": 10,
+            "onFailure": "block",
             "statusMessage": "Checking GUARDRAILS.md"
           }
         ]

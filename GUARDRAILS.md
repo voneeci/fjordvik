@@ -23,12 +23,18 @@ First edition, 2 November 2026. Drafted by the Fjordvik code chat at Reece's req
 - **Hooks.** `guardrails/claude_hook.py` stops Claude Code chats in this repository from
   breaking the rules marked "hook" below, before the action runs. It checks Bash,
   PowerShell, Monitor and terminal tool (`mcp__terminal__run_in_terminal`) commands, and
-  Read, Grep, Edit, Write and NotebookEdit calls. It finds the repository root with git, not
-  from the chat's project folder. It asks Reece before any edit to the guardrail files, and
-  it refuses a call it cannot read. Claude Code loads the hook only for a chat started in
-  the repository root: a chat started in a part folder gets no hook (rule G11).
-  `guardrails/pre-commit` runs the checks before each commit; Reece installs it by hand,
-  because only Reece changes git hook settings.
+  Read, Grep, Edit, Write, NotebookEdit, Artifact and SendUserFile calls. It finds the
+  repository root with git, not from the chat's project folder. It asks Reece before any
+  edit to the guardrail files, and it refuses a call it cannot read or that times out.
+  It catches the common forms of each breach, not every form: see "What the hook doesn't
+  catch" below. Claude Code loads the hook only for a chat started in the repository root:
+  a chat started in a part folder gets no hook (rule G11).
+- **Permission rules.** `.claude/settings.json` also holds Claude Code permission rules,
+  which Claude Code applies itself in every mode: deny rules for reading `.env` files and
+  editing the generated folders and `.git/hooks/`, and ask rules for editing the guardrail
+  files. They cover the file tools and shell redirects, whatever form the path takes.
+- **Pre-commit.** `guardrails/pre-commit` runs the checks before each commit. Reece
+  installed it by hand on 2 November 2026, because only Reece changes git hook settings.
 - **Rules for later phases.** Rules marked "tests from phase N" are binding now. Each phase
   chat builds to them from its first commit, and its tests enforce them from that phase.
   Rules D11 to D17, A11 to A13, E1 to E3, G10, W8 and the extensions to A2 to A9 and
@@ -45,13 +51,13 @@ First edition, 2 November 2026. Drafted by the Fjordvik code chat at Reece's req
 | Rule | What | Checked by |
 | --- | --- | --- |
 | D1 | Synthetic data only. Fjordvik Manufacturing Oy is fictional; this is a portfolio project, never client work. | Review |
-| D2 | Never name a real company, employer, client or job advert anywhere in the repository; it is public. Customer and supplier names are invented, and the docs say every name is fictional. Only Reece writes names into the private list; no chat reads or writes it. | Review; `check.py` reads an optional private list of names kept outside the repository, so the list itself names no one; the hook stops chats reading or writing that list by its name or a wildcard that matches it |
-| D3 | Change `data/tables/`, `data/erp-extract/`, `data/corpus/` and `data/generator-truth/` only by running the generator in `data`. Commit code and data together. | Hook (Edit, Write and shell writes); `data/tests/test_reproducible.py` |
+| D2 | Never name a real company, employer, client or job advert anywhere in the repository; it is public. Customer and supplier names are invented, and the docs say every name is fictional. Only Reece writes names into the private list; no chat reads or writes it. | Review; `check.py` reads an optional private list of names kept outside the repository, so the list itself names no one; the hook stops chats reading or writing that list by its name or a wildcard starting with its name; a permission rule denies reading its folder |
+| D3 | Change `data/tables/`, `data/erp-extract/`, `data/corpus/` and `data/generator-truth/` only by running the generator in `data`. Commit code and data together. | Hook (Edit, Write and the common forms of shell writes; see "What the hook doesn't catch"); permission rules (deny edits); `data/tests/test_reproducible.py` |
 | D4 | Never rename a table or column. Add new ones instead. | `data/tests/test_schema.py` |
 | D5 | The checksums of tables that already exist stay fixed. A change that moves one needs Reece's yes, and the test change says which change and why. | `data/tests/test_reproducible.py` |
 | D6 | Reference data (exchange rates, town coordinates) is fetched from its publisher and cited with source, date read and checksum; never typed by hand. | `data/tests` |
 | D7 | Every setting the data generator uses is labelled as Fjordvik's own input. The one exception is the illustrative emission factors (Reece, 12 October 2026), and every doc says so. Reece confirmed this on 2 November 2026: Fjordvik is a learning project that will never be sold, unlike the council platform, so illustrative factors are fine here. | Review |
-| D8 | Never read, copy, quote or commit a `.env` file, key, token, password or connection string. Keys come from environment variables only; `.env.example` holds names, never values. | Hook (a search pattern on piped file names may name `.env`; nothing else may); `check.py` (secret patterns, connection strings, tracked `.env` files) |
+| D8 | Never read, copy, quote or commit a `.env` file, key, token, password or connection string. Keys come from environment variables only; `.env.example` holds names, never values. | Hook (common forms, including Artifact and SendUserFile; a search pattern on piped file names may name `.env`); permission rules (deny reads of real `.env` names); `check.py` (secret patterns, connection strings, tracked `.env` files) |
 | D9 | No file in git is over 50 MB. | `check.py` |
 | D10 | `data/generator-truth/` is an answer key for evaluation only: never a model feature, and never read by mcp or an agent while it runs. | Review; service-ai tests from phase 3 |
 | D11 | A feature or driver for day t uses only data recorded on or before day t. A feature that fails the point-in-time test is not used: rebuilding it with every row after day t deleted must not change it. | service-ai tests from phase 2 |
@@ -85,14 +91,14 @@ First edition, 2 November 2026. Drafted by the Fjordvik code chat at Reece's req
 | Rule | What | Checked by |
 | --- | --- | --- |
 | G1 | Commit named paths only: never `git commit -a`, `git add -u`, `git add -A` or `git add .`. | Hook |
-| G2 | Never bypass a git hook (`--no-verify`, `-n`) and never change hook settings; only Reece does either, by hand. | Hook (`--no-verify` and `-n` in any spelling git accepts, and a change to the hooks setting); Reece's own guard |
+| G2 | Never bypass a git hook (`--no-verify`, `-n`) and never change hook settings; only Reece does either, by hand. | Hook (`--no-verify` and `-n` in their common spellings, a change to the hooks setting, and writes to `.git/hooks/`); permission rules (deny edits to `.git/hooks/`); Reece's own guard |
 | G3 | Confirm `git add` worked before committing. Push only when Reece says, never with `--force`, and confirm the push reached the remote. | Hook (force push) |
 | G4 | Every test run saves its raw output in its part's `evidence/` folder. A result counts only once its evidence is saved. | Review |
 | G5 | Never loosen a test, threshold or tolerance to make it pass. A deliberate change to an expected value says which change and why. | Review |
 | G6 | Each phase ends with a handover note in `docs/handover/` and a new note in the knowledge folder's `raw/inbox/`. In the knowledge folder, write only new files there; never edit `wiki/` or `registers/`, and never run git there. | Review |
 | G7 | Close Power BI Desktop (Don't save) before regenerating the model or report files, then restore generated files whose content did not change. | Review |
 | G8 | Never commit the local `old historical folders/`. | `.git/info/exclude`; `check.py` |
-| G9 | Only Attena edits `GUARDRAILS.md`, `GUARDRAILS.sha256`, `guardrails/` (new files in `guardrails/proposals/` excepted), `.claude/settings.json` and `.claude/settings.local.json`. The hook asks Reece to approve each such edit, and Reece approves only in Attena. | Hook (asks Reece); the fingerprint test, which covers `GUARDRAILS.md`, `claude_hook.py`, `check.py`, `shared_tests.py`, `layout.md` and `.claude/settings.json` |
+| G9 | Only Attena edits `GUARDRAILS.md`, `GUARDRAILS.sha256`, `guardrails/` (new files in `guardrails/proposals/` excepted), `.claude/settings.json`, `.claude/settings.local.json` and each part's `tests/test_guardrails.py`. The hook asks Reece to approve each such change, including a git rollback, move or rename that would change one, and Reece approves only in Attena. | Hook (asks Reece; common forms); permission rules (ask before edits); the fingerprint test, which covers `GUARDRAILS.md`, `claude_hook.py`, `check.py`, `shared_tests.py`, `layout.md`, `.claude/settings.json` and the five `tests/test_guardrails.py` |
 | G10 | Library versions are pinned, and random generators are seeded with an explicit bit generator. Every saved result names the data checksum, the commit and the model version. Training twice on the same data gives the same metrics. | Tests in each part from phase 2 |
 | G11 | Every Claude Code chat in this repository starts with the repository root as its folder and works in a part with `cd`. A chat started in a part folder loads no project settings, so the guardrail hook doesn't run for it. | Review |
 
@@ -139,6 +145,41 @@ First edition, 2 November 2026. Drafted by the Fjordvik code chat at Reece's req
 | L5 | No scratch, temporary or personal files in the repository: they stay in the chat's scratchpad. Output that is not a deliverable is git-ignored. | `check.py`: the map's file types, and names with words such as scratch, tmp, debug, backup or copy, extensions such as `.log` and `.bak`, or spaces (outside Power BI's own project folders). It also checks untracked files git would add. |
 | L6 | When a file or folder stops being used, the chat that owns it lists it in its handover. Reece decides whether it goes. This is stricter than RULES.md, which forbids deleting anything git can't restore. | Review |
 
+## What the hook doesn't catch
+
+The hook reads shell commands by their usual forms, so it covers the commands chats run in
+normal work and by mistake. It doesn't try to catch a command written to get round it.
+Forms it misses:
+
+- git spelled unusually: a quoted `"git"` or subcommand, a backtick inside a word,
+  `--paginate` or `--exec-path` before the subcommand, a quoted `"."`, `'*'` or `"+main"`,
+  `':(top)'`, `git config --edit`, and `git stash` or `git apply` without a path.
+- Paths built at run time: a shell variable (`rm $D/x.csv`), `$HOME`, strings joined in
+  PowerShell, `New-Object IO.StreamWriter`, and code run through `os.system`, `subprocess`
+  or `node -e`.
+- Quoting inside a name (`.e''nv`, ``.e`nv``), a recursive search that reaches a file
+  without naming it, and a short (8.3) name for a file that doesn't exist yet.
+- Unusual paths: an admin share named by computer name or `[::1]`, a directory junction or
+  symbolic link, a terminal `cwd` written with `\\?\` or a trailing dot, and a relative
+  terminal `cwd` after a `cd` has moved the session.
+- `cd` inside `if`, `env -C`, the redirects `>|` and `>&file`, and PowerShell script
+  blocks (`& { ... }`).
+- A command over 20,000 characters is not read; the hook asks Reece instead.
+
+The backstops catch what matters in these cases: the data tests catch any change to the
+generated tables (D3, D5); the fingerprints in `GUARDRAILS.sha256` catch any change to the
+guardrail files (G9); the permission rules cover file tools and redirects in any path form;
+the pre-commit check runs `check.py` before each commit; and Reece's own guard covers git
+hook settings (G2).
+
+**When to test again.** The guardrails were tested twice by independent read-only chats on
+2 November 2026, and fixed after each test. One final re-test follows, scoped to the
+realistic cases, everyday work (at least 50 calls) and the earlier passes. It passes with no
+high finding, no realistic medium false negative and no everyday false positive. Forms it
+finds that only a deliberate attempt would use go on the list above without a code change.
+After that, the guardrails are tested again only when a rule or the hook changes, or a chat
+hits a real incident.
+
 ## Suggesting a change
 
 Any chat, or Reece, can suggest a change. Write a new file
@@ -154,3 +195,4 @@ agrees, updates the fingerprint, and adds a line below.
 - 2 November 2026: hook follow-ups by Attena (Reece asked, in the Attena chat). New G11 (chats start in the repository root). The hook finds the repository root with git, checks Monitor and terminal tool commands as it checks Bash and PowerShell, and its D2 check no longer matches file names that only contain the private list folder's name. `.claude/settings.json` finds the hook through git, then the chat's project folder.
 - 2 November 2026: layout and voice by Attena (Reece asked, in the Attena chat). New section 6, rules L1 to L6, with the layout map `guardrails/layout.md` checked by `check.py`, so the repository stays easy to understand as it grows. New W9: documents follow Reece's voice guide, kept outside the repository; where it differs, W1 to W8 win.
 - 2 November 2026: fixes from the guardrails test by Attena (Reece asked, in the Attena chat; test report `guardrails/evidence/guardrails-test-report-2026-11-02.pdf`). The hook reads git's global options, `git stage`, `:/` and `*`, abbreviated options and `+` refspecs (G1 to G3); follows `cd` and checks writes from the folder they run in, parent deletes, more writing commands and git writes to guardrail files (D3, G9); and reads file paths in one canonical form (D2, D8). `GUARDRAILS.sha256` now fingerprints six guardrail files. The layout map names each guardrails file, limits file types and adds `guardrails/evidence/`; `check.py` checks document names (L3), real evidence dates (L4) and scratch names (L5). The settings command tries the project folder before git. "Checked by" wording made accurate for D2, G2, G9, L3, L5 and L6.
+- 2 November 2026: fixes from the independent re-test by Attena (Reece asked, in the Attena chat, for the realistic 95% of cases and a point to stop re-testing). The hook asks before git rollbacks and before moving `.claude` or `guardrails`; reads wrapped commands (`bash -c`, `cmd /c`, `powershell -Command`, `eval`, `iex`), more writers, heredocs, subshells and `&>`; judges only the destination of copies; reads git rules per command, ignoring commit messages; checks Artifact and SendUserFile; blocks writes to `.git/hooks/`; and asks before edits to each part's `tests/test_guardrails.py`, now fingerprinted. `.claude/settings.json` gains Claude Code permission rules and a hook that blocks on time-out. L5 no longer flags temp, debug, copy or old, and reads folder names; L3 proposal names need a chat name; L4 dates are valid calendar dates from 2020 to 2099. New section "What the hook doesn't catch", with the stopping rule for re-tests.

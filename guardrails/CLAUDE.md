@@ -16,6 +16,9 @@ Permanent rules in `C:\Users\reece\Projects\knowledge\RULES.md` come first, then
   asks Reece.
 - Write and test a hook change in `claude_hook_next.py` first, then rename it over
   `claude_hook.py`. A broken hook blocks every tool call.
+- Fix a hook gap when a chat could plausibly hit it in normal work or by mistake. A form
+  that only a deliberate attempt to get round the hook would use goes on the list in
+  GUARDRAILS.md ("What the hook doesn't catch") instead. Re-test only as that section says.
 - After any change, run all five parts' tests from their own folders and `.venv`, and
   save the output in each part's `evidence/` folder.
 - A rule change that needs an edit outside these files goes to Reece and the chat that
