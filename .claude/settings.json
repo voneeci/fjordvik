@@ -7,7 +7,7 @@
           {
             "type": "command",
             "shell": "bash",
-            "command": "python \"$CLAUDE_PROJECT_DIR/guardrails/claude_hook.py\"",
+            "command": "python \"$CLAUDE_PROJECT_DIR/guardrails/claude_hook.py\" || exit 2",
             "timeout": 10,
             "statusMessage": "Checking GUARDRAILS.md"
           }

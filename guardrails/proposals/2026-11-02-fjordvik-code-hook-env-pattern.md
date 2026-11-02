@@ -16,3 +16,12 @@ From the Fjordvik code chat, 2 November 2026, at commit `3fab166`.
    that reads, copies or edits files (`cat`, `type`, `Get-Content`, `cp`, `copy`, `more`,
    `less`, `head`, `tail`, `sed`, `python` opening it), and allow it inside quoted patterns.
    Attena may judge the false positive acceptable instead and keep the hook as it is.
+
+## Outcome
+
+Accepted and narrowed, 2 November 2026 (Reece chose "narrow" in the Attena chat). The hook
+now allows `.env` only inside a quoted pattern of a `grep`, `egrep`, `rg`, `findstr` or
+`Select-String` stage that reads from a pipe, with no file-reading option, `$(`, backtick
+or `<`. Every other mention stays blocked. The blocked command from this proposal is now
+in the "allowed" cases of `guardrails/shared_tests.py`, and `cat .env`, `type .env` and
+`Get-Content .env` stay "blocked". Recorded in the GUARDRAILS.md change history.

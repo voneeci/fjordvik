@@ -28,6 +28,11 @@ SECRET_PATTERNS = [
     re.compile(r"gh[pousr]_[A-Za-z0-9]{30,}"),                  # GitHub tokens
     re.compile(r"xox[abprs]-[A-Za-z0-9\-]{10,}"),               # Slack tokens
     re.compile(r"(?i)\b(api[_-]?key|secret|password|token)\b\s*[:=]\s*['\"][^'\"\s]{16,}['\"]"),
+    re.compile(r"\bsk-[A-Za-z0-9_\-]{20,}"),                    # other sk- style keys
+    re.compile(r"(?i)\b(server|host|data source|uid|user id)\s*=[^;\n]*;[^\n]*"
+               r"\b(password|pwd)\s*=\s*[^;\s'\"]{4,}"),       # connection strings
+    re.compile(r"\b[a-z][a-z0-9+.\-]*://[^\s/:@'\"]+:[^\s/@'\"$<{]{3,}@"),  # user:pass@ URLs
+    re.compile(r"(?i)\b(AccountKey|SharedAccessKey)=[A-Za-z0-9+/=]{20,}"),
 ]
 AMERICAN = re.compile(
     r"\b(colors?|colored|coloring|organiz(?:e|es|ed|ing|ation|ations)"
@@ -129,6 +134,9 @@ def main() -> int:
     findings = check()
     for f in findings:
         print(f)
+    if not BANNED_TERMS_FILE.is_file():
+        print("Notice: the private banned-names list (rule D2) is missing, so that check "
+              "was skipped. See guardrails/README.md.")
     print(f"{len(findings)} guardrail findings" if findings else "Guardrails: no findings")
     return 1 if findings else 0
 

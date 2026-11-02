@@ -26,7 +26,8 @@ def test_guardrails_file_matches_its_fingerprint():
 
 
 def test_checker_catches_each_planted_breach(tmp_path):
-    """A throwaway repository with one breach per rule the checker covers."""
+    """A throwaway repository with one breach per rule the checker covers. Secrets are
+    joined from parts so this file holds none itself."""
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     (tmp_path / "GUARDRAILS.md").write_text("rules\n", encoding="utf-8")
     (tmp_path / "GUARDRAILS.sha256").write_text("0" * 64 + "  GUARDRAILS.md\n", encoding="utf-8")
@@ -35,6 +36,14 @@ def test_checker_catches_each_planted_breach(tmp_path):
     (tmp_path / "spelling.md").write_text("We analyze the color of things.\n", encoding="utf-8")
     (tmp_path / "count.md").write_text("Fjordvik is five projects.\n", encoding="utf-8")
     (tmp_path / "key.py").write_text("KEY = 'sk-ant-" + "x" * 24 + "'\n", encoding="utf-8")
+    (tmp_path / "otherkey.py").write_text("KEY = 'sk-" + "y" * 24 + "'\n", encoding="utf-8")
+    (tmp_path / "conn.txt").write_text("Server=db1;User ID=app;" + "Pass" + "word=hunter22;\n",
+                                       encoding="utf-8")
+    (tmp_path / "url.md").write_text("postgresql://app:" + "hunter22" + "@db1/fjordvik\n",
+                                     encoding="utf-8")
+    (tmp_path / "azure.txt").write_text("Account" + "Key=" + "A" * 40 + "==\n", encoding="utf-8")
+    (tmp_path / "placeholder.md").write_text("postgresql://app:${PASSWORD}@db1/fjordvik\n",
+                                             encoding="utf-8")
     (tmp_path / ".env").write_text("NAME=value\n", encoding="utf-8")
     (tmp_path / ".env.example").write_text("NAME=\n", encoding="utf-8")
     found = "\n".join(check.check(tmp_path))
@@ -43,41 +52,121 @@ def test_checker_catches_each_planted_breach(tmp_path):
     assert "W2 spelling.md: American spelling 'analyze'" in found
     assert "W2 spelling.md: American spelling 'color'" in found
     assert "W5 count.md" in found
-    assert "D8 key.py" in found
+    for name in ("key.py", "otherkey.py", "conn.txt", "url.md", "azure.txt"):
+        assert f"D8 {name}" in found, name
     assert "D8 .env:" in found or "D8 .env: a .env file" in found
     assert "quoted.md" not in found and ".env.example" not in found
+    assert "placeholder.md" not in found
 
 
-def run_hook(call: dict) -> int:
-    return subprocess.run([sys.executable, str(HOOK)], input=json.dumps(call), text=True,
-                          capture_output=True, env={"CLAUDE_PROJECT_DIR": str(ROOT),
-                                                    "SYSTEMROOT": "C:\\Windows"}).returncode
+def run_hook(call: dict | str) -> str:
+    """The hook's decision on one tool call: "block", "ask" or "allow"."""
+    result = subprocess.run([sys.executable, str(HOOK)],
+                            input=call if isinstance(call, str) else json.dumps(call),
+                            text=True, capture_output=True,
+                            env={"CLAUDE_PROJECT_DIR": str(ROOT), "SYSTEMROOT": "C:\\Windows"})
+    if result.returncode == 2:
+        return "block"
+    if result.returncode == 0 and '"permissionDecision": "ask"' in result.stdout:
+        return "ask"
+    return "allow" if result.returncode == 0 else f"exit {result.returncode}"
+
+
+def bash(command: str, cwd: Path = ROOT) -> dict:
+    return {"tool_name": "Bash", "tool_input": {"command": command}, "cwd": str(cwd)}
+
+
+def powershell(command: str) -> dict:
+    return {"tool_name": "PowerShell", "tool_input": {"command": command}, "cwd": str(ROOT)}
+
+
+def tool(name: str, *parts: str) -> dict:
+    return {"tool_name": name, "tool_input": {"file_path": str(ROOT.joinpath(*parts))}}
 
 
 def test_claude_hook_blocks_breaches_and_allows_normal_work():
     tables = str(ROOT / "data" / "tables" / "dim_part.csv")
+    private_list = "C:\\Users\\x\\AppData\\Local\\fjordvik-guardrails\\banned-terms.txt"
     blocked = [
-        {"tool_name": "Bash", "tool_input": {"command": "cat mcp/.env"}},
-        {"tool_name": "PowerShell", "tool_input": {"command": "Get-Content mcp\\.env"}},
-        {"tool_name": "Read", "tool_input": {"file_path": str(ROOT / "mcp" / ".env")}},
+        bash("cat mcp/.env"),
+        powershell("Get-Content mcp\\.env"),
+        tool("Read", "mcp", ".env"),
         {"tool_name": "Write", "tool_input": {"file_path": tables}},
-        {"tool_name": "Edit", "tool_input": {"file_path": str(ROOT / "data" / "corpus" / "x.md")}},
-        {"tool_name": "Bash", "tool_input": {"command": "git add ."}},
-        {"tool_name": "Bash", "tool_input": {"command": "git add -A"}},
-        {"tool_name": "Bash", "tool_input": {"command": "git add -u"}},
-        {"tool_name": "Bash", "tool_input": {"command": "git commit -am 'x'"}},
-        {"tool_name": "Bash", "tool_input": {"command": "git commit --no-verify -m x"}},
-        {"tool_name": "Bash", "tool_input": {"command": "git commit -n -m x"}},
-        {"tool_name": "Bash", "tool_input": {"command": "git push --force origin main"}},
+        tool("Edit", "data", "corpus", "x.md"),
+        bash("git add ."),
+        bash("git add -A"),
+        bash("git add -u"),
+        bash("git commit -am 'x'"),
+        bash("git commit --no-verify -m x"),
+        bash("git commit -n -m x"),
+        bash("git push --force origin main"),
+        # D8: .env outside a quoted search pattern on piped input
+        bash("cat .env | grep x"),
+        bash('grep "\\.env" .env'),
+        bash('grep -rn "\\.env" .'),
+        bash('git ls-files | grep -f ".env"'),
+        bash('git ls-files | grep "$(cat .env)"'),
+        powershell('git ls-files | Select-String -Path ".env" -Pattern a'),
+        bash("type .env"),
+        bash("cp .env /tmp/x"),
+        # D3: shell writes into the generated folders
+        bash("echo x > data/tables/dim_part.csv"),
+        bash("sed -i s/a/b/ data/tables/dim_part.csv"),
+        bash("rm -r data/tables"),
+        bash("cp new.csv data/corpus/"),
+        powershell("Set-Content data\\tables\\dim_part.csv x"),
+        bash("rm tables/dim_part.csv", cwd=ROOT / "data"),
+        bash("cd data && echo x >> tables/dim_part.csv"),
+        # D3: other spellings of the same folders (Windows ignores case; .. steps back)
+        tool("Write", "Data", "tables", "x.csv"),
+        tool("Edit", "data", "src", "..", "tables", "x.csv"),
+        bash("echo x > Data/Tables/dim_part.csv"),
+        bash("echo x > data/src/../tables/dim_part.csv"),
+        # D2: the private banned-names list
+        {"tool_name": "Read", "tool_input": {"file_path": private_list}},
+        powershell(f"Get-Content {private_list}"),
+        # fail closed: input the hook can't read
+        "not json",
     ]
     allowed = [
-        {"tool_name": "Bash", "tool_input": {"command": "git status"}},
-        {"tool_name": "Bash", "tool_input": {"command": "cat mcp/.env.example"}},
-        {"tool_name": "Bash", "tool_input": {"command": "git add data/src/x.py data/tables/y.csv"}},
-        {"tool_name": "Bash", "tool_input": {"command": "git commit -m 'Add a table' -- data/x.py"}},
-        {"tool_name": "Bash", "tool_input": {"command": "git push origin main"}},
-        {"tool_name": "Read", "tool_input": {"file_path": tables}},
-        {"tool_name": "Edit", "tool_input": {"file_path": str(ROOT / "data" / "src" / "x.py")}},
+        bash("git status"),
+        bash("cat mcp/.env.example"),
+        bash("git add data/src/x.py data/tables/y.csv"),
+        bash("git commit -m 'Add a table' -- data/x.py"),
+        bash("git push origin main"),
+        tool("Read", "data", "tables", "dim_part.csv"),
+        tool("Edit", "data", "src", "x.py"),
+        # the proposal's command, and search patterns on piped file names
+        bash('git diff --cached --name-only | grep -E "(^|/)\\.env(\\.|$)"'),
+        powershell("git ls-files | Select-String -Pattern '\\.env$'"),
+        bash("git ls-files | rg '(^|/)\\.env'"),
+        # reading or restoring generated data, and redirects elsewhere
+        bash("git restore data/tables/dim_part.csv"),
+        bash("cat data/tables/dim_part.csv | head -5"),
+        bash("ls data/tables 2>/dev/null"),
+        bash(".venv/Scripts/python -m pytest -q > evidence/out.txt 2>&1", cwd=ROOT / "data"),
+        # reading guardrail files, and writing a new proposal
+        bash("cat GUARDRAILS.md"),
+        tool("Read", "guardrails", "check.py"),
+        tool("Write", "guardrails", "proposals", "2026-11-02-x-y.md"),
+        bash("echo x > guardrails/proposals/2026-11-02-x-y.md"),
     ]
-    assert [run_hook(c) for c in blocked] == [2] * len(blocked)
-    assert [run_hook(c) for c in allowed] == [0] * len(allowed)
+    ask = [
+        tool("Edit", "GUARDRAILS.md"),
+        tool("Write", "GUARDRAILS.sha256"),
+        tool("Edit", "guardrails", "check.py"),
+        tool("Edit", ".claude", "settings.json"),
+        tool("Write", ".claude", "settings.local.json"),
+        bash("echo x >> GUARDRAILS.md"),
+        powershell("Set-Content guardrails\\check.py x"),
+        bash("rm guardrails/check.py guardrails/proposals/2026-11-02-x-y.md"),
+        # G9: other spellings of the same files
+        tool("Edit", "guardrails.md"),
+        tool("Edit", "Guardrails", "check.py"),
+        tool("Edit", "guardrails", "proposals", "..", "check.py"),
+        bash("echo x > guardrails.md"),
+        bash("echo x > guardrails/proposals/../check.py"),
+    ]
+    assert {repr(c): run_hook(c) for c in blocked} == {repr(c): "block" for c in blocked}
+    assert {repr(c): run_hook(c) for c in allowed} == {repr(c): "allow" for c in allowed}
+    assert {repr(c): run_hook(c) for c in ask} == {repr(c): "ask" for c in ask}
