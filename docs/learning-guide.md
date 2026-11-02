@@ -3,7 +3,7 @@
 Fjordvik Manufacturing Oy needs one set of monthly greenhouse gas figures that it can
 trust, explain and show to the right people, and its customers now ask for the whole
 footprint, including what it buys, ships and sells. Product management needs to know what
-each product sells, earns and emits in use, from figures that reconcile to finance. This project delivers that in four parts:
+each product sells, earns and emits in use, from figures that reconcile to finance. This project delivers that in four parts, and a fifth, `service-ai`, is being built for after-sales service:
 Power Automate flows that collect and check each site's monthly file, a governed dataset,
 a Power BI model and report for management and country managers, and a Claude connector
 that answers plain-language questions from the same data. This guide sets out the business

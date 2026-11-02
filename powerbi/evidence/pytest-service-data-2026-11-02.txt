@@ -1,0 +1,14 @@
+# powerbi tests, 2 November 2026, working tree on top of commit 7fc0844 (phase 0 and 1 changes, guardrails first edition, not yet committed)
+# command: .venv\Scripts\python -m pytest -q (from powerbi)
+.........sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [  9%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 19%]
+sssssssssssssssssss..................................................... [ 29%]
+........................................................................ [ 39%]
+........................................................................ [ 49%]
+........................................................................ [ 58%]
+........................................................................ [ 68%]
+........................................................................ [ 78%]
+........................................................................ [ 88%]
+........................................................................ [ 98%]
+.............                                                            [100%]
+579 passed, 154 skipped in 3.65s

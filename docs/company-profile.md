@@ -52,6 +52,24 @@ project's own dataset. That is below the thresholds of the EU's Corporate Sustai
 Reporting Directive (CSRD) after the Omnibus I changes, so Fjordvik reports for its
 customers, its lenders and its own targets rather than by law.
 
+## After-sales service
+
+Fjordvik services its pumps in Finland, Sweden, Estonia and Latvia. 150 customers buy its
+spare parts and service kits: water utilities, industrial plants, buildings and district
+energy companies, and distributors who stock parts for the wider installed base. 600 of
+their pumps are connected: each pump's variable-speed drive reports running hours,
+vibration, bearing temperature and power once a day. Customers choose no service
+contract, Basic (one preventive visit a year) or Premium (two). Twelve technicians work
+for the sites in Tampere, Helsinki, Oulu, Gothenburg, Tallinn and Tartu; three of them
+start from home towns nearer their customers (Espoo, Borås and Riga). Parts ship from
+Oulu Warehouse (Nordics) and Tartu Warehouse (Baltics).
+
+Service today is reactive. A pump fails, the customer calls, parts are ordered after the
+failure, and technicians are planned in a spreadsheet. The readings already show most
+failures coming weeks ahead, but nobody watches them. The `service-ai` part of this
+project is building the forecasting, failure prediction, scheduling, parts suggestions,
+service assistant and service desk agent to change that.
+
 ## Who owns which figures
 
 | Role | Owns |
@@ -67,3 +85,7 @@ customers, its lenders and its own targets rather than by law.
 | HR Manager | Headcount as FTE |
 | Country managers (Finland, Sweden, Estonia) | Their own sites' figures, seen through row-level security |
 | Sales region managers (four regions) | Their own region's sales, margin and use-phase emissions |
+| Service Manager | The customer and installed pump registers, service contracts, service records and technician planning |
+| Technicians | The note and parts on each job they do |
+| E-commerce owner | The parts portal and its logs |
+| Technical documentation team | The service manuals, service terms and warranty policy |

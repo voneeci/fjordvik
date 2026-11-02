@@ -18,9 +18,9 @@ from datetime import date
 from pathlib import Path
 
 from fjordvik_data import config as c
-from fjordvik_data import portfolio
+from fjordvik_data import corpus, portfolio, service
 
-GENERATOR_VERSION = "1.3.0"
+GENERATOR_VERSION = "1.4.0"
 
 COLUMNS = {
     "dim_date": ["date_key", "date", "year", "quarter", "month", "month_name"],
@@ -59,6 +59,26 @@ COLUMNS = {
                        "net_sales_eur", "activity_amount", "unit", "emission_factor", "tco2e"],
     "fact_budget": ["date_key", "site_id", "product_group", "region_id", "budget_units",
                     "budget_net_sales_eur", "budget_margin_eur"],
+    # After-sales service, added 2 November 2026
+    "dim_customer": ["customer_id", "customer_name", "segment", "country", "region_id", "town",
+                     "latitude", "longitude", "service_contract", "customer_since"],
+    "dim_asset": ["asset_id", "serial_number", "product_id", "customer_id", "country", "town",
+                  "latitude", "longitude", "application", "install_date", "telemetry_from_date"],
+    "dim_part": ["part_id", "part_name", "part_family", "sales_product_id", "list_price_eur",
+                 "lead_time_days"],
+    "bridge_part_compatibility": ["part_id", "product_group"],
+    "dim_technician": ["technician_id", "technician_name", "home_site_id", "home_town",
+                       "latitude", "longitude", "countries_served", "skills", "weekly_hours"],
+    "fact_asset_telemetry": ["date_key", "asset_id", "running_hours", "vibration_mm_s",
+                             "bearing_temp_c", "power_kw"],
+    "fact_service_event": ["event_id", "asset_id", "event_type", "failure_mode",
+                           "reported_date", "completed_date", "technician_id", "downtime_hours",
+                           "labour_hours", "parts_used", "technician_note"],
+    "fact_parts_order": ["order_id", "order_line", "order_date", "date_key", "site_id",
+                         "region_id", "customer_id", "part_id", "sales_product_id", "quantity",
+                         "net_amount_eur", "channel", "service_event_id", "asset_id"],
+    "fact_portal_event": ["event_id", "event_date", "session_id", "customer_id", "product_id",
+                          "part_id", "rank", "clicked"],
 }
 
 # Reference lists the pipeline reads (data/reference). The ECB rates there are
@@ -392,17 +412,29 @@ FORMATS = {
     "cost_of_sales_eur": "{:.2f}",
     "margin_eur": "{:.2f}",
     "amount_eur": "{:.2f}",
+    "latitude": "{:.5f}",
+    "longitude": "{:.5f}",
+    "weekly_hours": "{:.1f}",
+    "running_hours": "{:.1f}",
+    "vibration_mm_s": "{:.2f}",
+    "bearing_temp_c": "{:.1f}",
+    "power_kw": "{:.1f}",
+    "downtime_hours": "{:.1f}",
+    "labour_hours": "{:.1f}",
+    "net_amount_eur": "{:.2f}",
 }
 
 
-def write_csv(path: Path, columns: list[str], rows: list[dict]) -> None:
+def write_csv(path: Path, columns: list[str], rows: list) -> None:
+    """Rows are dicts, or tuples in column order (the large telemetry table)."""
+    formats = [FORMATS.get(col, "{}") for col in columns]
     with path.open("w", newline="", encoding="utf-8") as f:
         w = csv.writer(f, lineterminator="\n")
         w.writerow(columns)
         for row in rows:
+            values = row if isinstance(row, tuple) else [row[col] for col in columns]
             # None is written as an empty field: a blank, not the text "None"
-            w.writerow(["" if row[col] is None else FORMATS.get(col, "{}").format(row[col])
-                        for col in columns])
+            w.writerow(["" if v is None else fmt.format(v) for v, fmt in zip(values, formats)])
 
 
 def sha256(path: Path) -> str:
@@ -433,6 +465,12 @@ def write_all(out_dir: Path) -> dict:
         tables[name] = published[name]
     tables["fact_use_phase"] = portfolio.build_fact_use_phase(published["fact_sales"])
     tables["fact_budget"] = portfolio.build_fact_budget(published["fact_sales"], rng_for)
+    service_tables, truth = service.build_all(published["fact_sales"], rng_for)
+    tables.update(service_tables)
+    answer_key = root / "generator-truth"
+    answer_key.mkdir(exist_ok=True)
+    write_csv(answer_key / "failures.csv", service.TRUTH_COLUMNS, truth)
+    corpus.write_corpus(root / "corpus")
     manifest = {
         "dataset": "Fjordvik Manufacturing Oy (synthetic)",
         "generator_version": GENERATOR_VERSION,

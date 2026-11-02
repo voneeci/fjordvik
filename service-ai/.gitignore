@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+*.egg-info/
+build/
+dist/
+.env
+# Agent drafts wait here for approval and are never committed (GUARDRAILS.md A3)
+outbox/

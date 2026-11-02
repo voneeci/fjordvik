@@ -1,6 +1,6 @@
 {
   "dataset": "Fjordvik Manufacturing Oy (synthetic)",
-  "generator_version": "1.3.0",
+  "generator_version": "1.4.0",
   "seed": 20230101,
   "period": "2023-01-01 to 2025-12-01",
   "emission_factors": "illustrative, not for real reporting",
@@ -114,6 +114,51 @@
       "file": "fact_budget.csv",
       "rows": 1368,
       "sha256": "5ef0713734d6f9c0b8ba2ed6f9b206f6c5938bb236571a218621b225856d5acf"
+    },
+    "dim_customer": {
+      "file": "dim_customer.csv",
+      "rows": 150,
+      "sha256": "e5311cac9e538172e9294e37a09e228091f70ecfa1308cea5124cb1f4d7c78e8"
+    },
+    "dim_asset": {
+      "file": "dim_asset.csv",
+      "rows": 600,
+      "sha256": "dec1811504dbfdedacbfe5ff3c0bb61f271b2a5564ef1975850cc3b50377c531"
+    },
+    "dim_part": {
+      "file": "dim_part.csv",
+      "rows": 52,
+      "sha256": "efca5423720627df5d15639eb3f75438b3c64965b460a6954d913a7bb476de08"
+    },
+    "bridge_part_compatibility": {
+      "file": "bridge_part_compatibility.csv",
+      "rows": 75,
+      "sha256": "f94b65eb758b2fe17ca0269b5972a3d04c4e26d3b7c0e3ef7059cb5581d269a0"
+    },
+    "dim_technician": {
+      "file": "dim_technician.csv",
+      "rows": 12,
+      "sha256": "9496bec0b51426ffc282dba9cee2d9fd3a195361f160ac0cf957b04583accd9a"
+    },
+    "fact_asset_telemetry": {
+      "file": "fact_asset_telemetry.csv",
+      "rows": 582996,
+      "sha256": "b5670417a18ac2eae09205a450de6a2faca68c6fcd1319c6f4b8f9d2e81744cd"
+    },
+    "fact_service_event": {
+      "file": "fact_service_event.csv",
+      "rows": 2554,
+      "sha256": "bfa331a21bb7f61811a42a1c0bdc4c52e603fcdc08b51d120de9e4a918968c96"
+    },
+    "fact_parts_order": {
+      "file": "fact_parts_order.csv",
+      "rows": 53654,
+      "sha256": "4b6bd4bcd84f8226cef0d61d4c01bb84c73c879f93963a680f005ff7dbb26f7b"
+    },
+    "fact_portal_event": {
+      "file": "fact_portal_event.csv",
+      "rows": 39725,
+      "sha256": "40780879c13f1651ebb83b9d91aa2f1d4554cb73974243eba40bf009515fbcea"
     }
   }
 }

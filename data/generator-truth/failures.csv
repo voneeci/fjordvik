@@ -1,0 +1,325 @@
+event_id,asset_id,failure_date,failure_mode,warned,warning_start_date,warning_days,signal
+E00001,A0010,2023-01-02,Impeller wear,1,2023-01-01,1,vibration_power_down
+E00011,A0499,2023-01-05,Cavitation damage,1,2023-01-01,4,vibration
+E00015,A0450,2023-01-07,Bearing wear,1,2023-01-01,6,vibration_temp
+E00016,A0384,2023-01-08,Impeller wear,1,2023-01-01,7,vibration_power_down
+E00027,A0164,2023-01-15,Impeller wear,1,2023-01-01,14,vibration_power_down
+E00037,A0207,2023-01-19,Bearing wear,1,2023-01-01,18,vibration_temp
+E00041,A0328,2023-01-20,Bearing wear,1,2023-01-01,19,vibration_temp
+E00044,A0302,2023-01-22,Electrical trip,0,,0,none
+E00045,A0013,2023-01-23,Bearing wear,1,2023-01-01,22,vibration_temp
+E00046,A0143,2023-01-23,Bearing wear,1,2023-01-01,22,vibration_temp
+E00047,A0157,2023-01-23,Mechanical seal leak,0,,0,none
+E00049,A0420,2023-01-23,Bearing wear,1,2023-01-01,22,vibration_temp
+E00063,A0366,2023-01-28,Bearing wear,1,2023-01-02,26,vibration_temp
+E00088,A0179,2023-02-05,Impeller clogging,1,2023-01-01,35,power_up_vibration
+E00089,A0352,2023-02-05,Bearing wear,1,2023-01-02,34,vibration_temp
+E00108,A0321,2023-02-19,Bearing wear,1,2023-01-19,31,vibration_temp
+E00115,A0443,2023-02-21,Motor overload,0,,0,none
+E00122,A0289,2023-02-26,Impeller wear,1,2023-02-11,15,vibration_power_down
+E00141,A0064,2023-03-08,Bearing wear,1,2023-01-29,38,vibration_temp
+E00142,A0219,2023-03-08,Bearing wear,1,2023-01-25,42,vibration_temp
+E00145,A0597,2023-03-08,Mechanical seal leak,1,2023-01-25,42,temp
+E00164,A0377,2023-03-16,Mechanical seal leak,0,,0,none
+E00166,A0010,2023-03-17,Bearing wear,1,2023-02-21,24,vibration_temp
+E00191,A0337,2023-03-27,Bearing wear,1,2023-02-22,33,vibration_temp
+E00197,A0497,2023-03-28,Motor overload,0,,0,none
+E00205,A0534,2023-03-31,Bearing wear,1,2023-03-06,25,vibration_temp
+E00210,A0498,2023-04-03,Mechanical seal leak,0,,0,none
+E00215,A0438,2023-04-05,Bearing wear,1,2023-03-14,22,vibration_temp
+E00216,A0050,2023-04-06,Bearing wear,1,2023-03-11,26,vibration_temp
+E00231,A0055,2023-04-12,Mechanical seal leak,1,2023-03-22,21,temp
+E00232,A0068,2023-04-12,Bearing wear,1,2023-03-24,19,vibration_temp
+E00236,A0117,2023-04-16,Mechanical seal leak,0,,0,none
+E00255,A0537,2023-04-25,Impeller wear,0,,0,none
+E00274,A0271,2023-05-03,Bearing wear,1,2023-04-02,31,vibration_temp
+E00280,A0296,2023-05-05,Bearing wear,1,2023-03-26,40,vibration_temp
+E00283,A0219,2023-05-06,Bearing wear,1,2023-04-16,20,vibration_temp
+E00295,A0469,2023-05-09,Bearing wear,1,2023-04-24,15,vibration_temp
+E00302,A0126,2023-05-14,Impeller clogging,0,,0,none
+E00304,A0171,2023-05-15,Impeller clogging,1,2023-04-18,27,power_up_vibration
+E00319,A0114,2023-05-21,Impeller wear,1,2023-05-01,20,vibration_power_down
+E00331,A0388,2023-05-24,Mechanical seal leak,0,,0,none
+E00334,A0246,2023-05-26,Mechanical seal leak,1,2023-05-04,22,temp
+E00340,A0492,2023-05-29,Impeller wear,0,,0,none
+E00345,A0347,2023-05-31,Cavitation damage,1,2023-05-17,14,vibration
+E00353,A0314,2023-06-04,Motor overload,1,2023-04-23,42,temp_power_up
+E00359,A0485,2023-06-05,Bearing wear,1,2023-05-21,15,vibration_temp
+E00361,A0439,2023-06-07,Motor overload,1,2023-05-13,25,temp_power_up
+E00364,A0241,2023-06-08,Bearing wear,1,2023-04-30,39,vibration_temp
+E00377,A0068,2023-06-14,Motor overload,0,,0,none
+E00380,A0583,2023-06-16,Bearing wear,1,2023-05-09,38,vibration_temp
+E00381,A0359,2023-06-17,Bearing wear,1,2023-05-26,22,vibration_temp
+E00399,A0409,2023-06-25,Mechanical seal leak,1,2023-05-24,32,temp
+E00406,A0026,2023-06-27,Bearing wear,1,2023-05-20,38,vibration_temp
+E00412,A0561,2023-07-02,Bearing wear,1,2023-06-13,19,vibration_temp
+E00427,A0296,2023-07-09,Impeller wear,1,2023-05-30,40,vibration_power_down
+E00435,A0412,2023-07-13,Bearing wear,1,2023-06-29,14,vibration_temp
+E00437,A0366,2023-07-14,Impeller wear,1,2023-06-29,15,vibration_power_down
+E00444,A0189,2023-07-18,Bearing wear,1,2023-06-17,31,vibration_temp
+E00447,A0014,2023-07-20,Impeller wear,1,2023-06-25,25,vibration_power_down
+E00460,A0063,2023-07-27,Bearing wear,1,2023-06-17,40,vibration_temp
+E00465,A0559,2023-07-29,Impeller clogging,0,,0,none
+E00476,A0366,2023-08-05,Impeller wear,0,,0,none
+E00503,A0049,2023-08-18,Impeller wear,1,2023-07-21,28,vibration_power_down
+E00516,A0540,2023-08-24,Bearing wear,1,2023-08-01,23,vibration_temp
+E00520,A0506,2023-08-26,Mechanical seal leak,0,,0,none
+E00528,A0598,2023-08-30,Bearing wear,1,2023-08-16,14,vibration_temp
+E00529,A0028,2023-08-31,Electrical trip,0,,0,none
+E00549,A0300,2023-09-11,Bearing wear,1,2023-08-01,41,vibration_temp
+E00560,A0435,2023-09-15,Impeller wear,1,2023-08-13,33,vibration_power_down
+E00561,A0047,2023-09-17,Bearing wear,1,2023-08-24,24,vibration_temp
+E00568,A0381,2023-09-19,Bearing wear,1,2023-09-02,17,vibration_temp
+E00596,A0301,2023-09-30,Bearing wear,1,2023-09-01,29,vibration_temp
+E00597,A0467,2023-10-01,Impeller wear,1,2023-09-09,22,vibration_power_down
+E00610,A0069,2023-10-06,Bearing wear,1,2023-09-12,24,vibration_temp
+E00611,A0167,2023-10-08,Impeller wear,1,2023-08-30,39,vibration_power_down
+E00612,A0039,2023-10-09,Bearing wear,1,2023-09-03,36,vibration_temp
+E00614,A0488,2023-10-09,Motor overload,0,,0,none
+E00617,A0289,2023-10-11,Impeller wear,0,,0,none
+E00618,A0328,2023-10-11,Bearing wear,1,2023-09-05,36,vibration_temp
+E00651,A0044,2023-10-26,Impeller wear,1,2023-10-02,24,vibration_power_down
+E00656,A0307,2023-10-29,Cavitation damage,1,2023-10-01,28,vibration
+E00663,A0520,2023-10-30,Mechanical seal leak,0,,0,none
+E00673,A0547,2023-11-02,Mechanical seal leak,0,,0,none
+E00680,A0278,2023-11-06,Bearing wear,0,,0,none
+E00690,A0542,2023-11-09,Bearing wear,1,2023-10-15,25,vibration_temp
+E00713,A0258,2023-11-18,Motor overload,1,2023-10-15,34,temp_power_up
+E00714,A0314,2023-11-19,Bearing wear,1,2023-10-09,41,vibration_temp
+E00726,A0136,2023-11-22,Bearing wear,1,2023-10-16,37,vibration_temp
+E00735,A0203,2023-11-27,Bearing wear,0,,0,none
+E00737,A0359,2023-11-27,Mechanical seal leak,1,2023-10-19,39,temp
+E00739,A0539,2023-11-27,Cavitation damage,1,2023-10-28,30,vibration
+E00746,A0418,2023-12-01,Mechanical seal leak,0,,0,none
+E00747,A0060,2023-12-04,Bearing wear,1,2023-10-24,41,vibration_temp
+E00749,A0351,2023-12-04,Impeller clogging,1,2023-11-17,17,power_up_vibration
+E00760,A0051,2023-12-10,Motor overload,0,,0,none
+E00776,A0265,2023-12-13,Impeller wear,1,2023-11-27,16,vibration_power_down
+E00779,A0394,2023-12-14,Impeller wear,1,2023-11-29,15,vibration_power_down
+E00783,A0179,2023-12-16,Mechanical seal leak,0,,0,none
+E00802,A0517,2023-12-25,Cavitation damage,0,,0,none
+E00804,A0038,2023-12-26,Bearing wear,1,2023-11-30,26,vibration_temp
+E00815,A0153,2024-01-02,Impeller wear,1,2023-12-15,18,vibration_power_down
+E00816,A0552,2024-01-02,Mechanical seal leak,0,,0,none
+E00818,A0162,2024-01-03,Impeller wear,1,2023-12-07,27,vibration_power_down
+E00827,A0348,2024-01-06,Impeller wear,0,,0,none
+E00831,A0157,2024-01-09,Motor overload,1,2023-12-08,32,temp_power_up
+E00837,A0595,2024-01-14,Bearing wear,1,2023-12-11,34,vibration_temp
+E00842,A0046,2024-01-16,Electrical trip,0,,0,none
+E00852,A0024,2024-01-20,Mechanical seal leak,1,2023-12-16,35,temp
+E00859,A0198,2024-01-24,Impeller wear,1,2024-01-04,20,vibration_power_down
+E00885,A0098,2024-02-09,Bearing wear,0,,0,none
+E00893,A0477,2024-02-12,Cavitation damage,1,2024-01-22,21,vibration
+E00902,A0351,2024-02-16,Bearing wear,1,2024-01-23,24,vibration_temp
+E00906,A0321,2024-02-18,Motor overload,1,2024-01-07,42,temp_power_up
+E00911,A0468,2024-02-20,Bearing wear,1,2024-01-26,25,vibration_temp
+E00912,A0430,2024-02-21,Motor overload,1,2024-01-22,30,temp_power_up
+E00918,A0102,2024-02-26,Bearing wear,1,2024-01-18,39,vibration_temp
+E00919,A0179,2024-02-26,Bearing wear,0,,0,none
+E00936,A0425,2024-03-01,Bearing wear,1,2024-02-16,14,vibration_temp
+E00965,A0147,2024-03-14,Impeller wear,0,,0,none
+E00983,A0312,2024-03-23,Impeller wear,1,2024-02-29,23,vibration_power_down
+E01020,A0056,2024-04-07,Bearing wear,1,2024-03-23,15,vibration_temp
+E01021,A0070,2024-04-07,Impeller wear,1,2024-03-08,30,vibration_power_down
+E01028,A0375,2024-04-08,Mechanical seal leak,0,,0,none
+E01029,A0252,2024-04-09,Impeller wear,0,,0,none
+E01038,A0574,2024-04-12,Mechanical seal leak,1,2024-03-07,36,temp
+E01041,A0426,2024-04-15,Mechanical seal leak,0,,0,none
+E01078,A0334,2024-04-30,Mechanical seal leak,0,,0,none
+E01083,A0465,2024-05-01,Cavitation damage,1,2024-04-17,14,vibration
+E01091,A0505,2024-05-04,Bearing wear,1,2024-03-27,38,vibration_temp
+E01092,A0001,2024-05-05,Impeller wear,1,2024-03-30,36,vibration_power_down
+E01107,A0201,2024-05-10,Mechanical seal leak,1,2024-04-17,23,temp
+E01117,A0337,2024-05-14,Mechanical seal leak,0,,0,none
+E01119,A0142,2024-05-15,Bearing wear,1,2024-04-22,23,vibration_temp
+E01128,A0316,2024-05-20,Motor overload,0,,0,none
+E01145,A0010,2024-05-24,Cavitation damage,1,2024-04-23,31,vibration
+E01146,A0081,2024-05-24,Cavitation damage,0,,0,none
+E01148,A0005,2024-05-26,Mechanical seal leak,1,2024-04-23,33,temp
+E01149,A0375,2024-05-26,Bearing wear,1,2024-05-11,15,vibration_temp
+E01168,A0191,2024-05-31,Impeller wear,0,,0,none
+E01169,A0047,2024-06-01,Electrical trip,0,,0,none
+E01194,A0428,2024-06-16,Cavitation damage,1,2024-06-02,14,vibration
+E01195,A0523,2024-06-16,Cavitation damage,0,,0,none
+E01206,A0316,2024-06-18,Impeller clogging,1,2024-05-28,21,power_up_vibration
+E01217,A0327,2024-06-22,Motor overload,1,2024-05-15,38,temp_power_up
+E01227,A0333,2024-06-26,Bearing wear,1,2024-06-09,17,vibration_temp
+E01240,A0371,2024-07-06,Impeller wear,1,2024-06-22,14,vibration_power_down
+E01245,A0271,2024-07-09,Bearing wear,1,2024-06-01,38,vibration_temp
+E01249,A0514,2024-07-10,Bearing wear,0,,0,none
+E01270,A0319,2024-07-21,Bearing wear,1,2024-07-06,15,vibration_temp
+E01287,A0409,2024-07-26,Mechanical seal leak,0,,0,none
+E01289,A0008,2024-07-27,Motor overload,1,2024-07-02,25,temp_power_up
+E01302,A0189,2024-08-05,Electrical trip,0,,0,none
+E01308,A0043,2024-08-07,Impeller wear,1,2024-06-28,40,vibration_power_down
+E01310,A0278,2024-08-07,Bearing wear,1,2024-07-16,22,vibration_temp
+E01318,A0463,2024-08-09,Impeller wear,1,2024-07-09,31,vibration_power_down
+E01322,A0231,2024-08-12,Impeller wear,1,2024-07-11,32,vibration_power_down
+E01336,A0499,2024-08-17,Mechanical seal leak,0,,0,none
+E01346,A0058,2024-08-21,Mechanical seal leak,0,,0,none
+E01356,A0575,2024-08-28,Bearing wear,0,,0,none
+E01362,A0052,2024-08-31,Bearing wear,0,,0,none
+E01363,A0321,2024-08-31,Mechanical seal leak,1,2024-08-13,18,temp
+E01372,A0142,2024-09-03,Mechanical seal leak,1,2024-07-24,41,temp
+E01376,A0041,2024-09-04,Impeller clogging,1,2024-08-01,34,power_up_vibration
+E01378,A0244,2024-09-04,Mechanical seal leak,1,2024-08-11,24,temp
+E01382,A0432,2024-09-07,Impeller clogging,1,2024-08-01,37,power_up_vibration
+E01393,A0598,2024-09-10,Motor overload,0,,0,none
+E01400,A0301,2024-09-14,Bearing wear,0,,0,none
+E01416,A0519,2024-09-22,Bearing wear,1,2024-08-26,27,vibration_temp
+E01436,A0496,2024-10-05,Bearing wear,1,2024-09-12,23,vibration_temp
+E01453,A0154,2024-10-12,Bearing wear,1,2024-09-14,28,vibration_temp
+E01473,A0462,2024-10-22,Impeller clogging,1,2024-09-19,33,power_up_vibration
+E01475,A0071,2024-10-23,Cavitation damage,1,2024-09-17,36,vibration
+E01476,A0215,2024-10-23,Cavitation damage,1,2024-10-07,16,vibration
+E01478,A0292,2024-10-23,Cavitation damage,0,,0,none
+E01492,A0433,2024-10-30,Mechanical seal leak,1,2024-09-23,37,temp
+E01517,A0395,2024-11-12,Bearing wear,1,2024-10-21,22,vibration_temp
+E01520,A0017,2024-11-13,Mechanical seal leak,0,,0,none
+E01525,A0270,2024-11-14,Bearing wear,1,2024-10-20,25,vibration_temp
+E01528,A0121,2024-11-15,Bearing wear,1,2024-10-09,37,vibration_temp
+E01531,A0381,2024-11-16,Bearing wear,1,2024-10-28,19,vibration_temp
+E01532,A0500,2024-11-16,Mechanical seal leak,1,2024-10-19,28,temp
+E01542,A0054,2024-11-20,Bearing wear,1,2024-10-09,42,vibration_temp
+E01544,A0172,2024-11-20,Mechanical seal leak,0,,0,none
+E01552,A0080,2024-11-23,Motor overload,0,,0,none
+E01553,A0100,2024-11-23,Electrical trip,0,,0,none
+E01554,A0253,2024-11-23,Bearing wear,1,2024-11-03,20,vibration_temp
+E01555,A0094,2024-11-24,Electrical trip,0,,0,none
+E01574,A0329,2024-12-02,Impeller wear,1,2024-10-23,40,vibration_power_down
+E01578,A0419,2024-12-04,Bearing wear,1,2024-11-01,33,vibration_temp
+E01579,A0523,2024-12-04,Electrical trip,0,,0,none
+E01581,A0060,2024-12-05,Motor overload,0,,0,none
+E01593,A0512,2024-12-11,Cavitation damage,0,,0,none
+E01596,A0226,2024-12-12,Impeller wear,0,,0,none
+E01620,A0553,2024-12-21,Bearing wear,1,2024-11-26,25,vibration_temp
+E01623,A0244,2024-12-23,Bearing wear,1,2024-11-24,29,vibration_temp
+E01626,A0484,2024-12-23,Bearing wear,1,2024-11-23,30,vibration_temp
+E01628,A0527,2024-12-24,Electrical trip,0,,0,none
+E01640,A0308,2024-12-30,Bearing wear,1,2024-11-22,38,vibration_temp
+E01643,A0584,2024-12-30,Mechanical seal leak,0,,0,none
+E01646,A0180,2025-01-02,Mechanical seal leak,0,,0,none
+E01658,A0213,2025-01-07,Impeller wear,0,,0,none
+E01659,A0281,2025-01-07,Impeller wear,1,2024-12-21,17,vibration_power_down
+E01660,A0425,2025-01-08,Electrical trip,0,,0,none
+E01664,A0441,2025-01-10,Bearing wear,1,2024-12-11,30,vibration_temp
+E01665,A0061,2025-01-13,Mechanical seal leak,1,2024-12-20,24,temp
+E01672,A0073,2025-01-14,Bearing wear,1,2024-12-15,30,vibration_temp
+E01677,A0262,2025-01-17,Electrical trip,0,,0,none
+E01684,A0076,2025-01-21,Bearing wear,1,2024-12-24,28,vibration_temp
+E01695,A0239,2025-01-24,Impeller clogging,1,2025-01-04,20,power_up_vibration
+E01696,A0337,2025-01-24,Bearing wear,1,2025-01-01,23,vibration_temp
+E01724,A0330,2025-02-06,Mechanical seal leak,1,2025-01-12,25,temp
+E01727,A0538,2025-02-07,Bearing wear,1,2025-01-15,23,vibration_temp
+E01730,A0347,2025-02-10,Bearing wear,1,2025-01-15,26,vibration_temp
+E01737,A0073,2025-02-13,Impeller wear,1,2025-01-25,19,vibration_power_down
+E01755,A0148,2025-02-21,Bearing wear,1,2025-01-29,23,vibration_temp
+E01766,A0445,2025-02-27,Mechanical seal leak,1,2025-01-21,37,temp
+E01771,A0274,2025-03-01,Bearing wear,1,2025-02-08,21,vibration_temp
+E01773,A0107,2025-03-03,Mechanical seal leak,0,,0,none
+E01783,A0268,2025-03-07,Bearing wear,1,2025-02-12,23,vibration_temp
+E01784,A0367,2025-03-08,Bearing wear,1,2025-02-14,22,vibration_temp
+E01785,A0036,2025-03-10,Bearing wear,1,2025-02-18,20,vibration_temp
+E01793,A0338,2025-03-11,Impeller wear,1,2025-02-03,36,vibration_power_down
+E01798,A0043,2025-03-13,Motor overload,0,,0,none
+E01817,A0366,2025-03-20,Mechanical seal leak,0,,0,none
+E01818,A0028,2025-03-21,Cavitation damage,1,2025-02-12,37,vibration
+E01820,A0266,2025-03-21,Bearing wear,1,2025-02-16,33,vibration_temp
+E01822,A0056,2025-03-22,Electrical trip,0,,0,none
+E01833,A0197,2025-03-27,Bearing wear,1,2025-03-09,18,vibration_temp
+E01838,A0461,2025-03-27,Motor overload,0,,0,none
+E01861,A0049,2025-04-06,Impeller clogging,1,2025-03-16,21,power_up_vibration
+E01868,A0161,2025-04-08,Mechanical seal leak,0,,0,none
+E01872,A0583,2025-04-09,Motor overload,0,,0,none
+E01873,A0015,2025-04-10,Bearing wear,1,2025-03-08,33,vibration_temp
+E01882,A0531,2025-04-11,Bearing wear,1,2025-03-10,32,vibration_temp
+E01883,A0154,2025-04-13,Impeller wear,1,2025-03-08,36,vibration_power_down
+E01884,A0582,2025-04-13,Impeller wear,1,2025-03-21,23,vibration_power_down
+E01894,A0316,2025-04-16,Electrical trip,0,,0,none
+E01903,A0576,2025-04-18,Bearing wear,1,2025-03-18,31,vibration_temp
+E01905,A0204,2025-04-20,Mechanical seal leak,0,,0,none
+E01918,A0138,2025-04-25,Bearing wear,1,2025-04-05,20,vibration_temp
+E01919,A0217,2025-04-26,Bearing wear,1,2025-03-16,41,vibration_temp
+E01943,A0446,2025-05-04,Cavitation damage,0,,0,none
+E01960,A0339,2025-05-09,Bearing wear,1,2025-04-18,21,vibration_temp
+E01961,A0359,2025-05-10,Bearing wear,1,2025-04-07,33,vibration_temp
+E01962,A0452,2025-05-10,Electrical trip,0,,0,none
+E01963,A0234,2025-05-11,Bearing wear,1,2025-04-09,32,vibration_temp
+E01964,A0258,2025-05-11,Impeller wear,1,2025-04-07,34,vibration_power_down
+E01981,A0295,2025-05-17,Motor overload,1,2025-04-16,31,temp_power_up
+E01982,A0514,2025-05-18,Impeller wear,1,2025-04-10,38,vibration_power_down
+E02001,A0506,2025-05-23,Mechanical seal leak,0,,0,none
+E02002,A0282,2025-05-25,Mechanical seal leak,1,2025-04-26,29,temp
+E02015,A0580,2025-05-26,Mechanical seal leak,0,,0,none
+E02020,A0543,2025-05-27,Mechanical seal leak,0,,0,none
+E02026,A0511,2025-05-30,Impeller wear,1,2025-05-15,15,vibration_power_down
+E02027,A0525,2025-05-31,Mechanical seal leak,0,,0,none
+E02028,A0163,2025-06-01,Bearing wear,1,2025-05-12,20,vibration_temp
+E02029,A0318,2025-06-01,Bearing wear,1,2025-05-11,21,vibration_temp
+E02030,A0368,2025-06-01,Bearing wear,0,,0,none
+E02041,A0581,2025-06-06,Motor overload,1,2025-05-04,33,temp_power_up
+E02042,A0172,2025-06-07,Bearing wear,1,2025-05-06,32,vibration_temp
+E02043,A0346,2025-06-08,Impeller clogging,1,2025-05-13,26,power_up_vibration
+E02048,A0557,2025-06-09,Mechanical seal leak,1,2025-04-28,42,temp
+E02064,A0467,2025-06-16,Mechanical seal leak,0,,0,none
+E02075,A0363,2025-06-19,Bearing wear,1,2025-05-12,38,vibration_temp
+E02087,A0111,2025-06-24,Mechanical seal leak,1,2025-05-31,24,temp
+E02095,A0164,2025-06-26,Bearing wear,1,2025-06-07,19,vibration_temp
+E02101,A0393,2025-06-29,Mechanical seal leak,0,,0,none
+E02102,A0490,2025-06-29,Bearing wear,1,2025-06-02,27,vibration_temp
+E02108,A0400,2025-06-30,Bearing wear,1,2025-05-24,37,vibration_temp
+E02120,A0522,2025-07-04,Motor overload,1,2025-06-20,14,temp_power_up
+E02121,A0290,2025-07-06,Bearing wear,1,2025-06-12,24,vibration_temp
+E02138,A0597,2025-07-16,Cavitation damage,1,2025-06-06,40,vibration
+E02152,A0199,2025-07-23,Mechanical seal leak,0,,0,none
+E02168,A0574,2025-07-30,Bearing wear,1,2025-06-19,41,vibration_temp
+E02172,A0151,2025-08-02,Mechanical seal leak,1,2025-07-18,15,temp
+E02173,A0347,2025-08-03,Impeller wear,0,,0,none
+E02182,A0025,2025-08-07,Impeller wear,1,2025-07-05,33,vibration_power_down
+E02187,A0157,2025-08-09,Impeller wear,1,2025-07-20,20,vibration_power_down
+E02192,A0270,2025-08-13,Bearing wear,1,2025-07-26,18,vibration_temp
+E02200,A0406,2025-08-16,Impeller wear,1,2025-07-23,24,vibration_power_down
+E02201,A0143,2025-08-17,Mechanical seal leak,0,,0,none
+E02202,A0254,2025-08-17,Motor overload,1,2025-07-21,27,temp_power_up
+E02222,A0344,2025-08-24,Bearing wear,1,2025-07-21,34,vibration_temp
+E02235,A0595,2025-08-28,Bearing wear,1,2025-07-18,41,vibration_temp
+E02248,A0014,2025-09-03,Cavitation damage,1,2025-07-24,41,vibration
+E02253,A0148,2025-09-06,Impeller clogging,1,2025-08-21,16,power_up_vibration
+E02263,A0040,2025-09-11,Bearing wear,1,2025-08-17,25,vibration_temp
+E02264,A0314,2025-09-11,Bearing wear,1,2025-08-09,33,vibration_temp
+E02266,A0477,2025-09-13,Bearing wear,0,,0,none
+E02267,A0495,2025-09-13,Bearing wear,1,2025-08-12,32,vibration_temp
+E02278,A0443,2025-09-16,Mechanical seal leak,0,,0,none
+E02313,A0072,2025-10-02,Cavitation damage,1,2025-09-13,19,vibration
+E02318,A0543,2025-10-04,Mechanical seal leak,1,2025-09-14,20,temp
+E02331,A0334,2025-10-10,Mechanical seal leak,0,,0,none
+E02335,A0426,2025-10-13,Bearing wear,1,2025-09-23,20,vibration_temp
+E02354,A0462,2025-10-18,Bearing wear,0,,0,none
+E02363,A0108,2025-10-21,Mechanical seal leak,0,,0,none
+E02368,A0201,2025-10-22,Mechanical seal leak,1,2025-09-27,25,temp
+E02375,A0421,2025-10-24,Bearing wear,1,2025-09-24,30,vibration_temp
+E02377,A0132,2025-10-26,Cavitation damage,1,2025-09-24,32,vibration
+E02379,A0151,2025-10-27,Motor overload,0,,0,none
+E02387,A0223,2025-10-29,Bearing wear,1,2025-10-04,25,vibration_temp
+E02388,A0598,2025-10-30,Impeller wear,1,2025-09-26,34,vibration_power_down
+E02404,A0114,2025-11-09,Mechanical seal leak,0,,0,none
+E02414,A0504,2025-11-10,Bearing wear,1,2025-10-17,24,vibration_temp
+E02422,A0145,2025-11-13,Mechanical seal leak,0,,0,none
+E02427,A0186,2025-11-16,Motor overload,1,2025-10-26,21,temp_power_up
+E02444,A0001,2025-11-21,Bearing wear,1,2025-10-16,36,vibration_temp
+E02456,A0048,2025-11-27,Impeller wear,1,2025-10-28,30,vibration_power_down
+E02457,A0244,2025-11-27,Mechanical seal leak,1,2025-10-30,28,temp
+E02471,A0188,2025-12-03,Motor overload,1,2025-10-30,34,temp_power_up
+E02472,A0527,2025-12-03,Impeller wear,0,,0,none
+E02480,A0101,2025-12-06,Bearing wear,1,2025-11-20,16,vibration_temp
+E02481,A0186,2025-12-07,Mechanical seal leak,1,2025-11-18,19,temp
+E02482,A0376,2025-12-07,Motor overload,1,2025-11-13,24,temp_power_up
+E02497,A0381,2025-12-13,Bearing wear,1,2025-11-03,40,vibration_temp
+E02504,A0560,2025-12-15,Electrical trip,0,,0,none
+E02505,A0021,2025-12-16,Mechanical seal leak,0,,0,none
+E02506,A0380,2025-12-16,Impeller wear,1,2025-11-21,25,vibration_power_down
+E02517,A0370,2025-12-21,Bearing wear,1,2025-12-06,15,vibration_temp
+E02518,A0077,2025-12-22,Impeller wear,0,,0,none
+E02532,A0309,2025-12-26,Impeller clogging,1,2025-12-12,14,power_up_vibration
+E02536,A0471,2025-12-26,Electrical trip,0,,0,none
+E02537,A0401,2025-12-27,Mechanical seal leak,0,,0,none

@@ -1,9 +1,10 @@
 # fjordvik-powerbi
 
 Power BI Project (PBIP: TMDL model + PBIR report) over the synthetic Fjordvik dataset.
-One of four folders in the fjordvik repository: data (source of the data), mcp, powerbi,
-power-automate. Permanent rules in
-`C:\Users\reece\Projects\knowledge\RULES.md` override this file.
+One of five folders in the fjordvik repository: data (source of the data), mcp, powerbi,
+power-automate, service-ai. Permanent rules in
+`C:\Users\reece\Projects\knowledge\RULES.md` come first, then `..\GUARDRAILS.md`, then
+this file.
 
 ## Rules for this repo
 
@@ -41,5 +42,5 @@ power-automate. Permanent rules in
 ```bash
 python scripts/build_report.py            # regenerate report pages
 python scripts/build_data_dictionary.py   # regenerate docs/data-dictionary.md
-python -m pytest -q                       # 727 tests (154 need Desktop open)
+python -m pytest -q                       # 733 tests (154 need Desktop open)
 ```

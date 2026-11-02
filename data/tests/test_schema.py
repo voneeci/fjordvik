@@ -43,6 +43,26 @@ EXPECTED = {
                        "net_sales_eur", "activity_amount", "unit", "emission_factor", "tco2e"],
     "fact_budget": ["date_key", "site_id", "product_group", "region_id", "budget_units",
                     "budget_net_sales_eur", "budget_margin_eur"],
+    # After-sales service, added 2 November 2026
+    "dim_customer": ["customer_id", "customer_name", "segment", "country", "region_id", "town",
+                     "latitude", "longitude", "service_contract", "customer_since"],
+    "dim_asset": ["asset_id", "serial_number", "product_id", "customer_id", "country", "town",
+                  "latitude", "longitude", "application", "install_date", "telemetry_from_date"],
+    "dim_part": ["part_id", "part_name", "part_family", "sales_product_id", "list_price_eur",
+                 "lead_time_days"],
+    "bridge_part_compatibility": ["part_id", "product_group"],
+    "dim_technician": ["technician_id", "technician_name", "home_site_id", "home_town",
+                       "latitude", "longitude", "countries_served", "skills", "weekly_hours"],
+    "fact_asset_telemetry": ["date_key", "asset_id", "running_hours", "vibration_mm_s",
+                             "bearing_temp_c", "power_kw"],
+    "fact_service_event": ["event_id", "asset_id", "event_type", "failure_mode",
+                           "reported_date", "completed_date", "technician_id", "downtime_hours",
+                           "labour_hours", "parts_used", "technician_note"],
+    "fact_parts_order": ["order_id", "order_line", "order_date", "date_key", "site_id",
+                         "region_id", "customer_id", "part_id", "sales_product_id", "quantity",
+                         "net_amount_eur", "channel", "service_event_id", "asset_id"],
+    "fact_portal_event": ["event_id", "event_date", "session_id", "customer_id", "product_id",
+                          "part_id", "rank", "clicked"],
 }
 
 

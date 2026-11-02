@@ -5,7 +5,7 @@ Fjordvik Manufacturing Oy, a maker of electric pumps and pump systems
 no dashboard page was built for, from its own managers and from customers asking for its
 footprint. This connector lets them ask Claude in plain language and
 get an answer from the same governed data the Power BI reports use. It is a Model Context
-Protocol (MCP) server: Claude calls seven read-only tools, and the server answers from a
+Protocol (MCP) server: Claude calls read-only tools (listed below), and the server answers from a
 locked-down DuckDB database (a file-based analytics database) built from the shared
 dataset in [`data/tables`](../data/tables). It runs two ways: inside Claude Desktop for
 one person, or over HTTP behind a sign-in, the way a company would share it, where each
@@ -77,7 +77,7 @@ What each role can use over HTTP (over stdio there is no sign-in: one person, ev
 
 | Demo role | Tools |
 | --- | --- |
-| Group analyst | All seven |
+| Group analyst | Every tool |
 | Sustainability reviewer | `describe_dataset`, `emissions_total`, `emissions_intensity`, `scope3_inventory`, `data_quality_report` |
 | Nordics sales manager | `describe_dataset`, and `sales_summary` for the Nordics only |
 | Western Europe sales manager | `describe_dataset`, and `sales_summary` for Western Europe only |
@@ -93,7 +93,7 @@ refused call says which roles can use the tool.
 | `scope3_inventory` | All 15 scope 3 categories with status, reason and tCO2e for a year or the whole period |
 | `sales_summary` | Units, net sales, margin and margin % from the cleaned ERP sales, by year, quarter, site, family, group, product or region |
 | `data_quality_report` | Fifteen checks (the last: sales reconcile to finance): unique keys, joins, the tCO2e formula, no negatives, one unit per source, complete monthly grid, emissions and metrics covering the same site-months; for the value-chain tables, keys, joins, formula, market-based kWh matching location-based kWh, the freight payer split, and a reason for every scope 3 category |
-| `run_sql` | Any single read-only `SELECT` against the 22 tables and the `all_emissions` view |
+| `run_sql` | Any single read-only `SELECT` against the 22 emissions and portfolio tables and the `all_emissions` view |
 
 Resources: `fjordvik://schema` (tables, grain and joins) and `fjordvik://source` (the
 data's manifest: dataset version, period, row counts and SHA-256 checksums).
@@ -122,12 +122,16 @@ is running is lost. Make the change with the app fully closed:
    python scripts\add_to_claude_desktop.py
    ```
 
-   It finds `claude_desktop_config.json` (in
-   `%LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude` for the Microsoft Store
-   version, otherwise `%APPDATA%\Claude`), backs it up, adds the `fjordvik`
-   entry shown in [claude_desktop_config.example.json](claude_desktop_config.example.json),
+   It finds the `claude_desktop_config.json` that Desktop reads, the file **Settings >
+   Developer > Edit config** opens. For the Microsoft Store version that is
+   `%LOCALAPPDATA%\Claude-Data\claude_*`; older Store versions used
+   `%LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude`, and the installer
+   version uses `%APPDATA%\Claude`. It backs the file up, adds the `fjordvik` entry
+   shown in [claude_desktop_config.example.json](claude_desktop_config.example.json),
    and keeps every other setting. `--remove` takes it out again.
-3. Open Claude Desktop. "fjordvik" appears under **+ > Connectors** in a chat.
+3. Open Claude Desktop. "fjordvik" appears under **Settings > Developer** (local MCP
+   servers), and its tools are available in a chat. **Settings > Connectors** lists web
+   connectors only.
 
 Try:
 
@@ -178,12 +182,13 @@ point it somewhere else, set `FJORDVIK_DATA_DIR` (see [.env.example](.env.exampl
 
 ```
 .venv\Scripts\python -m pytest -q
-............................................................................ [100%]
-76 passed in 7.54s
+83 passed in 10.64s
 ```
 
-(31 October 2026; raw output in `evidence/pytest-http-auth-2026-10-31.txt`. Two signed-in
-runs of the try-it client, as Group analyst and as Nordics sales manager, are in
+(2 November 2026; raw output in `evidence/pytest-service-data-2026-11-02.txt`. The seven
+newest tests check that the Claude Desktop script finds the configuration file Desktop
+reads, and run the project's guardrail checks. Two signed-in runs of the try-it client,
+as Group analyst and as Nordics sales manager, are in
 `evidence/try-http-connector-*-2026-10-31.txt`.)
 
 | Test file | What it proves |
@@ -191,8 +196,10 @@ runs of the try-it client, as Group analyst and as Nordics sales manager, are in
 | `test_queries.py` | Every tool's numbers reconcile with an independent calculation from the raw CSVs (totals by year, scope and country, month ranges, intensity per FTE and per euro, market-based scope 2, totals by scope 3 category, the 15-category inventory); bad filters explain the valid values |
 | `test_sql_guard.py` | `SELECT` and `WITH` work; `DROP`, `DELETE`, `INSERT`, `UPDATE`, `CREATE`, `SET`, `ATTACH`, `COPY`, `INSTALL` and multiple statements are refused; a `SELECT` cannot read local files |
 | `test_quality.py` | All fourteen checks pass on clean data, and each catches a planted problem: a duplicate row, a missing month, a unit error (kWh entered as MWh), an unknown site, a negative value, customer-paid freight put in category 4, market-based kWh that no longer match, a scope 3 category with no reason, a purchase from an unknown supplier |
-| `test_server.py` | Over the MCP protocol: seven tools, all read-only; allowed values appear in the tool schema; results come back as structured content; errors carry a usable message; resources are readable; the server works as a real subprocess over stdio, as Claude Desktop runs it |
+| `test_server.py` | Over the MCP protocol: every tool listed above, all read-only; allowed values appear in the tool schema; results come back as structured content; errors carry a usable message; resources are readable; the server works as a real subprocess over stdio, as Claude Desktop runs it |
 | `test_data.py` | The shared CSVs match their manifest's checksums, and the server reads the shared data folder by default |
+| `test_desktop_config.py` | The Claude Desktop script picks the file Desktop reads: the Store version's `Claude-Data` folder first, then the older package folder, then the installer version's folder |
+| `test_guardrails.py` | The project's guardrail checks ([GUARDRAILS.md](../GUARDRAILS.md)), shared by every part |
 | `test_http_auth.py` | Over HTTP with sign-in: no token is refused with a pointer to the discovery document; the discovery documents name the server and PKCE; the sign-in page lists the four roles and asks for no password; a full sign-in gives a one-hour token carrying the role; a wrong PKCE verifier, a reused code, an unregistered redirect address, a reused or unknown-role sign-in, an expired token, a token for another server and a request naming another host are each refused; against the real server started as a subprocess, each role can use exactly its tools, a region manager sees only their region (and the same figure the analyst sees for it), and the SDK's own OAuth client signs in end to end |
 
 The safety tests were checked by breaking the code on purpose. With the region filter

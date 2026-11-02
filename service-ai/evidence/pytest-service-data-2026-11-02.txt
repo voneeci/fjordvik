@@ -1,0 +1,4 @@
+# service-ai tests, 2 November 2026, working tree on top of commit 7fc0844 (phase 0 and 1 changes, guardrails first edition, not yet committed)
+# command: .venv\Scripts\python -m pytest -q (from service-ai)
+......                                                                   [100%]
+6 passed in 2.39s

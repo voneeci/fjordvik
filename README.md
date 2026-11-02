@@ -67,18 +67,24 @@ forecast, part recommendations and manual search. Each capability comes with a
 plain-English note on its method, how the code applies it, its result against the pass
 mark, and what would change with live data.
 
-**Status, 2 November 2026:** the service data is being generated. The seven capabilities
-follow in the order of the table.
+**Status, 2 November 2026:** the service data is generated and tested (phase 1). The seven
+capabilities follow in the order of the table.
 
 ## The parts
 
 | Folder | What it holds | Tests |
 | --- | --- | --- |
-| [`data`](data) | The governed dataset: 22 tables with fixed names, checksums and quality tests, and the SQL that cleans the simulated ERP extract. The service data (pumps, telemetry, service events, parts orders, portal activity and service manuals) is being added | 60 |
-| [`mcp`](mcp) | A Model Context Protocol (MCP) server that gives Claude read-only tools over the data (Python, DuckDB), in Claude Desktop or over HTTP with sign-in and per-role access | 76 |
-| [`powerbi`](powerbi) | A Power BI Project: one semantic model in Tabular Model Definition Language (TMDL), 134 Data Analysis Expressions (DAX) measures, seven row-level security roles, and two reports on it (emissions, 10 pages; portfolio, 7 pages) | 727 (154 need Power BI Desktop open) |
-| [`power-automate`](power-automate) | Power Automate intake and reminder flows with ten written rules, designed and tested offline | 26 |
-| `service-ai` | The seven AI capabilities above, each with its test set, results and pass mark (Python) | Being built |
+| [`data`](data) | The governed dataset: 31 tables with fixed names, checksums and quality tests, the SQL that cleans the simulated ERP extract, and the after-sales service data (600 connected pumps, their daily readings, service events, parts orders, portal activity) with service manuals | 96 |
+| [`mcp`](mcp) | A Model Context Protocol (MCP) server that gives Claude read-only tools over the data (Python, DuckDB), in Claude Desktop or over HTTP with sign-in and per-role access | 83 |
+| [`powerbi`](powerbi) | A Power BI Project: one semantic model in Tabular Model Definition Language (TMDL), 134 Data Analysis Expressions (DAX) measures, seven row-level security roles, and two reports on it (emissions, 10 pages; portfolio, 7 pages) | 733 (154 need Power BI Desktop open) |
+| [`power-automate`](power-automate) | Power Automate intake and reminder flows with ten written rules, designed and tested offline | 30 |
+| [`service-ai`](service-ai) | The seven AI capabilities above, each with its test set, results and pass mark (Python); being built, phase by phase | 6 |
+
+Every part also runs the project's guardrail checks. The master rules are in
+[GUARDRAILS.md](GUARDRAILS.md): synthetic data only, data changed only through the
+generator, no secrets, read-only connector tools, agents that draft and never act, and
+evaluation sets fixed before building. Tests and a Claude Code hook enforce them
+([guardrails/](guardrails)).
 
 Each folder has its own README with the problem, approach, architecture, test evidence
 and limitations. The [project guide](docs/learning-guide.md) sets out the business need
@@ -107,14 +113,14 @@ flowchart LR
         B["Finance and HR<br/>revenue, headcount"]
         C["ERP and contracts<br/>purchases, freight, energy"]
         D["Oracle ERP sales extract<br/>simulated"]
-        S["Pump telemetry, service<br/>and parts records<br/>being added"]
+        S["Pump telemetry, service<br/>and parts records<br/>simulated"]
     end
     subgraph CHECK["2. Checks on the way in"]
         direction TB
         E["Intake flow<br/>ten written rules<br/>power-automate/"]
         F["SQL pipeline<br/>clean, map, reconcile<br/>data/sql/"]
     end
-    G[("3. One governed dataset<br/>22 tables + checksums<br/>data/tables/")]
+    G[("3. One governed dataset<br/>31 tables + checksums<br/>data/tables/")]
     subgraph OUT["4. Who reads it"]
         direction TB
         H["Power BI reports<br/>emissions and portfolio<br/>7 roles, powerbi/"]
@@ -125,7 +131,7 @@ flowchart LR
     B --> G
     C --> G
     D --> F --> G
-    S -.-> G
+    S --> G
     G --> H
     G --> I
     G -.-> J
@@ -135,7 +141,7 @@ flowchart LR
 | --- | --- | --- |
 | 1. Data arrives | Each month, sites upload a workbook of what they used; finance, HR, purchasing, logistics and the ERP send their exports | Described in [data/README.md](data/README.md) |
 | 2. Checks | Site files pass ten written rules before they are loaded; the ERP sales extract is cleaned by SQL and must add up to finance revenue to the cent | [power-automate](power-automate), [data/sql](data/sql) |
-| 3. One dataset | Everything lands in 22 tables with fixed names, and a manifest of checksums proves nobody edited them by hand | [data/tables](data/tables) |
+| 3. One dataset | Everything lands in 31 tables with fixed names, and a manifest of checksums proves nobody edited them by hand | [data/tables](data/tables) |
 | 4. Reading it | The two Power BI reports and the Claude connector read the same files, so they always show the same numbers. The service AI capabilities will read them too | [powerbi](powerbi), [mcp](mcp) |
 
 ## How to run it on your own computer
@@ -207,8 +213,18 @@ python -m venv .venv
 .venv\Scripts\python -m pytest -q
 ```
 
-Each should end with a line such as `60 passed`: 60 for data, 76 for mcp, 26 for
-power-automate, and 573 for powerbi (with 154 skipped until Power BI Desktop is open).
+**service-ai** (the after-sales service AI):
+
+```powershell
+cd service-ai
+python -m venv .venv
+.venv\Scripts\python -m pip install -e ".[dev]"
+.venv\Scripts\python -m pytest -q
+```
+
+Each should end with a line such as `96 passed`: 96 for data, 83 for mcp, 30 for
+power-automate, 6 for service-ai, and 579 for powerbi (with 154 skipped until
+Power BI Desktop is open).
 On macOS or Linux, use `.venv/bin/python` in place of `.venv\Scripts\python`.
 
 ### 4. Open the Power BI reports

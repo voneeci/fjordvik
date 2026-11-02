@@ -9,4 +9,7 @@ You may share and adapt them for any purpose, provided you give credit
 The data is synthetic. Fjordvik Manufacturing Oy is a fictional company. The
 emission factors are illustrative and must not be used for real reporting.
 
+Town coordinates in `reference/geonames_towns.csv` come from GeoNames
+(https://www.geonames.org/), licensed under CC BY 4.0, and are used unchanged.
+
 The code in this repository is licensed separately under the MIT licence (see `LICENSE`).

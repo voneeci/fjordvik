@@ -1,0 +1,151 @@
+customer_id,customer_name,segment,country,region_id,town,latitude,longitude,service_contract,customer_since
+C0001,Orvika Water Oy,Water utility,Finland,NOR,Espoo,60.20520,24.65220,Premium,2015-05-01
+C0002,Rimla Water and Sewerage Oy,Water utility,Finland,NOR,Pori,61.48072,21.78518,Premium,2006-06-01
+C0003,Uvalo Aqua Services AS,Water utility,Estonia,BAL,Tallinn,59.43696,24.75353,Basic,2006-12-01
+C0004,Hirvo Aqua Services AS,Water utility,Estonia,BAL,Tallinn,59.43696,24.75353,Premium,2016-12-01
+C0005,Grenvo Water and Sewerage SIA,Water utility,Latvia,BAL,Riga,56.94600,24.10589,Basic,2015-09-01
+C0006,Velmar Water and Sewerage Oy,Water utility,Finland,NOR,Kajaani,64.22728,27.72846,Basic,2005-03-01
+C0007,Aurel Water and Sewerage AB,Water utility,Sweden,NOR,Mölndal,57.65540,12.01378,Premium,2021-06-01
+C0008,Mirka Waterworks Oy,Water utility,Finland,NOR,Hyvinge,60.63333,24.86667,Premium,2014-12-01
+C0009,Laurvo Aqua Services Oy,Water utility,Finland,NOR,Helsinki,60.16952,24.93545,Premium,2015-09-01
+C0010,Tavira Water and Sewerage Oy,Water utility,Finland,NOR,Kerava,60.40338,25.10500,Basic,2020-02-01
+C0011,Siltra Waterworks AB,Water utility,Sweden,NOR,Vänersborg,58.38075,12.32340,Basic,2006-07-01
+C0012,Hirvo Aqua Services Oy,Water utility,Finland,NOR,Vantaa,60.29414,25.04099,Basic,2006-09-01
+C0013,Quarvo Water Oy,Water utility,Finland,NOR,Riihimäki,60.73769,24.77726,Basic,2019-09-01
+C0014,Lomva Aqua Services SIA,Water utility,Latvia,BAL,Salaspils,56.86014,24.36544,Premium,2005-12-01
+C0015,Uvalo Aqua Services Oy,Water utility,Finland,NOR,Kerava,60.40338,25.10500,Premium,2007-04-01
+C0016,Velmar Aqua Services AB,Water utility,Sweden,NOR,Jönköping,57.78145,14.15618,None,2014-01-01
+C0017,Norvala Waterworks Oy,Water utility,Finland,NOR,Järvenpää,60.47369,25.08992,Premium,2022-10-01
+C0018,Torvala Waterworks Oy,Water utility,Finland,NOR,Oulu,65.01236,25.46816,Basic,2011-04-01
+C0019,Tumra Aqua Services Oy,Water utility,Finland,NOR,Kaarina,60.40724,22.36904,Basic,2018-06-01
+C0020,Selvo Water and Sewerage AB,Water utility,Sweden,NOR,Halmstad,56.67446,12.85676,None,2008-11-01
+C0021,Borvik Water and Sewerage AB,Water utility,Sweden,NOR,Falkenberg,56.90552,12.49118,None,2005-09-01
+C0022,Saltro Water Oy,Water utility,Finland,NOR,Pori,61.48072,21.78518,Basic,2021-10-01
+C0023,Vintra Aqua Services Oy,Water utility,Finland,NOR,Salo,60.38333,23.13333,Premium,2018-01-01
+C0024,Wenra Waterworks AS,Water utility,Estonia,BAL,Pärnu,58.38588,24.49711,Basic,2015-12-01
+C0025,Yrvik Water Oy,Water utility,Finland,NOR,Tampere,61.49911,23.78712,Basic,2017-04-01
+C0026,Velmar Water AS,Water utility,Estonia,BAL,Tallinn,59.43696,24.75353,None,2016-08-01
+C0027,Revna Aqua Services AB,Water utility,Sweden,NOR,Partille,57.73950,12.10642,Basic,2014-01-01
+C0028,Varka Waterworks Oy,Water utility,Finland,NOR,Nokia,61.46667,23.50000,None,2009-01-01
+C0029,Frosta Water and Sewerage AS,Water utility,Estonia,BAL,Narva,59.37722,28.19028,Basic,2008-04-01
+C0030,Selvo Water AB,Water utility,Sweden,NOR,Halmstad,56.67446,12.85676,Premium,2016-09-01
+C0031,Ilvana Water and Sewerage Oy,Water utility,Finland,NOR,Vantaa,60.29414,25.04099,Basic,2011-10-01
+C0032,Mirka Aqua Services Oy,Water utility,Finland,NOR,Hämeenlinna,60.99596,24.46434,Premium,2017-07-01
+C0033,Uvalo Water and Sewerage Oy,Water utility,Finland,NOR,Turku,60.45148,22.26869,Basic,2011-03-01
+C0034,Ilvana Water Oy,Water utility,Finland,NOR,Tornio,65.84811,24.14662,Basic,2017-05-01
+C0035,Selvo Aqua Services Oy,Water utility,Finland,NOR,Kotka,60.46640,26.94582,Premium,2010-09-01
+C0036,Lomva Water and Sewerage Oy,Water utility,Finland,NOR,Raisio,60.48592,22.16895,Premium,2014-11-01
+C0037,Hirvo Water and Sewerage AB,Water utility,Sweden,NOR,Partille,57.73950,12.10642,Premium,2009-02-01
+C0038,Selvo Water and Sewerage Oy,Water utility,Finland,NOR,Espoo,60.20520,24.65220,Basic,2022-12-01
+C0039,Revna Water and Sewerage Oy,Water utility,Finland,NOR,Ylivieska,64.08333,24.55000,Premium,2016-04-01
+C0040,Vintra Aqua Services AB,Water utility,Sweden,NOR,Varberg,57.10557,12.25078,Basic,2010-07-01
+C0041,Laurvo Waterworks Oy,Water utility,Finland,NOR,Hyvinge,60.63333,24.86667,Basic,2010-02-01
+C0042,Velmar Waterworks Oy,Water utility,Finland,NOR,Haukipudas,65.17654,25.35233,Premium,2009-02-01
+C0043,Dalma Waterworks Oy,Water utility,Finland,NOR,Espoo,60.20520,24.65220,Premium,2010-01-01
+C0044,Vintra Water Oy,Water utility,Finland,NOR,Helsinki,60.16952,24.93545,Basic,2021-12-01
+C0045,Laurvo Water Oy,Water utility,Finland,NOR,Tampere,61.49911,23.78712,None,2021-03-01
+C0046,Uvalo Board AB,Industrial,Sweden,NOR,Mölndal,57.65540,12.01378,Premium,2019-10-01
+C0047,Kestra Paper AB,Industrial,Sweden,NOR,Mölndal,57.65540,12.01378,None,2013-08-01
+C0048,Dalma Board Oy,Industrial,Finland,NOR,Kotka,60.46640,26.94582,Basic,2017-12-01
+C0049,Wenra Minerals AS,Industrial,Estonia,BAL,Viljandi,58.36319,25.59159,None,2014-02-01
+C0050,Torvala Chemicals Oy,Industrial,Finland,NOR,Salo,60.38333,23.13333,Basic,2017-01-01
+C0051,Revna Foods AS,Industrial,Estonia,BAL,Tallinn,59.43696,24.75353,Premium,2017-11-01
+C0052,Quarvo Foods SIA,Industrial,Latvia,BAL,Riga,56.94600,24.10589,Basic,2019-09-01
+C0053,Ilvana Chemicals Oy,Industrial,Finland,NOR,Pirkkala,61.46125,23.63228,None,2010-02-01
+C0054,Siltra Metals AB,Industrial,Sweden,NOR,Gothenburg,57.70716,11.96679,Premium,2020-12-01
+C0055,Kalvo Paper Oy,Industrial,Finland,NOR,Turku,60.45148,22.26869,Premium,2009-03-01
+C0056,Dalma Paper Oy,Industrial,Finland,NOR,Kangasala,61.46383,24.07602,Premium,2008-04-01
+C0057,Varka Chemicals Oy,Industrial,Finland,NOR,Pirkkala,61.46125,23.63228,None,2013-05-01
+C0058,Jarvo Chemicals Oy,Industrial,Finland,NOR,Ylivieska,64.08333,24.55000,None,2018-05-01
+C0059,Tavira Paper AB,Industrial,Sweden,NOR,Skövde,58.39118,13.84506,Basic,2014-10-01
+C0060,Jarvo Minerals Oy,Industrial,Finland,NOR,Tampere,61.49911,23.78712,None,2005-01-01
+C0061,Selvo Metals Oy,Industrial,Finland,NOR,Rauma,61.12724,21.51127,Premium,2008-09-01
+C0062,Yrvik Chemicals SIA,Industrial,Latvia,BAL,Ogre,56.81620,24.61401,Basic,2013-06-01
+C0063,Saltro Paper AB,Industrial,Sweden,NOR,Partille,57.73950,12.10642,Premium,2022-04-01
+C0064,Ulvik Board Oy,Industrial,Finland,NOR,Lahti,60.98267,25.66151,None,2016-04-01
+C0065,Ruska Foods SIA,Industrial,Latvia,BAL,Ogre,56.81620,24.61401,Basic,2008-07-01
+C0066,Kestra Foods Oy,Industrial,Finland,NOR,Sastamala,61.34942,22.90928,Premium,2007-11-01
+C0067,Frosta Metals Oy,Industrial,Finland,NOR,Oulu,65.01236,25.46816,None,2017-02-01
+C0068,Tumra Foods Oy,Industrial,Finland,NOR,Lahti,60.98267,25.66151,Basic,2005-10-01
+C0069,Revna Metals Oy,Industrial,Finland,NOR,Tampere,61.49911,23.78712,Basic,2010-01-01
+C0070,Ostra Foods Oy,Industrial,Finland,NOR,Kajaani,64.22728,27.72846,Basic,2009-03-01
+C0071,Mirka Board Oy,Industrial,Finland,NOR,Turku,60.45148,22.26869,Premium,2007-03-01
+C0072,Velmar Paper AB,Industrial,Sweden,NOR,Alingsås,57.93033,12.53345,Premium,2011-07-01
+C0073,Ulvik Chemicals SIA,Industrial,Latvia,BAL,Riga,56.94600,24.10589,Basic,2008-09-01
+C0074,Nesta Minerals Oy,Industrial,Finland,NOR,Oulu,65.01236,25.46816,None,2022-08-01
+C0075,Ruska Paper AB,Industrial,Sweden,NOR,Jönköping,57.78145,14.15618,Premium,2005-03-01
+C0076,Aurel Foods Oy,Industrial,Finland,NOR,Turku,60.45148,22.26869,None,2012-04-01
+C0077,Tumra Chemicals AB,Industrial,Sweden,NOR,Jönköping,57.78145,14.15618,None,2019-08-01
+C0078,Dalma Foods Oy,Industrial,Finland,NOR,Helsinki,60.16952,24.93545,None,2014-08-01
+C0079,Ulvik Minerals AB,Industrial,Sweden,NOR,Gothenburg,57.70716,11.96679,Basic,2010-08-01
+C0080,Tumra Minerals Oy,Industrial,Finland,NOR,Sastamala,61.34942,22.90928,Premium,2017-09-01
+C0081,Vintra Board Oy,Industrial,Finland,NOR,Helsinki,60.16952,24.93545,None,2022-09-01
+C0082,Tavira Minerals Oy,Industrial,Finland,NOR,Sastamala,61.34942,22.90928,Basic,2007-07-01
+C0083,Torvala Foods Oy,Industrial,Finland,NOR,Järvenpää,60.47369,25.08992,Basic,2012-09-01
+C0084,Tumra Board Oy,Industrial,Finland,NOR,Nokia,61.46667,23.50000,Premium,2011-02-01
+C0085,Dalma Board SIA,Industrial,Latvia,BAL,Riga,56.94600,24.10589,Basic,2018-05-01
+C0086,Rimla Foods SIA,Industrial,Latvia,BAL,Riga,56.94600,24.10589,Basic,2014-12-01
+C0087,Hirvo Metals AB,Industrial,Sweden,NOR,Uddevalla,58.34784,11.94240,Basic,2009-06-01
+C0088,Ostra Board Oy,Industrial,Finland,NOR,Espoo,60.20520,24.65220,Basic,2020-12-01
+C0089,Quarvo Paper Oy,Industrial,Finland,NOR,Jyväskylä,62.24147,25.72088,None,2014-07-01
+C0090,Pelvik Board Oy,Industrial,Finland,NOR,Jyväskylä,62.24147,25.72088,None,2019-04-01
+C0091,Hirvo Chemicals Oy,Industrial,Finland,NOR,Hämeenlinna,60.99596,24.46434,None,2021-12-01
+C0092,Lomva Metals Oy,Industrial,Finland,NOR,Rauma,61.12724,21.51127,Premium,2021-05-01
+C0093,Pelvik Minerals AB,Industrial,Sweden,NOR,Gothenburg,57.70716,11.96679,Basic,2019-12-01
+C0094,Yrvik Foods Oy,Industrial,Finland,NOR,Kerava,60.40338,25.10500,Basic,2005-02-01
+C0095,Ilvana Foods Oy,Industrial,Finland,NOR,Kajaani,64.22728,27.72846,Basic,2009-07-01
+C0096,Marvo Heat AB,Buildings and district energy,Sweden,NOR,Halmstad,56.67446,12.85676,None,2008-03-01
+C0097,Tavira Energy Oy,Buildings and district energy,Finland,NOR,Pirkkala,61.46125,23.63228,None,2017-12-01
+C0098,Selvo Heat Oy,Buildings and district energy,Finland,NOR,Lohja,60.24859,24.06534,Basic,2014-09-01
+C0099,Lomva Facilities Oy,Buildings and district energy,Finland,NOR,Tampere,61.49911,23.78712,Basic,2016-11-01
+C0100,Selvo Property Services Oy,Buildings and district energy,Finland,NOR,Jyväskylä,62.24147,25.72088,Basic,2014-09-01
+C0101,Ruska Property Services Oy,Buildings and district energy,Finland,NOR,Tampere,61.49911,23.78712,Basic,2022-05-01
+C0102,Yrvik Heat SIA,Buildings and district energy,Latvia,BAL,Riga,56.94600,24.10589,None,2013-08-01
+C0103,Ostra Property Services Oy,Buildings and district energy,Finland,NOR,Tampere,61.49911,23.78712,None,2018-01-01
+C0104,Revna Property Services Oy,Buildings and district energy,Finland,NOR,Riihimäki,60.73769,24.77726,Basic,2011-04-01
+C0105,Ilvana Facilities AB,Buildings and district energy,Sweden,NOR,Jönköping,57.78145,14.15618,None,2010-07-01
+C0106,Wenra Heat Oy,Buildings and district energy,Finland,NOR,Raahe,64.68333,24.48333,Basic,2015-05-01
+C0107,Yrvik Heat Oy,Buildings and district energy,Finland,NOR,Lohja,60.24859,24.06534,None,2022-10-01
+C0108,Purla Energy SIA,Buildings and district energy,Latvia,BAL,Salaspils,56.86014,24.36544,Basic,2020-01-01
+C0109,Varka Facilities AB,Buildings and district energy,Sweden,NOR,Skövde,58.39118,13.84506,None,2010-05-01
+C0110,Rimla Property Services Oy,Buildings and district energy,Finland,NOR,Ylivieska,64.08333,24.55000,Basic,2018-12-01
+C0111,Aurel Energy Oy,Buildings and district energy,Finland,NOR,Tampere,61.49911,23.78712,Basic,2011-11-01
+C0112,Revna Energy AS,Buildings and district energy,Estonia,BAL,Maardu,59.46529,24.98215,None,2013-02-01
+C0113,Kestra Property Services Oy,Buildings and district energy,Finland,NOR,Ylivieska,64.08333,24.55000,Basic,2013-11-01
+C0114,Norvala Facilities AB,Buildings and district energy,Sweden,NOR,Mölndal,57.65540,12.01378,None,2022-02-01
+C0115,Helka Heat Oy,Buildings and district energy,Finland,NOR,Valkeakoski,61.26421,24.03122,Basic,2019-01-01
+C0116,Nesta Property Services Oy,Buildings and district energy,Finland,NOR,Kaarina,60.40724,22.36904,None,2022-04-01
+C0117,Ulvik Property Services SIA,Buildings and district energy,Latvia,BAL,Riga,56.94600,24.10589,Basic,2013-08-01
+C0118,Ilvana Heat Oy,Buildings and district energy,Finland,NOR,Kangasala,61.46383,24.07602,Premium,2014-08-01
+C0119,Marvo Energy SIA,Buildings and district energy,Latvia,BAL,Riga,56.94600,24.10589,Basic,2019-07-01
+C0120,Purla Heat SIA,Buildings and district energy,Latvia,BAL,Jelgava,56.65000,23.71278,None,2010-10-01
+C0121,Jarvo Property Services Oy,Buildings and district energy,Finland,NOR,Tampere,61.49911,23.78712,None,2019-06-01
+C0122,Revna Energy Oy,Buildings and district energy,Finland,NOR,Helsinki,60.16952,24.93545,Basic,2022-06-01
+C0123,Borvik Property Services Oy,Buildings and district energy,Finland,NOR,Jyväskylä,62.24147,25.72088,None,2013-03-01
+C0124,Velmar Energy SIA,Buildings and district energy,Latvia,BAL,Salaspils,56.86014,24.36544,Basic,2013-11-01
+C0125,Orvika Facilities AS,Buildings and district energy,Estonia,BAL,Tallinn,59.43696,24.75353,None,2018-08-01
+C0126,Kalvo Heat Oy,Buildings and district energy,Finland,NOR,Kangasala,61.46383,24.07602,None,2015-01-01
+C0127,Revna Property Services AB,Buildings and district energy,Sweden,NOR,Jönköping,57.78145,14.15618,None,2009-06-01
+C0128,Lomva Energy Oy,Buildings and district energy,Finland,NOR,Lempäälä,61.31667,23.75000,None,2022-02-01
+C0129,Kirna Facilities Oy,Buildings and district energy,Finland,NOR,Pirkkala,61.46125,23.63228,Basic,2020-03-01
+C0130,Uvalo Facilities Oy,Buildings and district energy,Finland,NOR,Vantaa,60.29414,25.04099,None,2010-02-01
+C0131,Tumra Property Services Oy,Buildings and district energy,Finland,NOR,Nokia,61.46667,23.50000,Premium,2018-01-01
+C0132,Kalvo Facilities Oy,Buildings and district energy,Finland,NOR,Helsinki,60.16952,24.93545,Premium,2017-05-01
+C0133,Velmar Energy Oy,Buildings and district energy,Finland,NOR,Espoo,60.20520,24.65220,None,2015-09-01
+C0134,Nesta Energy Oy,Buildings and district energy,Finland,NOR,Lempäälä,61.31667,23.75000,Basic,2019-08-01
+C0135,Borvik Property Services AB,Buildings and district energy,Sweden,NOR,Kungälv,57.87096,11.98054,Basic,2010-10-01
+C0136,Vintra Pump Supply AB,Distributor,Sweden,NOR,Vänersborg,58.38075,12.32340,None,2020-02-01
+C0137,Wenra Pump Supply AS,Distributor,Estonia,BAL,Tallinn,59.43696,24.75353,None,2021-09-01
+C0138,Wenra Flow Parts AB,Distributor,Sweden,NOR,Halmstad,56.67446,12.85676,None,2008-11-01
+C0139,Wenra Technical Trade SIA,Distributor,Latvia,BAL,Riga,56.94600,24.10589,None,2007-11-01
+C0140,Rimla Flow Parts Oy,Distributor,Finland,NOR,Lempäälä,61.31667,23.75000,None,2015-12-01
+C0141,Revna Flow Parts AS,Distributor,Estonia,BAL,Tallinn,59.43696,24.75353,None,2010-07-01
+C0142,Vintra Pump Supply Oy,Distributor,Finland,NOR,Helsinki,60.16952,24.93545,None,2020-03-01
+C0143,Norvala Flow Parts Oy,Distributor,Finland,NOR,Turku,60.45148,22.26869,None,2011-01-01
+C0144,Ulvik Technical Trade Oy,Distributor,Finland,NOR,Lahti,60.98267,25.66151,None,2010-07-01
+C0145,Pelvik Pump Supply SIA,Distributor,Latvia,BAL,Riga,56.94600,24.10589,None,2019-04-01
+C0146,Ilvana Technical Trade Oy,Distributor,Finland,NOR,Helsinki,60.16952,24.93545,None,2006-06-01
+C0147,Ilvana Flow Parts AB,Distributor,Sweden,NOR,Mölndal,57.65540,12.01378,None,2008-04-01
+C0148,Selvo Pump Supply Oy,Distributor,Finland,NOR,Espoo,60.20520,24.65220,None,2016-04-01
+C0149,Kirna Flow Parts AB,Distributor,Sweden,NOR,Mölndal,57.65540,12.01378,None,2011-08-01
+C0150,Quarvo Technical Trade Oy,Distributor,Finland,NOR,Vantaa,60.29414,25.04099,None,2021-08-01

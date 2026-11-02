@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fjordvik-service"
+version = "0.1.0"
+description = "After-sales service AI for Fjordvik Manufacturing Oy, a fictional company: forecasting, machine learning, scheduling, recommendations, a service assistant and an agent, on synthetic data."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+# Each phase adds the libraries it needs (see README.md, "The build").
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

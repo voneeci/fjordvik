@@ -461,3 +461,310 @@ SCORE_CRITERIA = [("C1", "Strategic alignment", 25), ("C2", "Product advantage",
 BASE_RATING = {"End-suction pumps": 6, "Split-case pumps": 7, "Multistage pumps": 8,
                "Submersible pumps": 7, "Dry-installed pumps": 5, "Booster sets": 8,
                "Control panels": 5, "Drive packages": 6, "Spare parts": 7, "Service kits": 6}
+
+# ===========================================================================
+# After-sales service (added 2 November 2026). All synthetic: customers, pumps,
+# telemetry, failures, technicians and parts orders are invented input data.
+# Every setting below is Fjordvik's own (client input), never a published
+# figure: its parts catalogue and prices, alarm limits, service terms and
+# technicians' contracts. Town coordinates are the one cited input: GeoNames,
+# read from reference/geonames_towns.csv, never typed here.
+# ===========================================================================
+
+SERVICE_FIRST_DAY = date(2023, 1, 1)   # the drives began reporting daily
+SERVICE_LAST_DAY = date(2025, 12, 31)
+PORTAL_FIRST_DAY = date(2024, 1, 1)    # the parts portal opened
+
+# The towns Fjordvik serves, by GeoNames id, under the depot whose technicians
+# cover them. Sweden is served from Gothenburg only, so its fleet is in the west.
+SERVICE_TOWNS = {
+    "FI01": [634963, 644450, 630752, 654440, 641489, 648366, 632672, 659180, 640999,
+             639734, 655194, 637219, 8198723, 659935],
+    "FI02": [658225, 660158, 632453, 660561, 649360, 653185, 655958, 647751, 656913,
+             639406, 650946, 650859, 637948, 633679, 640124, 655130],
+    "FI03": [643492, 640276, 653281, 634093, 654899, 651943, 630768, 658629],
+    "SE01": [2711537, 2691459, 2684395, 2696503, 2726756, 2698739, 2720501, 2667303,
+             2665171, 2666670, 2664996, 2708365, 2715573, 2677234, 2702979],
+    "EE01": [588409, 590447, 591260, 590031, 589580],
+    "EE02": [588335, 587577, 456172, 459201, 453754, 460570, 457065, 455898, 459279],
+}
+COUNTRY_NAME = {"FI": "Finland", "SE": "Sweden", "EE": "Estonia", "LV": "Latvia"}
+COUNTRY_REGION = {"FI": "NOR", "SE": "NOR", "EE": "BAL", "LV": "BAL"}
+# The warehouse that ships a region's service parts; the Baltics move to Tartu
+# once it opens. Stock orders follow fact_sales, which both warehouses ship.
+REGION_WAREHOUSE = {"NOR": "FI03", "BAL": "EE02"}
+
+# Customers: (segment, how many, share of each service contract). Distributors
+# buy stock for the wider installed base and own no connected pumps.
+CUSTOMER_SEGMENTS = [
+    ("Water utility", 45, {"None": 0.2, "Basic": 0.4, "Premium": 0.4}),
+    ("Industrial", 50, {"None": 0.3, "Basic": 0.4, "Premium": 0.3}),
+    ("Buildings and district energy", 40, {"None": 0.4, "Basic": 0.5, "Premium": 0.1}),
+    ("Distributor", 15, {"None": 1.0}),
+]
+# Invented name parts. Every customer name is fictional; any name found to match
+# a real firm is replaced.
+NAME_STEMS = ["Kalvo", "Revna", "Siltra", "Ulvik", "Marvo", "Torvala", "Helka", "Ostra",
+              "Velmar", "Kirna", "Laurvo", "Nesta", "Pelvik", "Ruska", "Saltro", "Tavira",
+              "Vintra", "Aurel", "Borvik", "Dalma", "Elvara", "Frosta", "Grenvo", "Hirvo",
+              "Ilvana", "Jarvo", "Kestra", "Lomva", "Mirka", "Norvala", "Orvika", "Purla",
+              "Quarvo", "Rimla", "Selvo", "Tumra", "Uvalo", "Varka", "Wenra", "Yrvik"]
+NAME_SUFFIX = {
+    "Water utility": ["Water", "Aqua Services", "Water and Sewerage", "Waterworks"],
+    "Industrial": ["Paper", "Minerals", "Foods", "Chemicals", "Board", "Metals"],
+    "Buildings and district energy": ["Energy", "Property Services", "Heat", "Facilities"],
+    "Distributor": ["Pump Supply", "Technical Trade", "Flow Parts"],
+}
+COMPANY_FORM = {"FI": "Oy", "SE": "AB", "EE": "AS", "LV": "SIA"}
+# Connected pumps, and which product groups each segment owns (share of its pumps).
+FLEET_SIZE = 600
+SEGMENT_GROUPS = {
+    "Water utility": {"Submersible pumps": 0.55, "Dry-installed pumps": 0.35,
+                      "Split-case pumps": 0.10},
+    "Industrial": {"End-suction pumps": 0.40, "Split-case pumps": 0.20,
+                   "Multistage pumps": 0.30, "Dry-installed pumps": 0.10},
+    "Buildings and district energy": {"Booster sets": 0.50, "Multistage pumps": 0.30,
+                                      "End-suction pumps": 0.20},
+}
+SEGMENT_FLEET_WEIGHT = {"Water utility": 6.0, "Industrial": 5.0,
+                        "Buildings and district energy": 3.0}
+PUMP_GROUPS = ["End-suction pumps", "Split-case pumps", "Multistage pumps",
+               "Submersible pumps", "Dry-installed pumps", "Booster sets"]
+# Share of the fleet installed during the period (the rest from 2012 to 2022).
+NEW_INSTALL_SHARE = 0.25
+OLDEST_INSTALL_YEAR = 2012
+ASSET_JITTER_DEGREES = 0.03   # pumps sit around their customer's town, not on it
+
+# Duty by product group: (application, running hours a day, load as a share of
+# rated power, seasonal profile). Profiles are monthly multipliers, January first.
+SEASON_PROFILES = {
+    # spring melt in April and May, autumn rain from September to November
+    "wastewater": [0.85, 0.85, 1.00, 1.35, 1.40, 1.00, 0.90, 0.95, 1.15, 1.20, 1.15, 0.90],
+    "water supply": [0.95, 0.95, 0.95, 1.00, 1.05, 1.15, 1.20, 1.10, 1.00, 0.95, 0.95, 0.95],
+    "heating": [1.30, 1.25, 1.15, 0.95, 0.75, 0.55, 0.50, 0.55, 0.80, 1.05, 1.20, 1.30],
+    "process": [1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.45, 1.00, 1.00, 1.00, 1.00, 0.85],
+    "flat": [1.0] * 12,
+}
+APPLICATIONS = {
+    "Submersible pumps": [("Wastewater lift station", 6.0, 0.70, "wastewater"),
+                          ("Stormwater pumping", 3.5, 0.75, "wastewater")],
+    "Dry-installed pumps": [("Wastewater treatment transfer", 14.0, 0.65, "wastewater"),
+                            ("Sludge transfer", 9.0, 0.70, "wastewater")],
+    "Split-case pumps": [("Raw water intake", 18.0, 0.70, "water supply"),
+                         ("Cooling water circulation", 16.0, 0.65, "process")],
+    "End-suction pumps": [("Process water", 15.0, 0.60, "process"),
+                          ("District heating circulation", 18.0, 0.55, "heating")],
+    "Multistage pumps": [("Boiler feed", 18.0, 0.65, "process"),
+                         ("Pressure boosting", 12.0, 0.55, "flat")],
+    "Booster sets": [("Building water pressure", 13.0, 0.50, "flat"),
+                     ("District heating circulation", 18.0, 0.55, "heating")],
+}
+# Applications that belong to one segment; the others suit any segment.
+APPLICATION_SEGMENT = {
+    "Raw water intake": "Water utility", "Cooling water circulation": "Industrial",
+    "Process water": "Industrial", "Boiler feed": "Industrial",
+    "District heating circulation": "Buildings and district energy",
+    "Pressure boosting": "Buildings and district energy",
+}
+# The impeller for the bigger models of a group, from this rated power in kW.
+IMPELLER_LARGE_FROM_KW = {"End-suction pumps": 55, "Split-case pumps": 160,
+                          "Submersible pumps": 22, "Dry-installed pumps": 75}
+WEEKEND_FACTOR = {"process": 0.80}  # plants slow down at weekends
+RUNNING_HOURS_NOISE = 0.08
+
+# Sensor baselines by product group: vibration in mm/s RMS when new, and the
+# bearing temperature rise over the surroundings in degrees C at full load.
+SENSOR_BASELINE = {
+    "End-suction pumps": (1.9, 30.0), "Split-case pumps": (2.2, 32.0),
+    "Multistage pumps": (1.5, 28.0), "Submersible pumps": (2.4, 24.0),
+    "Dry-installed pumps": (2.1, 30.0), "Booster sets": (1.3, 26.0),
+}
+VIBRATION_AGE_GROWTH = 0.035   # share added to baseline vibration per year of age
+VIBRATION_NOISE = 0.06
+TEMPERATURE_NOISE = 0.8        # degrees C
+POWER_NOISE = 0.03
+TRANSIENT_CHANCE = 0.01        # chance of a start-up transient reading on a day
+TRANSIENT_FACTOR = (1.4, 2.0)
+# Surroundings of the pump: (mean, half swing) in degrees C, warmest in July.
+SURROUNDINGS = {"submerged": (10.0, 5.0), "pump room": (17.0, 4.0)}
+
+# Failures. Yearly failure rate per pump when new at its typical running hours,
+# raised by age and by the wear built up since the last overhaul.
+FAILURE_RATE_PER_YEAR = {
+    "End-suction pumps": 0.09, "Split-case pumps": 0.07, "Multistage pumps": 0.09,
+    "Submersible pumps": 0.14, "Dry-installed pumps": 0.11, "Booster sets": 0.07,
+}
+AGE_HAZARD_PER_YEAR = 0.07     # +7% hazard per year of age
+WEAR_HAZARD_PER_YEAR = 0.45    # +45% hazard per year since the last overhaul
+PREVENTIVE_WEAR_KEPT = 0.4     # a preventive visit leaves 40% of the wear
+# Failure modes: (share of failures, chance it gives warning, the signal it moves,
+# vibration multiplier reached at failure, skill the repair needs).
+FAILURE_MODES = {
+    "Bearing wear": (0.34, 0.95, "vibration_temp", 3.0, "mechanical"),
+    "Mechanical seal leak": (0.15, 0.40, "temp", 1.0, "mechanical"),
+    "Impeller wear": (0.14, 0.80, "vibration_power_down", 1.9, "mechanical"),
+    "Cavitation damage": (0.10, 0.85, "vibration", 2.4, "mechanical"),
+    "Motor overload": (0.10, 0.70, "temp_power_up", 1.2, "electrical"),
+    "Electrical trip": (0.05, 0.0, "none", 1.0, "electrical"),
+    "Impeller clogging": (0.08, 0.80, "power_up_vibration", 1.6, "mechanical"),
+}
+# Modes only some groups can have.
+MODE_GROUPS = {
+    "Impeller clogging": {"Submersible pumps", "Dry-installed pumps"},
+    "Cavitation damage": {"End-suction pumps", "Split-case pumps", "Multistage pumps",
+                          "Booster sets", "Dry-installed pumps"},
+}
+WARNING_DAYS = (14, 42)        # a warning rise starts this many days before failure
+TEMP_RISE_AT_FAILURE = {"vibration_temp": 14.0, "temp": 9.0, "temp_power_up": 18.0}
+POWER_CHANGE_AT_FAILURE = {"vibration_power_down": -0.15, "temp_power_up": 0.22,
+                           "power_up_vibration": 0.28}
+# Repair: days to fix when the part is in stock at the warehouse, and the chance
+# it is. Otherwise the part is ordered after the failure and takes its lead time.
+REPAIR_DAYS_IN_STOCK = (1, 3)
+PART_IN_STOCK_CHANCE = 0.7
+LABOUR_HOURS = {"Failure": (3.0, 9.0), "Preventive": (2.0, 4.0), "Inspection": (1.0, 2.0)}
+# Preventive visits a year under each service contract; inspections on request.
+PREVENTIVE_VISITS_PER_YEAR = {"None": 0, "Basic": 1, "Premium": 2}
+INSPECTIONS_PER_YEAR = 0.35
+
+# Fjordvik's alarm limits, as its manuals state them (its own engineering choice):
+# vibration alert and alarm in mm/s, bearing temperature alert and alarm in C.
+ALARM_LIMITS = {
+    "End-suction pumps": (4.0, 6.5, 75, 85), "Split-case pumps": (4.5, 7.0, 75, 85),
+    "Multistage pumps": (3.5, 6.0, 75, 85), "Submersible pumps": (5.0, 8.0, 70, 80),
+    "Dry-installed pumps": (4.5, 7.0, 75, 85), "Booster sets": (3.5, 6.0, 70, 80),
+}
+
+# Technicians: (id, name, employing site, home town GeoNames id, countries served,
+# skills, contracted weekly hours). Names are invented.
+TECHNICIANS = [
+    ("T01", "Aino K.", "FI01", 634963, "FI", "mechanical;electrical", 37.5),
+    ("T02", "Jussi V.", "FI01", 634963, "FI", "mechanical", 37.5),
+    ("T03", "Leena M.", "FI02", 658225, "FI", "mechanical;electrical", 37.5),
+    ("T04", "Petri H.", "FI02", 660158, "FI", "mechanical;wastewater", 37.5),
+    ("T05", "Sanna R.", "FI03", 643492, "FI", "mechanical;electrical;wastewater", 37.5),
+    ("T06", "Ville T.", "FI03", 643492, "FI", "mechanical", 30.0),
+    ("T07", "Erik L.", "SE01", 2711537, "SE", "mechanical;wastewater", 40.0),
+    ("T08", "Maja S.", "SE01", 2711537, "SE", "mechanical;electrical;wastewater", 40.0),
+    ("T09", "Oskar N.", "SE01", 2720501, "SE", "mechanical", 40.0),
+    ("T10", "Kadri P.", "EE01", 588409, "EE", "mechanical;electrical", 40.0),
+    ("T11", "Margus T.", "EE02", 588335, "EE;LV", "mechanical;wastewater", 40.0),
+    ("T12", "Ilze B.", "EE02", 456172, "LV;EE", "mechanical;electrical;wastewater", 40.0),
+]
+WASTEWATER_GROUPS = {"Submersible pumps"}   # lifting from wet wells needs the skill
+
+# Parts catalogue: (part_id, name, family, sales product, list price EUR,
+# lead time days, product groups it fits). Prices are Fjordvik's 2023 list.
+_HORIZONTAL = ["End-suction pumps", "Split-case pumps", "Multistage pumps",
+               "Dry-installed pumps", "Booster sets"]
+PARTS = [
+    ("MS-ES-01", "Mechanical seal, end-suction", "Mechanical seals", "SPS-SP-100", "320.00", 14, ["End-suction pumps"]),
+    ("MS-SC-01", "Mechanical seal, split-case", "Mechanical seals", "SPS-SP-100", "535.00", 21, ["Split-case pumps"]),
+    ("MS-MS-01", "Mechanical seal, multistage", "Mechanical seals", "SPS-SP-100", "255.00", 14, ["Multistage pumps", "Booster sets"]),
+    ("MS-SB-01", "Double seal cartridge, submersible", "Mechanical seals", "SPS-SP-100", "680.00", 21, ["Submersible pumps"]),
+    ("MS-DI-01", "Mechanical seal, dry-installed", "Mechanical seals", "SPS-SP-100", "470.00", 21, ["Dry-installed pumps"]),
+    ("BR-ES-01", "Bearing set, end-suction", "Bearings", "SPS-SP-100", "215.00", 10, ["End-suction pumps"]),
+    ("BR-SC-01", "Bearing set, split-case", "Bearings", "SPS-SP-100", "375.00", 14, ["Split-case pumps"]),
+    ("BR-MS-01", "Bearing set, multistage", "Bearings", "SPS-SP-100", "180.00", 10, ["Multistage pumps", "Booster sets"]),
+    ("BR-SB-01", "Bearing set, submersible motor", "Bearings", "SPS-SP-100", "300.00", 14, ["Submersible pumps"]),
+    ("BR-DI-01", "Bearing set, dry-installed", "Bearings", "SPS-SP-100", "330.00", 14, ["Dry-installed pumps"]),
+    ("IM-ES-S1", "Impeller, end-suction up to 30 kW", "Impellers", "SPS-SP-100", "625.00", 21, ["End-suction pumps"]),
+    ("IM-ES-L1", "Impeller, end-suction 55 kW", "Impellers", "SPS-SP-100", "990.00", 28, ["End-suction pumps"]),
+    ("IM-SC-S1", "Impeller, split-case 75 kW", "Impellers", "SPS-SP-100", "1885.00", 35, ["Split-case pumps"]),
+    ("IM-SC-L1", "Impeller, split-case 160 kW", "Impellers", "SPS-SP-100", "3095.00", 42, ["Split-case pumps"]),
+    ("IM-MS-01", "Impeller stage set, multistage", "Impellers", "SPS-SP-100", "700.00", 21, ["Multistage pumps", "Booster sets"]),
+    ("IM-SB-S1", "Channel impeller, submersible up to 11 kW", "Impellers", "SPS-SP-100", "505.00", 21, ["Submersible pumps"]),
+    ("IM-SB-L1", "Channel impeller, submersible 22 to 45 kW", "Impellers", "SPS-SP-100", "1065.00", 28, ["Submersible pumps"]),
+    ("IM-DI-S1", "Impeller, dry-installed up to 37 kW", "Impellers", "SPS-SP-100", "895.00", 28, ["Dry-installed pumps"]),
+    ("IM-DI-L1", "Impeller, dry-installed 75 kW", "Impellers", "SPS-SP-100", "1535.00", 35, ["Dry-installed pumps"]),
+    ("WR-ES-01", "Wear ring pair, end-suction", "Wear rings and gaskets", "SPS-SP-100", "115.00", 10, ["End-suction pumps"]),
+    ("WR-SC-01", "Wear ring pair, split-case", "Wear rings and gaskets", "SPS-SP-100", "190.00", 14, ["Split-case pumps"]),
+    ("WR-SB-01", "Wear plate, submersible", "Wear rings and gaskets", "SPS-SP-100", "155.00", 14, ["Submersible pumps"]),
+    ("WR-DI-01", "Wear ring pair, dry-installed", "Wear rings and gaskets", "SPS-SP-100", "145.00", 14, ["Dry-installed pumps"]),
+    ("GK-ES-01", "Gasket and O-ring set, end-suction", "Wear rings and gaskets", "SPS-SP-100", "44.00", 7, ["End-suction pumps"]),
+    ("GK-SC-01", "Gasket and O-ring set, split-case", "Wear rings and gaskets", "SPS-SP-100", "75.00", 7, ["Split-case pumps"]),
+    ("GK-MS-01", "Gasket and O-ring set, multistage", "Wear rings and gaskets", "SPS-SP-100", "38.00", 7, ["Multistage pumps", "Booster sets"]),
+    ("GK-SB-01", "O-ring set, submersible", "Wear rings and gaskets", "SPS-SP-100", "34.00", 7, ["Submersible pumps"]),
+    ("GK-DI-01", "Gasket and O-ring set, dry-installed", "Wear rings and gaskets", "SPS-SP-100", "55.00", 7, ["Dry-installed pumps"]),
+    ("CN-GR-01", "Bearing grease cartridge, 400 g", "Consumables", "SPS-SP-100", "24.00", 5, _HORIZONTAL),
+    ("CN-CI-01", "Coupling insert", "Consumables", "SPS-SP-100", "47.00", 7, _HORIZONTAL),
+    ("CN-OL-01", "Seal chamber oil, 1 litre", "Consumables", "SPS-SP-100", "29.00", 5, ["Submersible pumps"]),
+    ("CN-FM-01", "Drive filter mat set", "Consumables", "SPS-SP-100", "18.00", 5, ["Booster sets", "Drive packages"]),
+    ("EL-MS-01", "Moisture sensor, seal chamber", "Motor and electrical", "SPS-SP-100", "230.00", 14, ["Submersible pumps"]),
+    ("EL-TS-01", "Motor thermal sensor", "Motor and electrical", "SPS-SP-100", "125.00", 10, PUMP_GROUPS),
+    ("EL-CE-01", "Cable entry kit", "Motor and electrical", "SPS-SP-100", "170.00", 14, ["Submersible pumps"]),
+    ("EL-PR-01", "Motor protection relay", "Motor and electrical", "SPS-SP-100", "275.00", 10, ["Booster sets", "Control panels"]),
+    ("EL-CT-01", "Contactor, 3-pole", "Motor and electrical", "SPS-SP-100", "100.00", 7, ["Control panels", "Booster sets"]),
+    ("EL-LC-01", "Level controller", "Motor and electrical", "SPS-SP-100", "415.00", 14, ["Control panels", "Submersible pumps"]),
+    ("EL-DF-01", "Drive cooling fan", "Motor and electrical", "SPS-SP-100", "190.00", 14, ["Drive packages", "Booster sets"]),
+    ("SK-ES-01", "Annual service kit, end-suction", "Service kits", "SPS-SK-200", "475.00", 10, ["End-suction pumps"]),
+    ("SK-SC-01", "Annual service kit, split-case", "Service kits", "SPS-SK-200", "700.00", 14, ["Split-case pumps"]),
+    ("SK-MS-01", "Annual service kit, multistage", "Service kits", "SPS-SK-200", "390.00", 10, ["Multistage pumps"]),
+    ("SK-SB-01", "Annual service kit, submersible", "Service kits", "SPS-SK-200", "560.00", 10, ["Submersible pumps"]),
+    ("SK-DI-01", "Annual service kit, dry-installed", "Service kits", "SPS-SK-200", "525.00", 10, ["Dry-installed pumps"]),
+    ("SK-BS-01", "Annual service kit, booster set", "Service kits", "SPS-SK-200", "610.00", 10, ["Booster sets"]),
+    ("SK-VD-01", "Annual service kit, drive package", "Service kits", "SPS-SK-200", "325.00", 10, ["Drive packages"]),
+    ("SK-CP-01", "Annual service kit, control panel", "Service kits", "SPS-SK-200", "240.00", 10, ["Control panels"]),
+    ("OK-ES-01", "Overhaul kit, end-suction", "Overhaul kits", "SPS-SK-200", "1850.00", 21, ["End-suction pumps"]),
+    ("OK-SC-01", "Overhaul kit, split-case", "Overhaul kits", "SPS-SK-200", "3310.00", 28, ["Split-case pumps"]),
+    ("OK-MS-01", "Overhaul kit, multistage", "Overhaul kits", "SPS-SK-200", "1560.00", 21, ["Multistage pumps", "Booster sets"]),
+    ("OK-SB-01", "Overhaul kit, submersible", "Overhaul kits", "SPS-SK-200", "2360.00", 28, ["Submersible pumps"]),
+    ("OK-DI-01", "Overhaul kit, dry-installed", "Overhaul kits", "SPS-SK-200", "2625.00", 28, ["Dry-installed pumps"]),
+]
+# What a job uses: (part selector, quantity range). A selector is a part family
+# or the start of a part id (for example "GK" or "CN-GR"); the part chosen is the
+# one that fits the pump, with impellers sized by rated power.
+REPAIR_PARTS = {
+    "Bearing wear": [("Bearings", (1, 1)), ("CN-GR", (1, 2))],
+    "Mechanical seal leak": [("Mechanical seals", (1, 1)), ("GK", (1, 1))],
+    "Impeller wear": [("Impellers", (1, 1)), ("WR", (1, 1)), ("GK", (1, 1))],
+    "Cavitation damage": [("Impellers", (1, 1)), ("WR", (1, 1))],
+    "Motor overload": [("Overhaul kits", (1, 1))],
+    "Electrical trip": [("Motor and electrical", (1, 1))],
+    "Impeller clogging": [("GK", (1, 1))],
+}
+PREVENTIVE_PARTS = [("Service kits", (1, 1)), ("CN-GR", (0, 1))]
+# Stock orders from the wider installed base: basket types, their base weight,
+# how strongly each follows the drivers ("hours": the regional fleet's running
+# hours against their average; "age": its mean age against the average), and the
+# lines they hold. Bigger exponents follow the driver more closely.
+BASKETS = {
+    "Bearing job": (0.16, {"hours": 1.6, "age": 2.0},
+                    [("Bearings", (1, 2)), ("CN-GR", (1, 2)), ("CN-CI", (0, 1))]),
+    "Seal job": (0.18, {"hours": 1.6, "age": 0.5},
+                 [("Mechanical seals", (1, 2)), ("GK", (1, 2))]),
+    "Impeller job": (0.08, {"hours": 2.0, "age": 1.5},
+                     [("Impellers", (1, 1)), ("WR", (1, 2)), ("GK", (1, 1))]),
+    "Electrical": (0.07, {"hours": 0.5, "age": 0.8}, [("Motor and electrical", (1, 2))]),
+    "Annual service": (0.20, {"hours": 0.0, "age": 0.0},
+                       [("Service kits", (1, 3)), ("CN-GR", (0, 1))]),
+    "Overhaul": (0.03, {"hours": 0.3, "age": 2.0}, [("Overhaul kits", (1, 1))]),
+    "Restock": (0.22, {"hours": 0.4, "age": 0.0},
+                [("GK", (2, 8)), ("Consumables", (2, 10)), ("WR", (1, 4))]),
+}
+# Which sales product a basket mostly moves, and whether it is dearer (+1) or
+# cheaper (-1) per unit than that product's average.
+BASKET_PRICE_TILT = {"Bearing job": ("SPS-SP-100", 1), "Seal job": ("SPS-SP-100", 1),
+                     "Impeller job": ("SPS-SP-100", 1), "Electrical": ("SPS-SP-100", 1),
+                     "Restock": ("SPS-SP-100", -1), "Annual service": ("SPS-SK-200", -1),
+                     "Overhaul": ("SPS-SK-200", 1)}
+PRICE_TILT_STRENGTH = 8
+# Service kits are bought ahead of each season's planned maintenance.
+KIT_MONTH_FACTOR = {2: 1.3, 3: 1.4, 7: 0.6, 8: 1.3, 9: 1.3, 12: 0.7}
+BASKET_NOISE = 0.08
+# Distributors place the restock baskets, in larger quantities.
+DISTRIBUTOR_QUANTITY_FACTOR = 6
+DISTRIBUTOR_ORDER_SHARE = 0.40
+UNITS_PER_BULK_STEP = 600   # bulk quantity grows by one step per 600 units in the month
+# Order channels (share of end-customer orders) before and after the portal.
+CHANNELS_BEFORE_PORTAL = {"Email": 0.6, "Phone": 0.4}
+CHANNELS_WITH_PORTAL = {"Portal": 0.40, "Email": 0.38, "Phone": 0.22}
+# The portal's old recommender showed the five most ordered compatible parts of
+# the previous month. Click chance for a shown part the customer then orders in
+# that session, and for one they do not.
+PORTAL_SHOWN = 5
+PORTAL_CLICK_IF_ORDERED = 0.55
+PORTAL_CLICK_OTHERWISE = 0.04
+PORTAL_BROWSE_SESSIONS_PER_ORDER = 0.6
+# The cell price factor (realised price over list) must stay believable.
+PRICE_FACTOR_RANGE = (0.85, 1.25)

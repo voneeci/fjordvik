@@ -1,9 +1,10 @@
 # fjordvik-power-automate
 
 Power Automate intake and reminder flows over the synthetic Fjordvik dataset. One of
-four folders in the fjordvik repository: data (source), mcp, powerbi,
-power-automate. Permanent rules in
-`C:\Users\reece\Projects\knowledge\RULES.md` override this file.
+five folders in the fjordvik repository: data (source), mcp, powerbi,
+power-automate, service-ai. Permanent rules in
+`C:\Users\reece\Projects\knowledge\RULES.md` come first, then `..\GUARDRAILS.md`, then
+this file.
 
 ## Rules for this repo
 
@@ -31,5 +32,5 @@ power-automate. Permanent rules in
 
 ```bash
 python scripts/build_intake_files.py           # rebuild intake, seed and expected files
-python -m pytest -q                            # 26 tests
+python -m pytest -q                            # 30 tests
 ```

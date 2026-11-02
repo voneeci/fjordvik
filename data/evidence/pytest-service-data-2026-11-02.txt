@@ -1,0 +1,5 @@
+# data tests, 2 November 2026, working tree on top of commit 7fc0844 (phase 0 and 1 changes, guardrails first edition, not yet committed)
+# command: .venv\Scripts\python -m pytest -q (from data)
+........................................................................ [ 75%]
+........................                                                 [100%]
+96 passed in 17.95s

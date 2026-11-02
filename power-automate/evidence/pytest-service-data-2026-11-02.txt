@@ -1,0 +1,4 @@
+# power-automate tests, 2 November 2026, working tree on top of commit 7fc0844 (phase 0 and 1 changes, guardrails first edition, not yet committed)
+# command: .venv\Scripts\python -m pytest -q (from power-automate)
+..............................                                           [100%]
+30 passed in 3.19s

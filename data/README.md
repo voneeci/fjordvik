@@ -9,8 +9,11 @@ headcount, the value chain (market-based scope 2 from energy contracts, and scop
 purchases, freight, the upstream emissions of the energy used and the lifetime electricity
 of the pumps sold), and the product portfolio: sales by product and region from the
 enterprise resource planning (ERP) system, cleaned and reconciled to finance by SQL. The Power BI reports, the Claude connector and the
-intake checks all read it, so every answer comes from the same numbers. All four parts are
-folders of the [fjordvik](https://github.com/voneeci/fjordvik) repository:
+intake checks all read it, so every answer comes from the same numbers. Since 2 November
+2026 it also holds the after-sales service data: customers, 600 connected pumps with their
+daily readings, service events, parts orders, parts portal activity and service manuals.
+All five parts are folders of the [fjordvik](https://github.com/voneeci/fjordvik)
+repository:
 
 | Folder | What it does for the business |
 | --- | --- |
@@ -18,6 +21,7 @@ folders of the [fjordvik](https://github.com/voneeci/fjordvik) repository:
 | [`mcp`](../mcp) | A Model Context Protocol (MCP) connector that lets Claude answer questions from the data |
 | [`powerbi`](../powerbi) | The Power BI model and report, with Data Analysis Expressions (DAX) measures |
 | [`power-automate`](../power-automate) | Power Automate flows that take in and check each site's monthly file |
+| [`service-ai`](../service-ai) | After-sales service AI: forecasting, machine learning, scheduling, recommendations, an assistant and an agent (being built) |
 
 > **Synthetic data only.** Fjordvik Manufacturing Oy is a fictional company, and this is a
 > portfolio project. No real company, client or person is described. The emission factors
@@ -52,6 +56,16 @@ files have not been edited by hand.
 | Exchange rates | ECB monthly average EUR/SEK reference rates | Group Financial Controller | ECB Data Portal (published) | Monthly | `reference/ecb_eur_sek_monthly.csv`, used by the SQL |
 | Scorecard ratings and weights | Each quarter's 1 to 10 rating per product group and criterion; the weight of each criterion | Portfolio governance, with Product Managers | Quarterly review record | Quarterly; weights yearly | `fact_product_rating`, `dim_score_criterion` |
 | Sales plan (budget) | Planned units, net sales and margin by month, shipping site, product group and region | Group Financial Controller, with Product Managers | Planning file or the planning module of the ERP, loaded once a year and on each reforecast | Yearly, before the year starts | `fact_budget` |
+| Customers | Customer master: segment, country, town, service contract | Service Manager | Customer relationship management (CRM) system | When a customer or contract changes | `dim_customer` |
+| Installed pumps | The register of connected pumps: serial number, model, owner, location, install date | Service Manager | Installed base register, fed by commissioning reports | When a pump is installed or moved | `dim_asset` |
+| Pump readings | Daily running hours, vibration, bearing temperature and power from each pump's variable-speed drive | Service Manager | Fjordvik's monitoring service, one message per pump per day | Daily | `fact_asset_telemetry` |
+| Service work | Each failure, preventive visit and inspection, with parts used, downtime and the technician's note | Service Manager, with the technicians | Service planning spreadsheet today; a field service system later | After each job | `fact_service_event` |
+| Technicians | Home base, countries, skills and contracted weekly hours | Service Manager, with HR | HR system and the service planning spreadsheet | When a contract or skill changes | `dim_technician` |
+| Parts catalogue and fit | Each spare part and kit, its family, list price, lead time, and the product groups it fits | Product Managers, from engineering | Product data and the ERP item master | When a part is added or repriced | `dim_part`, `bridge_part_compatibility` |
+| Parts orders | Every order line for spare parts and service kits from Oulu and Tartu warehouses | Regional controllers | ERP order lines, the same sales that make up `fact_sales` | Daily, published monthly | `fact_parts_order` |
+| Parts portal | Parts the portal showed each customer, and which they clicked | E-commerce owner | Web portal logs | Daily | `fact_portal_event` |
+| Town coordinates | Latitude and longitude of the towns served | Data and AI Specialist | GeoNames cities file (CC BY 4.0), fetched and cited | When a town is added | `reference/geonames_towns.csv`, used for `dim_customer`, `dim_asset`, `dim_technician` |
+| Service manuals | One manual per product group with equipment, the service terms and the warranty policy | Technical documentation team | Document library | Each edition | `corpus/` |
 
 **The ERP extract in `erp-extract/` is simulated.** It follows the shape of Oracle's Data
 Extraction tool, which Oracle's documentation calls the long-term replacement for its BI
@@ -90,9 +104,13 @@ The full monthly process, step by step with owners and checks, is in the
   months before it opened.
 - **Provably unedited.** `tables/manifest.json` records each file's row count and SHA-256
   checksum, and every part's tests check the files against it before relying on them.
-- **Tested.** 58 automated tests check the schema, the data quality rules, the
-  value-chain and portfolio rules, that each planted extract problem is caught, that the
-  business events below show in the data, and that the files match their manifest.
+- **Parts orders add up to sales.** The order lines for spare parts and service kits are
+  made by splitting each `fact_sales` row, so they match it in units and to the cent. No
+  earlier table changed when the service data was added; a test pins all 22 checksums.
+- **Tested.** 96 automated tests check the schema, the data quality rules, the
+  value-chain, portfolio and service rules, that each planted extract problem is caught,
+  that the business events below show in the data, the service manuals, the project's
+  guardrails, and that the files match their manifest.
 
 ### What happened in the period
 
@@ -109,6 +127,21 @@ The figures carry the business's own events, which the report and Claude should 
   market-based electricity is zero; Tampere Plant covers 60% of its electricity with wind
   guarantees of origin from January 2025, which halves its market-based figure.
 
+The service data carries its own story, for the service AI to find:
+
+- about 108 pump failures a year, more at older pumps and in busy months;
+- about two thirds of failures (69%) follow a rise in vibration or bearing temperature
+  (power, for clogging) over two to six weeks; the rest, such as seal leaks and electrical
+  trips, come with no warning, so no model can catch every failure;
+- wastewater pumps run most in the spring melt and autumn rain, heating pumps in winter,
+  and process pumps slow down in July with their plants;
+- a failed pump stops until it is repaired, which takes weeks when the part is not in
+  stock, because parts are ordered only after the failure;
+- bearing and impeller orders follow the fleet's running hours, and customers buying a
+  bearing set often buy grease with it;
+- the parts portal opened in January 2024; customers click the suggestions they go on to
+  order far more often than the others.
+
 ## Architecture
 
 ```mermaid
@@ -122,7 +155,7 @@ flowchart LR
         E["Oracle ERP sales extract<br/>erp-extract/, simulated"]
     end
     F["SQL pipeline<br/>sql/: check, clean,<br/>map, reconcile"]
-    G[("Governed dataset<br/>tables/: 22 CSV files<br/>+ manifest.json")]
+    G[("Governed dataset<br/>tables/: 31 CSV files<br/>+ manifest.json")]
     subgraph OUT["Read by"]
         direction TB
         H["Power BI reports<br/>powerbi/"]
@@ -139,11 +172,11 @@ flowchart LR
     G --> J
 ```
 
-In this repository, `tables/` holds the dataset as 22 CSV files and their manifest,
+In this repository, `tables/` holds the dataset as 31 CSV files and their manifest,
 with synthetic figures in exactly the shape the central list and the finance, HR, ERP,
 transport and contract exports would produce.
 
-Shared schema (names are a contract; the other three parts depend on them):
+Shared schema (names are a contract; the other four parts depend on them):
 
 | Table | Columns | Grain |
 | --- | --- | --- |
@@ -159,6 +192,26 @@ Shared schema (names are a contract; the other three parts depend on them):
 | `dim_supplier` | supplier_id, supplier_name, country, spend_category | One row per supplier |
 | `fact_purchases` | date_key, site_id, source_id, supplier_id, spend_category, method, activity_amount, unit, emission_factor, tco2e | One row per month, site and supplier |
 | `fact_freight` | date_key, site_id, source_id, direction, mode, paid_by, tonnes, distance_km, activity_amount, unit, emission_factor, tco2e | One row per month, site, direction, mode and payer |
+
+After-sales service tables (added 2 November 2026):
+
+| Table | Columns | Grain |
+| --- | --- | --- |
+| `dim_customer` | customer_id, customer_name, segment, country, region_id, town, latitude, longitude, service_contract, customer_since | One row per customer |
+| `dim_asset` | asset_id, serial_number, product_id, customer_id, country, town, latitude, longitude, application, install_date, telemetry_from_date | One row per connected pump |
+| `dim_part` | part_id, part_name, part_family, sales_product_id, list_price_eur, lead_time_days | One row per spare part or kit |
+| `bridge_part_compatibility` | part_id, product_group | One row per part and product group it fits |
+| `dim_technician` | technician_id, technician_name, home_site_id, home_town, latitude, longitude, countries_served, skills, weekly_hours | One row per technician |
+| `fact_asset_telemetry` | date_key, asset_id, running_hours, vibration_mm_s, bearing_temp_c, power_kw | One row per pump and day (here `date_key` is the day, for example `20230105`) |
+| `fact_service_event` | event_id, asset_id, event_type, failure_mode, reported_date, completed_date, technician_id, downtime_hours, labour_hours, parts_used, technician_note | One row per failure, preventive visit or inspection |
+| `fact_parts_order` | order_id, order_line, order_date, date_key, site_id, region_id, customer_id, part_id, sales_product_id, quantity, net_amount_eur, channel, service_event_id, asset_id | One row per order line |
+| `fact_portal_event` | event_id, event_date, session_id, customer_id, product_id, part_id, rank, clicked | One row per part shown in a portal session |
+
+Vibration is root mean square (RMS) velocity in mm/s; temperature in degrees Celsius;
+power is the average kW while running. A day with no running has zero hours and blank
+vibration and temperature. `parts_used` lists `part_id:quantity` pairs separated by `;`,
+and the same parts appear as order lines with that `service_event_id`. Customer names are
+invented: any match with a real firm is chance, and such a name would be replaced.
 
 `tco2e` is tonnes of carbon dioxide equivalent: `activity_amount × emission_factor / 1000`,
 with the factor in kilograms per unit, in every table that has it. New units:
@@ -224,6 +277,15 @@ quarantined for portfolio governance. All four planted issues appear in `fact_da
 | dim_score_criterion | 6 |
 | fact_product_rating | 720 |
 | fact_budget | 1,368 |
+| dim_customer | 150 |
+| dim_asset | 600 |
+| dim_part | 52 |
+| bridge_part_compatibility | 75 |
+| dim_technician | 12 |
+| fact_asset_telemetry | 582,996 (20 MB) |
+| fact_service_event | 2,554 |
+| fact_parts_order | 53,570 |
+| fact_portal_event | 39,600 |
 
 Total emissions (illustrative, location-based):
 
@@ -261,12 +323,12 @@ them against the SHA-256 checksums in `tables/manifest.json`.
 
 ```
 python -m pytest -q
-60 passed
+96 passed
 ```
 
-(31 October 2026; raw output in `evidence/pytest-budget-2026-10-31.txt`. The two newest
-tests check `fact_budget`: one row per sales cell with every key joining, and each
-family's actual against budget landing on Fjordvik's planned variance.)
+(2 November 2026; raw output in `evidence/pytest-service-data-2026-11-02.txt`. The 36 new
+tests cover the after-sales service tables, the service manuals and the project's
+guardrails.)
 
 | Test file | What it proves |
 | --- | --- |
@@ -275,7 +337,11 @@ family's actual against budget landing on Fjordvik's planned variance.)
 | `test_value_chain.py` | Unique keys and joins in the value-chain tables; `tco2e` equals the formula; market-based scope 2 covers exactly the location-based kWh, with contract or residual-mix factors; category 3 rows are worked out from the reported fuel and kWh; purchases are spend-based in euros; freight is tonnes times distance, and customer-paid outbound freight is category 9; all 15 scope 3 categories have a status and a reason |
 | `test_portfolio.py` | Sales plus quarantined lines equal finance revenue to the cent; margin is sales minus cost; every product sells every month; the four planted issues are listed; kronor convert at the ECB rate (recomputed from the raw extract); category 11 follows its method and leaves out Rest of world; ratings are 1 to 10, one per quarter; and nine planted problems (changed checksum, file not in the manifest, exact and conflicting duplicates, unmapped code, missing currency, kronor labelled as euros, unknown region, missing line) each hit their own check |
 | `test_story.py` | The business events show in the data: the solar effect against a control site; Tartu starting in July 2024; winter heating peaks; revenue growth; Gothenburg's guarantees of origin covering all its electricity; Tampere's from 2025; purchased goods as the largest category |
-| `test_generator.py`, `test_reproducible.py` | The demonstration data is built as described below, the files match their manifest's checksums and row counts, and the four original tables kept their checksums when the value chain was added |
+| `test_service.py` | Unique keys and joins in the service tables; customers and pumps sit in the service area at their GeoNames town; one telemetry row per pump and day; readings within physical ranges, blank only when the pump did not run; pumps installed in the period never exceed the units sold; every part fits the pump it serves; service parts appear as order lines; parts orders add up to `fact_sales` in units and to the cent; orders ship only from open warehouses; realised prices stay close to list; technicians have the skills and cover the country; five ranked parts per portal session |
+| `test_service_story.py` | The answer key matches the failure events; most failures warn and some never do; vibration or temperature rises before warned failures and not before the others; stopped pumps report no running; running hours follow the seasons; older pumps fail more often; bearing and impeller orders follow the fleet's running hours; bearing buyers also buy grease; portal clicks go to parts the customer then orders |
+| `test_corpus.py` | One manual per product group with equipment, plus the service terms and warranty policy; sections numbered in order; every part number exists and fits; alarm limits match the settings; every document says it is synthetic |
+| `test_guardrails.py` | The project's guardrail checks ([GUARDRAILS.md](../GUARDRAILS.md)), shared by every part |
+| `test_generator.py`, `test_reproducible.py` | The demonstration data is built as described below; tables, extract, manuals and answer key are byte-identical on regeneration; the files match their manifest's checksums and row counts; the four original tables kept their checksums when the value chain was added, and all 22 earlier tables kept theirs when the service data was added; town coordinates are cited from GeoNames; every file is under 50 MB |
 
 ## Limitations
 
@@ -287,7 +353,14 @@ family's actual against budget landing on Fjordvik's planned variance.)
   from real orders.
 - **Freight uses one average distance per lane**, and category 3(b) is not calculated
   because no factor source for Finland, Sweden or Estonia has been found.
-- **Monthly grain.** No daily or meter-level data.
+- **Monthly grain** for emissions and sales; the pump readings are daily, one summary a
+  day per pump, with no gaps.
+- **The service data is simulated** from simple rules: a failure hazard that rises with
+  age, running hours and wear, a warning rise of two to six weeks, and part orders split
+  from `fact_sales`. Live telemetry has gaps, sensor faults, recalibrations and firmware
+  changes; models trained here will look better than they would on live data.
+- **Warehouse totals have no seasonality**, because they come from finance revenue
+  settings; the season and the drivers show in the mix between part families instead.
 - **Smooth synthetic patterns.** Seasonality, growth and noise follow simple patterns.
   Real data has billing lags, estimates, restatements and one-off events.
 - The dataset has no data quality problems by design. Planted problems (a unit error, a
@@ -310,9 +383,16 @@ freight lanes, energy contracts, products, regions, illustrative factors, and th
 events above). `src/fjordvik_data/portfolio.py` turns each site-month's revenue into sales
 order lines, writes them as the simulated extract in `erp-extract/` with its planted
 problems, and runs the SQL in `sql/` to publish `fact_sales`, so the tables come out of the
-same pipeline a company would run. It uses the Python standard library only, and a
-fixed seed with a separate random stream for each site and source, so every run gives
-byte-identical files and changing one site never changes the others.
+same pipeline a company would run. `src/fjordvik_data/service.py` simulates the 600
+connected pumps one by one (duty, failures, readings), then splits the spare parts and
+service kit rows of `fact_sales` into order lines and portal sessions;
+`src/fjordvik_data/corpus.py` writes the service manuals in `corpus/` from the same
+settings; and the answer key of planted failures goes to `generator-truth/`. Town
+coordinates come from `reference/geonames_towns.csv`, extracted from the GeoNames file by
+`python -m fjordvik_data.geonames <cities15000.zip> <date read>`. The generator uses the
+Python standard library (and DuckDB for the SQL), with a fixed seed and a separate random
+stream for each site, source and pump, so every run gives byte-identical files and
+changing one thing never changes the others.
 
 ```bash
 python -m fjordvik_data --out tables

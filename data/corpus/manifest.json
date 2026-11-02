@@ -1,0 +1,55 @@
+{
+  "corpus": "Fjordvik service documents (synthetic)",
+  "documents": {
+    "manual-end-suction-pumps.md": {
+      "title": "Fjordvik end-suction pumps: service and troubleshooting manual",
+      "sections": 8,
+      "sha256": "e1afd5a3e76e4d9473e042594d573fff1368aff7e4cc40ce08fb7409403bddca"
+    },
+    "manual-split-case-pumps.md": {
+      "title": "Fjordvik split-case pumps: service and troubleshooting manual",
+      "sections": 8,
+      "sha256": "500582218692dd59f4b3d43c18e36100ccb2c3b01a2c46bc28e1a78f1b2cce58"
+    },
+    "manual-multistage-pumps.md": {
+      "title": "Fjordvik multistage pumps: service and troubleshooting manual",
+      "sections": 8,
+      "sha256": "03dee09db898633aef67263d69b7e6e0adfdcb0d56421edd408fb8cf956c9d1a"
+    },
+    "manual-submersible-pumps.md": {
+      "title": "Fjordvik submersible pumps: service and troubleshooting manual",
+      "sections": 8,
+      "sha256": "57544fa3d6a4f2266757f0cd14a4d7c10e96e1f03bff6783d157049443b1f00e"
+    },
+    "manual-dry-installed-pumps.md": {
+      "title": "Fjordvik dry-installed pumps: service and troubleshooting manual",
+      "sections": 8,
+      "sha256": "ec530365761dd5a39f45cca6652f102bef4ac875373756355c86ca68d21f5383"
+    },
+    "manual-booster-sets.md": {
+      "title": "Fjordvik booster sets: service and troubleshooting manual",
+      "sections": 8,
+      "sha256": "5577c246ff918670e0d0195ba81bb6a59464893d4bc27dab39efe26a4d045416"
+    },
+    "manual-control-panels.md": {
+      "title": "Fjordvik control panels: service and troubleshooting manual",
+      "sections": 8,
+      "sha256": "f56f9fcb1097459f8f1865f380c5fc1815e1b39627ef5e7e9b26e6c28750ee13"
+    },
+    "manual-drive-packages.md": {
+      "title": "Fjordvik drive packages: service and troubleshooting manual",
+      "sections": 8,
+      "sha256": "3ccb64cdccf784c2b2ab546636a49a8430a0d35bbd4281a70bc4016b3de18e3f"
+    },
+    "service-terms.md": {
+      "title": "Fjordvik service terms",
+      "sections": 5,
+      "sha256": "1ffcfb7ed8c5fe3437043b38520b1e3901635461e0b93dd9acc1be428cd974cb"
+    },
+    "warranty-policy.md": {
+      "title": "Fjordvik warranty policy",
+      "sections": 6,
+      "sha256": "647c341dc9fc6bd41dc5765ad4820af8b99c2ebac7a9389e6865afa98b03093b"
+    }
+  }
+}

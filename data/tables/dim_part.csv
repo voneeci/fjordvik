@@ -1,0 +1,53 @@
+part_id,part_name,part_family,sales_product_id,list_price_eur,lead_time_days
+MS-ES-01,"Mechanical seal, end-suction",Mechanical seals,SPS-SP-100,320.00,14
+MS-SC-01,"Mechanical seal, split-case",Mechanical seals,SPS-SP-100,535.00,21
+MS-MS-01,"Mechanical seal, multistage",Mechanical seals,SPS-SP-100,255.00,14
+MS-SB-01,"Double seal cartridge, submersible",Mechanical seals,SPS-SP-100,680.00,21
+MS-DI-01,"Mechanical seal, dry-installed",Mechanical seals,SPS-SP-100,470.00,21
+BR-ES-01,"Bearing set, end-suction",Bearings,SPS-SP-100,215.00,10
+BR-SC-01,"Bearing set, split-case",Bearings,SPS-SP-100,375.00,14
+BR-MS-01,"Bearing set, multistage",Bearings,SPS-SP-100,180.00,10
+BR-SB-01,"Bearing set, submersible motor",Bearings,SPS-SP-100,300.00,14
+BR-DI-01,"Bearing set, dry-installed",Bearings,SPS-SP-100,330.00,14
+IM-ES-S1,"Impeller, end-suction up to 30 kW",Impellers,SPS-SP-100,625.00,21
+IM-ES-L1,"Impeller, end-suction 55 kW",Impellers,SPS-SP-100,990.00,28
+IM-SC-S1,"Impeller, split-case 75 kW",Impellers,SPS-SP-100,1885.00,35
+IM-SC-L1,"Impeller, split-case 160 kW",Impellers,SPS-SP-100,3095.00,42
+IM-MS-01,"Impeller stage set, multistage",Impellers,SPS-SP-100,700.00,21
+IM-SB-S1,"Channel impeller, submersible up to 11 kW",Impellers,SPS-SP-100,505.00,21
+IM-SB-L1,"Channel impeller, submersible 22 to 45 kW",Impellers,SPS-SP-100,1065.00,28
+IM-DI-S1,"Impeller, dry-installed up to 37 kW",Impellers,SPS-SP-100,895.00,28
+IM-DI-L1,"Impeller, dry-installed 75 kW",Impellers,SPS-SP-100,1535.00,35
+WR-ES-01,"Wear ring pair, end-suction",Wear rings and gaskets,SPS-SP-100,115.00,10
+WR-SC-01,"Wear ring pair, split-case",Wear rings and gaskets,SPS-SP-100,190.00,14
+WR-SB-01,"Wear plate, submersible",Wear rings and gaskets,SPS-SP-100,155.00,14
+WR-DI-01,"Wear ring pair, dry-installed",Wear rings and gaskets,SPS-SP-100,145.00,14
+GK-ES-01,"Gasket and O-ring set, end-suction",Wear rings and gaskets,SPS-SP-100,44.00,7
+GK-SC-01,"Gasket and O-ring set, split-case",Wear rings and gaskets,SPS-SP-100,75.00,7
+GK-MS-01,"Gasket and O-ring set, multistage",Wear rings and gaskets,SPS-SP-100,38.00,7
+GK-SB-01,"O-ring set, submersible",Wear rings and gaskets,SPS-SP-100,34.00,7
+GK-DI-01,"Gasket and O-ring set, dry-installed",Wear rings and gaskets,SPS-SP-100,55.00,7
+CN-GR-01,"Bearing grease cartridge, 400 g",Consumables,SPS-SP-100,24.00,5
+CN-CI-01,Coupling insert,Consumables,SPS-SP-100,47.00,7
+CN-OL-01,"Seal chamber oil, 1 litre",Consumables,SPS-SP-100,29.00,5
+CN-FM-01,Drive filter mat set,Consumables,SPS-SP-100,18.00,5
+EL-MS-01,"Moisture sensor, seal chamber",Motor and electrical,SPS-SP-100,230.00,14
+EL-TS-01,Motor thermal sensor,Motor and electrical,SPS-SP-100,125.00,10
+EL-CE-01,Cable entry kit,Motor and electrical,SPS-SP-100,170.00,14
+EL-PR-01,Motor protection relay,Motor and electrical,SPS-SP-100,275.00,10
+EL-CT-01,"Contactor, 3-pole",Motor and electrical,SPS-SP-100,100.00,7
+EL-LC-01,Level controller,Motor and electrical,SPS-SP-100,415.00,14
+EL-DF-01,Drive cooling fan,Motor and electrical,SPS-SP-100,190.00,14
+SK-ES-01,"Annual service kit, end-suction",Service kits,SPS-SK-200,475.00,10
+SK-SC-01,"Annual service kit, split-case",Service kits,SPS-SK-200,700.00,14
+SK-MS-01,"Annual service kit, multistage",Service kits,SPS-SK-200,390.00,10
+SK-SB-01,"Annual service kit, submersible",Service kits,SPS-SK-200,560.00,10
+SK-DI-01,"Annual service kit, dry-installed",Service kits,SPS-SK-200,525.00,10
+SK-BS-01,"Annual service kit, booster set",Service kits,SPS-SK-200,610.00,10
+SK-VD-01,"Annual service kit, drive package",Service kits,SPS-SK-200,325.00,10
+SK-CP-01,"Annual service kit, control panel",Service kits,SPS-SK-200,240.00,10
+OK-ES-01,"Overhaul kit, end-suction",Overhaul kits,SPS-SK-200,1850.00,21
+OK-SC-01,"Overhaul kit, split-case",Overhaul kits,SPS-SK-200,3310.00,28
+OK-MS-01,"Overhaul kit, multistage",Overhaul kits,SPS-SK-200,1560.00,21
+OK-SB-01,"Overhaul kit, submersible",Overhaul kits,SPS-SK-200,2360.00,28
+OK-DI-01,"Overhaul kit, dry-installed",Overhaul kits,SPS-SK-200,2625.00,28

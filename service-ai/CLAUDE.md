@@ -1,0 +1,30 @@
+# fjordvik-service-ai
+
+The after-sales service AI over the synthetic Fjordvik dataset: forecasting, machine
+learning, scheduling, recommendations, a service assistant and an agent, built one phase
+at a time (phases 2 to 7). One of five folders in the fjordvik repository: data (source of
+the data), mcp, powerbi, power-automate and service-ai. Permanent rules in
+`C:\Users\reece\Projects\knowledge\RULES.md` come first, then `..\GUARDRAILS.md`, then
+this file.
+
+## Rules for this part
+
+- Synthetic data only. Read `..\data\tables` and `..\data\corpus` in place; never write
+  under `..\data`. `tests/test_data.py` checks the tables against their manifest.
+- `..\data\generator-truth` is an answer key for evaluation only: never a model feature.
+- Each phase writes its evaluation set and pass mark before the code, never changes them
+  to pass, and saves raw results in `evidence/`.
+- Keys come from environment variables only (`.env.example` holds names). Tests use stubs
+  and run without a key or network; live runs save their full output as evidence.
+- Agent drafts go to `outbox/` (git-ignored) with a unique request ID; nothing is applied
+  without Reece's approve command, and never twice.
+- Each phase ends with `docs/learning/phase<N>-<topic>.md`, a handover note and an inbox
+  note in the knowledge folder.
+- Writing: no em dashes, Australian spelling, spell out acronyms on first use.
+
+## Commands
+
+```bash
+.venv\Scripts\python -m pip install -e ".[dev]"
+.venv\Scripts\python -m pytest -q        # 6 tests
+```

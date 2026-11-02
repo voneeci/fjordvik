@@ -1,0 +1,13 @@
+technician_id,technician_name,home_site_id,home_town,latitude,longitude,countries_served,skills,weekly_hours
+T01,Aino K.,FI01,Tampere,61.49911,23.78712,FI,mechanical;electrical,37.5
+T02,Jussi V.,FI01,Tampere,61.49911,23.78712,FI,mechanical,37.5
+T03,Leena M.,FI02,Helsinki,60.16952,24.93545,FI,mechanical;electrical,37.5
+T04,Petri H.,FI02,Espoo,60.20520,24.65220,FI,mechanical;wastewater,37.5
+T05,Sanna R.,FI03,Oulu,65.01236,25.46816,FI,mechanical;electrical;wastewater,37.5
+T06,Ville T.,FI03,Oulu,65.01236,25.46816,FI,mechanical,30.0
+T07,Erik L.,SE01,Gothenburg,57.70716,11.96679,SE,mechanical;wastewater,40.0
+T08,Maja S.,SE01,Gothenburg,57.70716,11.96679,SE,mechanical;electrical;wastewater,40.0
+T09,Oskar N.,SE01,Borås,57.72101,12.94010,SE,mechanical,40.0
+T10,Kadri P.,EE01,Tallinn,59.43696,24.75353,EE,mechanical;electrical,40.0
+T11,Margus T.,EE02,Tartu,58.38062,26.72509,EE;LV,mechanical;wastewater,40.0
+T12,Ilze B.,EE02,Riga,56.94600,24.10589,LV;EE,mechanical;electrical;wastewater,40.0

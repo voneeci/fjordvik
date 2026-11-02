@@ -1,10 +1,10 @@
 # fjordvik-mcp
 
 Model Context Protocol (MCP) server over the synthetic Fjordvik dataset, for Claude
-Desktop (stdio) and, as a local demo, over HTTP with OAuth sign-in. One of four folders
-in the fjordvik repository: data (source of the data), mcp, powerbi, power-automate.
-Permanent rules in
-`C:\Users\reece\Projects\knowledge\RULES.md` override this file.
+Desktop (stdio) and, as a local demo, over HTTP with OAuth sign-in. One of five folders
+in the fjordvik repository: data (source of the data), mcp, powerbi, power-automate,
+service-ai. Permanent rules in `C:\Users\reece\Projects\knowledge\RULES.md` come first,
+then `..\GUARDRAILS.md`, then this file.
 
 ## Rules for this repo
 
@@ -30,7 +30,7 @@ Permanent rules in
 
 ```bash
 .venv\Scripts\python -m pip install -e ".[dev]"
-.venv\Scripts\python -m pytest -q        # 76 tests
+.venv\Scripts\python -m pytest -q        # 83 tests
 .venv\Scripts\python -m fjordvik_mcp     # run over stdio (Claude Desktop does this)
 .venv\Scripts\python -m fjordvik_mcp --http           # HTTP with sign-in, 127.0.0.1:8765
 .venv\Scripts\python scripts\try_http_connector.py    # sign in and try it
