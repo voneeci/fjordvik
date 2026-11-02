@@ -10,7 +10,9 @@ never needs an entry: it stays in the chat's scratchpad (L5).
 
 **How entries read.** Each entry is a path pattern in backticks, then its purpose. `*`
 matches within one folder and `**` matches any depth. `<part>` stands for each part
-named on the next line.
+named on the next line. Only entries after that line count. `check.py` also checks names:
+handovers, learning notes and proposals follow GUARDRAILS.md L3, evidence names carry a
+real run date (L4), and no name looks like a scratch, temporary or backup file (L5).
 
 Parts: data, mcp, powerbi, power-automate, service-ai
 
@@ -25,8 +27,16 @@ Parts: data, mcp, powerbi, power-automate, service-ai
 
 ## Guardrails
 
-- `guardrails/*`: the checks behind GUARDRAILS.md, this map and Attena's working rules.
-- `guardrails/proposals/*.md`: suggested rule changes, one file each.
+- `guardrails/README.md`: what each guardrails file does.
+- `guardrails/CLAUDE.md`: Attena's working rules.
+- `guardrails/layout.md`: this map.
+- `guardrails/check.py`: the checks a script can run.
+- `guardrails/claude_hook.py`: the Claude Code hook.
+- `guardrails/shared_tests.py`: the guardrail tests every part runs.
+- `guardrails/pre-commit`: runs `check.py` before each commit, once Reece installs it.
+- `guardrails/.gitattributes`: keeps PDF reports in `evidence/` binary, so git doesn't change their bytes.
+- `guardrails/proposals/*.md`: suggested rule changes, one file each, named `YYYY-MM-DD-<topic>.md`.
+- `guardrails/evidence/*`: raw output and reports of guardrails-only tests, named with the run date (L4).
 
 ## Project documents
 
@@ -44,10 +54,13 @@ Parts: data, mcp, powerbi, power-automate, service-ai
 - `<part>/.gitignore`: what git leaves out, such as `.venv` and `.env`.
 - `<part>/.gitattributes`: line-ending settings for the part.
 - `<part>/.env.example`: names of the settings the part reads, never values.
-- `<part>/src/**`: the part's Python package.
-- `<part>/scripts/*`: command-line scripts that run the part's jobs.
-- `<part>/tests/**`: the part's tests.
-- `<part>/docs/**`: documents about the part only.
+- `<part>/src/**/*.py`: the part's Python package.
+- `<part>/scripts/*.py`: command-line scripts that run the part's jobs.
+- `<part>/scripts/*.ps1`: PowerShell scripts that run the part's jobs.
+- `<part>/tests/**/*.py`: the part's tests.
+- `<part>/tests/fixtures/**`: small input files the tests read.
+- `<part>/docs/**/*.md`: documents about the part only.
+- `<part>/docs/images/**/*.png`: images the part's documents show.
 - `<part>/evidence/*`: raw output of test and acceptance runs, flat, named with the run date (L4).
 
 ## data
@@ -69,6 +82,7 @@ Parts: data, mcp, powerbi, power-automate, service-ai
 - `powerbi/*.pbip`: Power BI project files that open each report.
 - `powerbi/Fjordvik*.Report/**`: the report definitions.
 - `powerbi/Fjordvik*.SemanticModel/**`: the semantic model definitions.
+- `powerbi/docs/measure-examples.json`: the measure examples the measure guide is built from.
 
 ## power-automate
 
@@ -78,8 +92,15 @@ Parts: data, mcp, powerbi, power-automate, service-ai
 
 ## service-ai (from the approved phase plan)
 
-- `service-ai/eval/**`: evaluation sets, written before the code they judge (A9).
-- `service-ai/results/**`: committed results with a manifest, which mcp reads.
+- `service-ai/eval/**/*.json`: evaluation sets, written before the code they judge (A9).
+- `service-ai/eval/**/*.jsonl`: evaluation sets, one item per line.
+- `service-ai/eval/**/*.csv`: evaluation sets as tables.
+- `service-ai/eval/**/*.md`: notes on how each evaluation set was written.
+- `service-ai/results/**/*.csv`: committed results, which mcp reads.
+- `service-ai/results/**/*.json`: committed results and their manifest of checksums.
+- `service-ai/results/**/*.parquet`: committed results too large for CSV.
+- `service-ai/results/**/*.md`: notes on each result.
+- `service-ai/results/**/*.png`: charts of the results.
 - `service-ai/outbox/**`: agent drafts (git-ignored, so normally never checked).
 
 ## Named exceptions

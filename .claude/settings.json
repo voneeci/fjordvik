@@ -7,7 +7,7 @@
           {
             "type": "command",
             "shell": "bash",
-            "command": "r=$(git rev-parse --show-toplevel 2>/dev/null); [ -f \"$r/guardrails/claude_hook.py\" ] || r=$CLAUDE_PROJECT_DIR; python \"$r/guardrails/claude_hook.py\" || exit 2",
+            "command": "r=$CLAUDE_PROJECT_DIR; [ -f \"$r/guardrails/claude_hook.py\" ] || r=$(git rev-parse --show-toplevel 2>/dev/null); python \"$r/guardrails/claude_hook.py\" || exit 2",
             "timeout": 10,
             "statusMessage": "Checking GUARDRAILS.md"
           }

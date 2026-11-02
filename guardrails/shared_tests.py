@@ -22,8 +22,12 @@ def test_repository_has_no_guardrail_findings():
 
 
 def test_guardrails_file_matches_its_fingerprint():
-    recorded = (ROOT / "GUARDRAILS.sha256").read_text(encoding="utf-8").split()[0]
-    assert recorded == hashlib.sha256((ROOT / "GUARDRAILS.md").read_bytes()).hexdigest()
+    """GUARDRAILS.sha256 fingerprints every guardrail file check.FINGERPRINTED names."""
+    lines = (ROOT / "GUARDRAILS.sha256").read_text(encoding="utf-8").splitlines()
+    recorded = {name.strip(): digest for digest, name in (l.split(None, 1) for l in lines if l.strip())}
+    assert set(check.FINGERPRINTED) <= set(recorded)
+    for name, digest in recorded.items():
+        assert digest == hashlib.sha256((ROOT / name).read_bytes()).hexdigest(), name
 
 
 def test_checker_catches_each_planted_breach(tmp_path):
@@ -50,13 +54,24 @@ def test_checker_catches_each_planted_breach(tmp_path):
     # L1 and L4: a layout map, a stray folder and an evidence file with no run date
     (tmp_path / "guardrails").mkdir()
     (tmp_path / "guardrails" / "layout.md").write_text(
+        "- `**`: an example before the Parts line, which must not count\n\n"
         "Parts: part\n\n- `*.md`: x\n- `*.py`: x\n- `*.txt`: x\n- `GUARDRAILS.sha256`: x\n"
-        "- `.env.example`: x\n- `guardrails/*`: x\n- `<part>/evidence/*`: x\n", encoding="utf-8")
+        "- `.env.example`: x\n- `guardrails/*`: x\n- `guardrails/evidence/*`: x\n"
+        "- `<part>/evidence/*`: x\n- `docs/handover/*.md`: x\n", encoding="utf-8")
+    # L3, L4, L5 and G9: names and fingerprints
+    (tmp_path / "scratch-notes.md").write_text("notes\n", encoding="utf-8")
+    (tmp_path / "docs" / "handover").mkdir(parents=True)
+    (tmp_path / "docs" / "handover" / "notes.md").write_text("notes\n", encoding="utf-8")
+    (tmp_path / "guardrails" / "evidence").mkdir()
+    (tmp_path / "guardrails" / "evidence" / "run.txt").write_text("1 passed\n", encoding="utf-8")
+    (tmp_path / "guardrails" / "check.py").write_text("# x\n", encoding="utf-8")
     (tmp_path / "scratch").mkdir()
     (tmp_path / "scratch" / "notes.md").write_text("notes\n", encoding="utf-8")
     (tmp_path / "part" / "evidence").mkdir(parents=True)
     (tmp_path / "part" / "evidence" / "run.txt").write_text("1 passed\n", encoding="utf-8")
     (tmp_path / "part" / "evidence" / "pytest-x-2026-11-02.txt").write_text("1 passed\n",
+                                                                            encoding="utf-8")
+    (tmp_path / "part" / "evidence" / "pytest-x-2026-13-45.txt").write_text("1 passed\n",
                                                                             encoding="utf-8")
     found = "\n".join(check.check(tmp_path))
     assert "GUARDRAILS.md: changed without updating" in found
@@ -72,6 +87,13 @@ def test_checker_catches_each_planted_breach(tmp_path):
     assert "L1 scratch/: 1 file(s) not on the layout map" in found
     assert "L4 part/evidence/run.txt" in found
     assert "pytest-x-2026-11-02.txt" not in found and "L1 (root)" not in found
+    assert "L5 scratch-notes.md" in found
+    assert "L3 docs/handover/notes.md" in found
+    assert "L4 guardrails/evidence/run.txt" in found
+    assert "L4 part/evidence/pytest-x-2026-13-45.txt" in found
+    assert "guardrails/check.py: not fingerprinted" in found
+    (tmp_path / "guardrails" / "layout.md").write_text("- `**`: x\n", encoding="utf-8")
+    assert "no 'Parts:' line" in "\n".join(check.check(tmp_path))
 
 
 def run_hook(call: dict | str, project: Path | None = None) -> str:
@@ -166,6 +188,35 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         terminal("Set-Content data\\tables\\x.csv x"),
         terminal("Remove-Item tables\\x.csv", cwd="data"),
         terminal("Get-Content mcp\\.env"),
+        # From the guardrails test of 2 November 2026: git forms (G1 to G3)
+        bash("git -C . add -A"),
+        bash("git stage -A"),
+        bash("git add :/"),
+        bash("git add *"),
+        bash("git -C . commit -n -m x"),
+        bash("git push origin +main"),
+        bash("git commit --no-verif -m x"),
+        bash("git push --forc origin main"),
+        bash("git config core.hooksPath x"),
+        # D3 from inside the generated folders, by deleting a parent, and other writers
+        bash("rm x.csv", cwd=ROOT / "data" / "tables"),
+        bash("cd data/tables && rm x.csv"),
+        terminal("Remove-Item x.csv", cwd="data\\tables"),
+        bash("rm -rf data"),
+        powershell("Remove-Item -Recurse -Force data"),
+        powershell("Import-Csv a.csv | Export-Csv data\\tables\\x.csv"),
+        bash("python -c \"open('data/tables/x.csv','w').write('x')\""),
+        # D3 path forms, D8 and D2 forms
+        {"tool_name": "Write", "tool_input": {"file_path": "\\\\?\\" + tables}},
+        tool("Write", "data", "tables.", "x.csv"),
+        {"tool_name": "Write", "tool_input": {"file_path": "..\\data\\tables\\x.csv"},
+         "cwd": str(ROOT / "service-ai")},
+        tool("Read", "no-such-folder", ".ENV"),
+        bash("cat no-such-folder/.e*"),
+        {"tool_name": "Grep", "tool_input": {"pattern": "x", "path": str(ROOT / "mcp"),
+                                             "glob": ".env"}},
+        {"tool_name": "Grep", "tool_input": {"pattern": "x", "path": "C:\\Users\\x",
+                                             "glob": "banned*"}},
     ]
     allowed = [
         bash("git status"),
@@ -195,6 +246,14 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         monitor("tail -f data/evidence/x.log"),
         monitor(ws="wss://example.test/events"),
         terminal("git status"),
+        # Work the stricter checks must still allow
+        bash("git add data/tables/*.csv data/src/x.py"),
+        bash("cd data && python -m fjordvik_data --out tables"),
+        bash("mv data/src/a.py data/src/b.py"),
+        bash("git push --follow-tags origin main"),
+        bash("python -c \"print(1)\""),
+        bash("rm *.pyc", cwd=ROOT / "service-ai"),
+        {"tool_name": "Grep", "tool_input": {"pattern": "x", "path": str(ROOT), "glob": "*.py"}},
     ]
     ask = [
         tool("Edit", "GUARDRAILS.md"),
@@ -212,6 +271,16 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         bash("echo x > guardrails.md"),
         bash("echo x > guardrails/proposals/../check.py"),
         monitor("echo x >> GUARDRAILS.md"),
+        # G9 from inside guardrails/, through git, and in other path forms
+        bash("rm check.py", cwd=ROOT / "guardrails"),
+        bash("cd guardrails && rm check.py"),
+        terminal("Remove-Item check.py", cwd="guardrails"),
+        bash("git rm GUARDRAILS.md"),
+        bash("git checkout dd6370b -- guardrails/claude_hook.py"),
+        bash("rm -rf .claude"),
+        {"tool_name": "Edit", "tool_input": {"file_path": "\\\\?\\" + str(ROOT / "GUARDRAILS.md")}},
+        tool("Edit", "GUARDRAILS.md."),
+        tool("Edit", "GUARDRAILS.md::$DATA"),
     ]
     # A chat whose project folder is a part: the root still comes from git (G9, D3)
     part = ROOT / "service-ai"

@@ -17,8 +17,9 @@ First edition, 2 November 2026. Drafted by the Fjordvik code chat at Reece's req
   this file).
 - **Checked, not just written.** `guardrails/check.py` checks the rules a script can
   check. Every part's `tests/test_guardrails.py` runs it, so a breach fails that part's
-  tests. `GUARDRAILS.sha256` holds this file's fingerprint, so an edit that skips Attena
-  fails the tests too.
+  tests. `GUARDRAILS.sha256` holds the fingerprints of this file, the hook, `check.py`,
+  `shared_tests.py`, `layout.md` and `.claude/settings.json`, so an edit that skips Attena,
+  or that the hook misses, fails the tests too.
 - **Hooks.** `guardrails/claude_hook.py` stops Claude Code chats in this repository from
   breaking the rules marked "hook" below, before the action runs. It checks Bash,
   PowerShell, Monitor and terminal tool (`mcp__terminal__run_in_terminal`) commands, and
@@ -44,7 +45,7 @@ First edition, 2 November 2026. Drafted by the Fjordvik code chat at Reece's req
 | Rule | What | Checked by |
 | --- | --- | --- |
 | D1 | Synthetic data only. Fjordvik Manufacturing Oy is fictional; this is a portfolio project, never client work. | Review |
-| D2 | Never name a real company, employer, client or job advert anywhere in the repository; it is public. Customer and supplier names are invented, and the docs say every name is fictional. Only Reece writes names into the private list; no chat reads or writes it. | Review; `check.py` reads an optional private list of names kept outside the repository, so the list itself names no one; the hook stops chats reading or writing that list |
+| D2 | Never name a real company, employer, client or job advert anywhere in the repository; it is public. Customer and supplier names are invented, and the docs say every name is fictional. Only Reece writes names into the private list; no chat reads or writes it. | Review; `check.py` reads an optional private list of names kept outside the repository, so the list itself names no one; the hook stops chats reading or writing that list by its name or a wildcard that matches it |
 | D3 | Change `data/tables/`, `data/erp-extract/`, `data/corpus/` and `data/generator-truth/` only by running the generator in `data`. Commit code and data together. | Hook (Edit, Write and shell writes); `data/tests/test_reproducible.py` |
 | D4 | Never rename a table or column. Add new ones instead. | `data/tests/test_schema.py` |
 | D5 | The checksums of tables that already exist stay fixed. A change that moves one needs Reece's yes, and the test change says which change and why. | `data/tests/test_reproducible.py` |
@@ -65,8 +66,8 @@ First edition, 2 November 2026. Drafted by the Fjordvik code chat at Reece's req
 
 | Rule | What | Checked by |
 | --- | --- | --- |
-| A1 | Every mcp tool is read-only, annotated `readOnlyHint: true` and `destructiveHint: false`. `run_sql` keeps its three guards: one SELECT only, locked external access, capped rows. | `mcp/tests/test_server.py`, `test_sql_guard.py` |
-| A2 | Over HTTP every mcp tool checks the signed-in role first, on the server, whatever its annotations say. Retrieval filters by role before ranking. Adding a role, or opening the server beyond 127.0.0.1, needs Reece's yes. | `mcp/tests/test_http_auth.py`; a test calling every tool as every role, from phase 6 |
+| A1 | Every tool of the mcp part (a Model Context Protocol server) is read-only, annotated `readOnlyHint: true` and `destructiveHint: false`. `run_sql` keeps its three guards: one SELECT only, locked external access, capped rows. | `mcp/tests/test_server.py`, `test_sql_guard.py` |
+| A2 | Over HTTP (Hypertext Transfer Protocol) every mcp tool checks the signed-in role first, on the server, whatever its annotations say. Retrieval filters by role before ranking. Adding a role, or opening the server beyond 127.0.0.1, needs Reece's yes. | `mcp/tests/test_http_auth.py`; a test calling every tool as every role, from phase 6 |
 | A3 | Agents draft, never act. Drafts go to `service-ai/outbox/`; nothing is applied until Reece runs the approve command. Applying needs an approval record written by a human-only process, and the agent's role can't write one. The approve command shows exactly what it will apply, and applies one request only. | service-ai tests from phase 7 |
 | A4 | Every draft has a unique request ID (a version 4 universally unique identifier, or UUID), set when the draft is made and stored with the outcome under a unique constraint. Applying the same request again, including after a timeout, changes nothing and says so. | service-ai tests from phase 7 |
 | A5 | No AI component writes to `data/` or outside its own folder's `outbox/` and state files. | service-ai tests from phase 6 |
@@ -84,14 +85,14 @@ First edition, 2 November 2026. Drafted by the Fjordvik code chat at Reece's req
 | Rule | What | Checked by |
 | --- | --- | --- |
 | G1 | Commit named paths only: never `git commit -a`, `git add -u`, `git add -A` or `git add .`. | Hook |
-| G2 | Never bypass a git hook (`--no-verify`, `-n`) and never change hook settings; only Reece does either, by hand. | Hook, and Reece's own guard |
+| G2 | Never bypass a git hook (`--no-verify`, `-n`) and never change hook settings; only Reece does either, by hand. | Hook (`--no-verify` and `-n` in any spelling git accepts, and a change to the hooks setting); Reece's own guard |
 | G3 | Confirm `git add` worked before committing. Push only when Reece says, never with `--force`, and confirm the push reached the remote. | Hook (force push) |
 | G4 | Every test run saves its raw output in its part's `evidence/` folder. A result counts only once its evidence is saved. | Review |
 | G5 | Never loosen a test, threshold or tolerance to make it pass. A deliberate change to an expected value says which change and why. | Review |
 | G6 | Each phase ends with a handover note in `docs/handover/` and a new note in the knowledge folder's `raw/inbox/`. In the knowledge folder, write only new files there; never edit `wiki/` or `registers/`, and never run git there. | Review |
 | G7 | Close Power BI Desktop (Don't save) before regenerating the model or report files, then restore generated files whose content did not change. | Review |
 | G8 | Never commit the local `old historical folders/`. | `.git/info/exclude`; `check.py` |
-| G9 | Only Attena edits `GUARDRAILS.md`, `GUARDRAILS.sha256`, `guardrails/` (new files in `guardrails/proposals/` excepted), `.claude/settings.json` and `.claude/settings.local.json`. The hook asks Reece to approve each such edit, and Reece approves only in Attena. | Hook (asks Reece); the fingerprint test |
+| G9 | Only Attena edits `GUARDRAILS.md`, `GUARDRAILS.sha256`, `guardrails/` (new files in `guardrails/proposals/` excepted), `.claude/settings.json` and `.claude/settings.local.json`. The hook asks Reece to approve each such edit, and Reece approves only in Attena. | Hook (asks Reece); the fingerprint test, which covers `GUARDRAILS.md`, `claude_hook.py`, `check.py`, `shared_tests.py`, `layout.md` and `.claude/settings.json` |
 | G10 | Library versions are pinned, and random generators are seeded with an explicit bit generator. Every saved result names the data checksum, the commit and the model version. Training twice on the same data gives the same metrics. | Tests in each part from phase 2 |
 | G11 | Every Claude Code chat in this repository starts with the repository root as its folder and works in a part with `cd`. A chat started in a part folder loads no project settings, so the guardrail hook doesn't run for it. | Review |
 
@@ -133,10 +134,10 @@ First edition, 2 November 2026. Drafted by the Fjordvik code chat at Reece's req
 | --- | --- | --- |
 | L1 | Every file in the repository sits where `guardrails/layout.md` allows. A new folder, or a new kind of file at the root or a part's top level, needs a map entry first: suggest it in `guardrails/proposals/` or ask Reece. | `check.py` |
 | L2 | Each part keeps the standard shape in the map. Code lives in `src/` or `scripts/`, never loose at a part's top level, and tests live in `tests/`. | `check.py` (through the map); Review |
-| L3 | One home per kind of document: project-wide documents in `docs/`, handovers in `docs/handover/YYYY-MM-DD-fjordvik-<topic>.md`, phase learning notes in `docs/learning/phase<N>-<topic>.md`, a part's own documents in `<part>/docs/`, and rule suggestions in `guardrails/proposals/`. Update an existing document rather than writing a near copy. | `check.py` (through the map); Review |
+| L3 | One home per kind of document: project-wide documents in `docs/`, handovers in `docs/handover/YYYY-MM-DD-fjordvik-<topic>.md`, phase learning notes in `docs/learning/phase<N>-<topic>.md`, a part's own documents in `<part>/docs/`, and rule suggestions in `guardrails/proposals/`. Update an existing document rather than writing a near copy. | `check.py` (the map, and the names of handovers, learning notes and proposals); Review (near copies) |
 | L4 | Evidence files stay flat in their part's `evidence/` folder, named in lower case with hyphens and the run date, such as `pytest-forecast-2026-11-03.txt`. Nothing is moved or renamed afterwards, so notes that cite a path stay right. | `check.py` |
-| L5 | No scratch, temporary or personal files in the repository: they stay in the chat's scratchpad. Output that is not a deliverable is git-ignored. | `check.py` (it also checks untracked files git would add) |
-| L6 | When a file or folder stops being used, the chat that owns it lists it in its handover. Reece decides whether it goes (RULES.md: delete nothing unless Reece asks). | Review |
+| L5 | No scratch, temporary or personal files in the repository: they stay in the chat's scratchpad. Output that is not a deliverable is git-ignored. | `check.py`: the map's file types, and names with words such as scratch, tmp, debug, backup or copy, extensions such as `.log` and `.bak`, or spaces (outside Power BI's own project folders). It also checks untracked files git would add. |
+| L6 | When a file or folder stops being used, the chat that owns it lists it in its handover. Reece decides whether it goes. This is stricter than RULES.md, which forbids deleting anything git can't restore. | Review |
 
 ## Suggesting a change
 
@@ -152,3 +153,4 @@ agrees, updates the fingerprint, and adds a line below.
 - 2 November 2026: second edition by Attena (Reece asked, in the Attena chat). New G9 (only Attena edits the guardrail files; the hook asks Reece) and G10. D2, D3 and D8 tightened. The hook's `.env` check narrowed to allow search patterns on piped file names (proposal `2026-11-02-fjordvik-code-hook-env-pattern.md`). D7 records that Fjordvik is a learning project. Jasila's 27 proposals adopted: D11 to D17, A11 to A13, W8, section 5, and extensions to A2, A3, A4, A6, A7 and A9.
 - 2 November 2026: hook follow-ups by Attena (Reece asked, in the Attena chat). New G11 (chats start in the repository root). The hook finds the repository root with git, checks Monitor and terminal tool commands as it checks Bash and PowerShell, and its D2 check no longer matches file names that only contain the private list folder's name. `.claude/settings.json` finds the hook through git, then the chat's project folder.
 - 2 November 2026: layout and voice by Attena (Reece asked, in the Attena chat). New section 6, rules L1 to L6, with the layout map `guardrails/layout.md` checked by `check.py`, so the repository stays easy to understand as it grows. New W9: documents follow Reece's voice guide, kept outside the repository; where it differs, W1 to W8 win.
+- 2 November 2026: fixes from the guardrails test by Attena (Reece asked, in the Attena chat; test report `guardrails/evidence/guardrails-test-report-2026-11-02.pdf`). The hook reads git's global options, `git stage`, `:/` and `*`, abbreviated options and `+` refspecs (G1 to G3); follows `cd` and checks writes from the folder they run in, parent deletes, more writing commands and git writes to guardrail files (D3, G9); and reads file paths in one canonical form (D2, D8). `GUARDRAILS.sha256` now fingerprints six guardrail files. The layout map names each guardrails file, limits file types and adds `guardrails/evidence/`; `check.py` checks document names (L3), real evidence dates (L4) and scratch names (L5). The settings command tries the project folder before git. "Checked by" wording made accurate for D2, G2, G9, L3, L5 and L6.

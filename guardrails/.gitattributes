@@ -1,0 +1,3 @@
+# The root .gitattributes makes everything under guardrails/ text with Unix line endings.
+# PDF reports in evidence/ are binary: converting their line endings would corrupt them.
+evidence/*.pdf binary

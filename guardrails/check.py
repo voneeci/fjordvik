@@ -1,7 +1,9 @@
 """Check the repository against the rules in GUARDRAILS.md that a script can check.
 
-It also checks the layout (L1: every file matches an entry in guardrails/layout.md;
-L4: evidence names carry the run date), which needs Python 3.13 or later.
+It also checks the fingerprints of the guardrail files (G9) and the layout (L1: every
+file matches an entry in guardrails/layout.md; L3: document names; L4: evidence names
+carry a real run date; L5: no scratch or temporary names), which needs Python 3.13 or
+later.
 
 Run from anywhere:  python guardrails/check.py
 Exit code 0 when clean, 1 with one line per finding otherwise. Every part's
@@ -12,6 +14,7 @@ Maintained by Attena (see GUARDRAILS.md). Other chats suggest changes in
 guardrails/proposals/ instead of editing this file.
 """
 
+import datetime
 import hashlib
 import os
 import re
@@ -59,6 +62,20 @@ LAYOUT = PurePosixPath("guardrails/layout.md")
 LAYOUT_ENTRY = re.compile(r"^- `([^`]+)`", re.MULTILINE)
 LAYOUT_PARTS = re.compile(r"^Parts:\s*(.+)$", re.MULTILINE)
 EVIDENCE_NAME = re.compile(r"^[a-z0-9-]*\d{4}-\d{2}-\d{2}[a-z0-9-]*\.[a-z0-9]+$")
+DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
+# L3: names in the folders that hold one kind of document each.
+DOCUMENT_NAMES = {
+    "docs/handover": re.compile(r"^\d{4}-\d{2}-\d{2}-fjordvik-[a-z0-9-]+\.md$"),
+    "docs/learning": re.compile(r"^phase\d+-[a-z0-9-]+\.md$"),
+    "guardrails/proposals": re.compile(r"^(\d{4}-\d{2}-\d{2}-[a-z0-9-]+|README)\.md$"),
+}
+# L5: names that look like scratch, temporary or backup files.
+SCRATCH_NAME = re.compile(r"(?i)(^|[-_. ])(scratch|tmp|temp|debug|dump|backup|bak|old|copy"
+                          r"|untitled)([-_. ]|$)|\.(log|tmp|bak|orig|swp)$|~$|\s")
+# G9: the guardrail files GUARDRAILS.sha256 must fingerprint, so an edit the hook misses
+# still fails the tests.
+FINGERPRINTED = ("GUARDRAILS.md", "guardrails/claude_hook.py", "guardrails/check.py",
+                 "guardrails/shared_tests.py", "guardrails/layout.md", ".claude/settings.json")
 
 
 def files(root: Path = ROOT) -> list[str]:
@@ -86,17 +103,78 @@ def banned_terms() -> list[str]:
 
 def layout(root: Path = ROOT) -> tuple[list[str], list[str]] | None:
     """The layout map's patterns, with <part> written out for each part, and the parts.
-    None when the map is missing."""
+    Only entries after the Parts: line count, so examples in the introduction don't.
+    None when the map is missing; no parts and no patterns when Parts: is missing."""
     path = root / LAYOUT
     if not path.is_file():
         return None
     text = path.read_text(encoding="utf-8")
     found = LAYOUT_PARTS.search(text)
-    parts = [p.strip() for p in found.group(1).split(",")] if found else []
+    if not found:
+        return [], []
+    parts = [p.strip() for p in found.group(1).split(",")]
     patterns = []
-    for entry in LAYOUT_ENTRY.findall(text):
+    for entry in LAYOUT_ENTRY.findall(text[found.end():]):
         patterns += [entry.replace("<part>", p) for p in parts] if "<part>" in entry else [entry]
     return patterns, parts
+
+
+def real_date(name: str) -> bool:
+    """True when the name holds at least one real calendar date (YYYY-MM-DD)."""
+    for found in DATE.findall(name):
+        try:
+            datetime.date.fromisoformat(found)
+            return True
+        except ValueError:
+            pass
+    return False
+
+
+def name_findings(rel: str, parts: list[str], explicit: set[str]) -> list[str]:
+    """L3, L4 and L5 findings for one file's name."""
+    p = PurePosixPath(rel)
+    folder, name = str(p.parent), p.name
+    found = []
+    # Power BI names the files in its project folders after model objects (a role named
+    # "Rest of world" is "Rest of world.tmdl"), so L5 leaves those folders alone.
+    tool_named = len(p.parts) > 2 and p.parts[1].endswith((".Report", ".SemanticModel"))
+    if SCRATCH_NAME.search(name) and not tool_named:
+        found.append(f"L5 {rel}: looks like a scratch, temporary or backup file; keep those "
+                     "in the chat's scratchpad")
+    rule = DOCUMENT_NAMES.get(folder)
+    if rule and (not rule.match(name) or (DATE.match(name) and not real_date(name))):
+        found.append(f"L3 {rel}: name doesn't follow the pattern for {folder}/ in GUARDRAILS.md L3")
+    evidence = (len(p.parts) == 3 and p.parts[1] == "evidence"
+                and (p.parts[0] in parts or p.parts[0] == "guardrails"))
+    if evidence and rel not in explicit and not (EVIDENCE_NAME.match(name) and real_date(name)):
+        found.append(f"L4 {rel}: evidence names need lower case, hyphens and the run date "
+                     "(YYYY-MM-DD)")
+    return found
+
+
+def fingerprint_findings(root: Path) -> list[str]:
+    """GUARDRAILS.sha256 holds one line per guardrail file (hash, two spaces, path). Each
+    must match, and every guardrail file that exists must be listed."""
+    path = root / "GUARDRAILS.sha256"
+    if not path.is_file():
+        return ["GUARDRAILS.sha256: missing"]
+    found, listed = [], set()
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        recorded, name = line.split(None, 1)
+        name = name.strip()
+        listed.add(name)
+        target = root / name
+        if not target.is_file():
+            found.append(f"{name}: listed in GUARDRAILS.sha256 but missing")
+        elif recorded != hashlib.sha256(target.read_bytes()).hexdigest():
+            found.append(f"{name}: changed without updating GUARDRAILS.sha256 "
+                         "(only Attena edits it; suggest changes in guardrails/proposals/)")
+    for name in FINGERPRINTED:
+        if (root / name).is_file() and name not in listed:
+            found.append(f"{name}: not fingerprinted in GUARDRAILS.sha256 (rule G9)")
+    return found
 
 
 def line_of(text: str, index: int) -> int:
@@ -106,18 +184,13 @@ def line_of(text: str, index: int) -> int:
 def check(root: Path = ROOT) -> list[str]:
     findings = []
     banned = [re.compile(rf"\b{re.escape(t)}\b", re.IGNORECASE) for t in banned_terms()]
-    fingerprint = root / "GUARDRAILS.sha256"
-    if not fingerprint.is_file():
-        findings.append("GUARDRAILS.sha256: missing")
-    else:
-        recorded = fingerprint.read_text(encoding="utf-8").split()[0]
-        actual = hashlib.sha256((root / "GUARDRAILS.md").read_bytes()).hexdigest()
-        if recorded != actual:
-            findings.append("GUARDRAILS.md: changed without updating GUARDRAILS.sha256 "
-                            "(only Attena edits it; suggest changes in guardrails/proposals/)")
+    findings += fingerprint_findings(root)
     mapped = layout(root)
     if mapped is None:
         findings.append(f"L1 {LAYOUT}: missing")
+    elif not mapped[1]:
+        findings.append(f"L1 {LAYOUT}: no 'Parts:' line, so no entry can be read")
+        mapped = None
     off_map: dict[str, list[str]] = {}
     for rel in files(root):
         path = root / rel
@@ -133,10 +206,8 @@ def check(root: Path = ROOT) -> list[str]:
             p = PurePosixPath(rel)
             if not any(p.full_match(pattern) for pattern in patterns):
                 off_map.setdefault(str(p.parent), []).append(name)
-            elif (len(p.parts) == 3 and p.parts[0] in parts and p.parts[1] == "evidence"
-                  and rel not in patterns and not EVIDENCE_NAME.match(name)):
-                findings.append(f"L4 {rel}: evidence names need lower case, hyphens "
-                                "and the run date (YYYY-MM-DD)")
+            else:
+                findings += name_findings(rel, parts, set(patterns))
         if path.stat().st_size > MAX_BYTES:
             findings.append(f"D9 {rel}: {path.stat().st_size / 1e6:.1f} MB is over 50 MB")
         if Path(rel).suffix.lower() not in TEXT:
