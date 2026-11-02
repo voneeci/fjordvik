@@ -21,8 +21,9 @@ One portfolio project in four parts over the synthetic Fjordvik dataset, one fol
 - One virtual environment per folder (`<folder>\.venv`); run each folder's tests from
   that folder.
 - Combined from four repositories on 30 October 2026 with `git subtree`, so the original
-  commit hashes still exist in this history. The old repositories (voneeci/fjordvik-data,
-  fjordvik-mcp, fjordvik-powerbi, fjordvik-power-automate) are archived; work happens here.
+  commit hashes still exist in this history. Reece deleted the four old GitHub repositories
+  on 2 November 2026; work happens here. A local copy of them sits in
+  `old historical folders/`, kept out of git by `.git/info/exclude`: never commit it.
 - Writing: no em dashes, Australian spelling, spell out acronyms on first use.
 
 ## Commands
