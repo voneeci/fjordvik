@@ -24,8 +24,13 @@ PYTHON = REPO / ".venv" / "Scripts" / "python.exe"
 
 
 def config_path() -> Path:
-    # The Microsoft Store install keeps its settings in its package folder;
-    # %APPDATA%\Claude is only the installer version's home.
+    # The Microsoft Store install on this laptop reads %LOCALAPPDATA%\Claude-Data\<package>
+    # (the file Settings > Developer > Edit config opens; found 2 November 2026). Older
+    # Store installs used the package folder; %APPDATA%\Claude is the installer version's home.
+    data = Path(os.environ["LOCALAPPDATA"]) / "Claude-Data"
+    for package in sorted(data.glob("claude_*"), key=lambda p: p.name.lower()):
+        if (package / "claude_desktop_config.json").is_file():
+            return package / "claude_desktop_config.json"
     packages = Path(os.environ["LOCALAPPDATA"]) / "Packages"
     for package in sorted(packages.glob("Claude_*")):
         store = package / "LocalCache" / "Roaming" / "Claude"
@@ -70,7 +75,7 @@ def main() -> int:
     print(f"Config: {CONFIG}")
     check = json.loads(CONFIG.read_text(encoding="utf-8"))
     print(f"Done. MCP servers now in the config: {list(check.get('mcpServers', {}))}")
-    print("Open Claude Desktop again; fjordvik should appear under Connectors.")
+    print("Open Claude Desktop again; fjordvik should appear under Settings > Developer.")
     return 0
 
 
