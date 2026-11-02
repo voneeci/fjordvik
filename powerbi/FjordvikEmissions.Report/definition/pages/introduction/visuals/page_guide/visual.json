@@ -5,7 +5,7 @@
     "x": 640,
     "y": 110,
     "z": 500,
-    "height": 250,
+    "height": 210,
     "width": 620,
     "tabOrder": 500
   },
@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "What each page answers",
+                    "value": "4. What each page answers",
                     "textStyle": {
                       "fontWeight": "bold",
                       "fontSize": "13pt"
@@ -30,7 +30,24 @@
               {
                 "textRuns": [
                   {
-                    "value": "Overview: how much Fjordvik emits and where. Emissions breakdown: by scope, source and country. Value chain: the 15 scope 3 categories. Scope 2 methods: location-based beside market-based.",
+                    "value": "",
+                    "textStyle": {
+                      "fontSize": "3pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Overview",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "10pt"
+                    }
+                  },
+                  {
+                    "value": ": how much Fjordvik emits, and where.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }
@@ -40,7 +57,14 @@
               {
                 "textRuns": [
                   {
-                    "value": "Intensity and growth: is Fjordvik getting cleaner as it grows? Energy and activity: what the sites used. What changed: the change on the prior year. Sites: each site's figures. Data quality: do the stored figures reconcile?",
+                    "value": "Emissions breakdown",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "10pt"
+                    }
+                  },
+                  {
+                    "value": ": emissions by scope, source and country.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }
@@ -50,7 +74,116 @@
               {
                 "textRuns": [
                   {
-                    "value": "Each page title is a sentence worked out from the data, so it never goes stale.",
+                    "value": "Value chain (scope 3)",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "10pt"
+                    }
+                  },
+                  {
+                    "value": ": the 15 scope 3 categories: which are counted, and why.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Scope 2 methods",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "10pt"
+                    }
+                  },
+                  {
+                    "value": ": location-based beside market-based.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Intensity and growth",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "10pt"
+                    }
+                  },
+                  {
+                    "value": ": is Fjordvik getting cleaner as it grows?",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Energy and activity",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "10pt"
+                    }
+                  },
+                  {
+                    "value": ": what the sites used, in their own units.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "What changed",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "10pt"
+                    }
+                  },
+                  {
+                    "value": ": the change on the prior year, and where it came from.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Sites",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "10pt"
+                    }
+                  },
+                  {
+                    "value": ": each site's emissions and intensity.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Data quality",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "10pt"
+                    }
+                  },
+                  {
+                    "value": ": do the stored figures reconcile?",
                     "textStyle": {
                       "fontSize": "10pt"
                     }

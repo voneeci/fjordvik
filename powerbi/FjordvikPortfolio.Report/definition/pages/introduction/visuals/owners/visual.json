@@ -3,9 +3,9 @@
   "name": "owners",
   "position": {
     "x": 20,
-    "y": 350,
+    "y": 420,
     "z": 400,
-    "height": 330,
+    "height": 200,
     "width": 600,
     "tabOrder": 400
   },
@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Who owns the figures",
+                    "value": "3. Who owns the figures",
                     "textStyle": {
                       "fontWeight": "bold",
                       "fontSize": "13pt"
@@ -30,9 +30,9 @@
               {
                 "textRuns": [
                   {
-                    "value": "Business owner: Head of Portfolio, who chairs the quarterly portfolio review.",
+                    "value": "",
                     "textStyle": {
-                      "fontSize": "10pt"
+                      "fontSize": "3pt"
                     }
                   }
                 ]
@@ -40,9 +40,16 @@
               {
                 "textRuns": [
                   {
-                    "value": "Data owners: regional controllers for sales, the Group Financial Controller for the budget, portfolio governance for the product classification.",
+                    "value": "Business owner",
                     "textStyle": {
-                      "fontSize": "10pt"
+                      "fontWeight": "bold",
+                      "fontSize": "11pt"
+                    }
+                  },
+                  {
+                    "value": ": Head of Portfolio, who chairs the quarterly portfolio review.",
+                    "textStyle": {
+                      "fontSize": "11pt"
                     }
                   }
                 ]
@@ -50,9 +57,16 @@
               {
                 "textRuns": [
                   {
-                    "value": "Technical owner: Data and AI Specialist, who maintains the model and this report.",
+                    "value": "Data owners",
                     "textStyle": {
-                      "fontSize": "10pt"
+                      "fontWeight": "bold",
+                      "fontSize": "11pt"
+                    }
+                  },
+                  {
+                    "value": ": regional controllers for sales, the Group Financial Controller for the budget, and portfolio governance for the product classification.",
+                    "textStyle": {
+                      "fontSize": "11pt"
                     }
                   }
                 ]
@@ -60,9 +74,33 @@
               {
                 "textRuns": [
                   {
-                    "value": "Sales region managers see only their own region's sales and budget, through row-level security.",
+                    "value": "Technical owner",
                     "textStyle": {
-                      "fontSize": "10pt"
+                      "fontWeight": "bold",
+                      "fontSize": "11pt"
+                    }
+                  },
+                  {
+                    "value": ": Data and AI Specialist, who maintains the model and this report.",
+                    "textStyle": {
+                      "fontSize": "11pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Access",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "11pt"
+                    }
+                  },
+                  {
+                    "value": ": sales region managers see only their own region's sales and budget (row-level security).",
+                    "textStyle": {
+                      "fontSize": "11pt"
                     }
                   }
                 ]

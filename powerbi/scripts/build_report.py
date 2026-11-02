@@ -278,12 +278,22 @@ def textbox(name, x, y, w, h, z, lines, size="10pt", first_bold=False, first_siz
         "drillFilterOtherVisuals": True})
 
 
-def section(name, x, y, w, h, z, heading, lines):
-    """A text block with a heading, for the Introduction pages."""
+def section(name, x, y, w, h, z, heading, lines, size="10pt"):
+    """A text block with a heading, for the Introduction pages. Each line is plain text or a
+    (label, text) pair: the label in bold, then the text, so the reader can scan the labels.
+    An empty paragraph after the heading sets it apart from the lines."""
+    body = {"fontSize": size}
+    gap = {"textRuns": [{"value": "", "textStyle": {"fontSize": "3pt"}}]}
     paragraphs = [{"textRuns": [{"value": heading,
-                                 "textStyle": {"fontWeight": "bold", "fontSize": "13pt"}}]}]
-    paragraphs += [{"textRuns": [{"value": line, "textStyle": {"fontSize": "10pt"}}]}
-                   for line in lines]
+                                 "textStyle": {"fontWeight": "bold", "fontSize": "13pt"}}]}, gap]
+    for line in lines:
+        if isinstance(line, tuple):
+            label, rest = line
+            runs = [{"value": label, "textStyle": {"fontWeight": "bold", **body}},
+                    {"value": f": {rest}", "textStyle": body}]
+        else:
+            runs = [{"value": line, "textStyle": body}]
+        paragraphs.append({"textRuns": runs})
     return container(name, x, y, w, h, z, {
         "visualType": "textbox",
         "objects": {"general": [{"properties": {"paragraphs": paragraphs}}]},
@@ -444,45 +454,51 @@ def emissions_introduction():
             "Fjordvik Manufacturing Oy: emissions report",
             "A portfolio project. Product portfolio pages are in the Fjordvik portfolio report "
             "(FjordvikPortfolio.pbip), on the same model."], first_bold=True, first_size="16pt"),
-        section("about_company", 20, 110, 600, 190, 200, "About the company", [
-            "Fjordvik Manufacturing Oy makes electric pumps and pump systems for water utilities, "
-            "industry and buildings: process pumps in Tampere, water and wastewater pumps in "
-            "Gothenburg, pump packages and controls in Tallinn, with warehouses in Oulu and Tartu "
-            "and a head office in Helsinki.",
-            "Each month the sites report the energy, fuel, refrigerant, flights and waste they "
-            "used; purchasing, logistics, energy contracts and the ERP sales extract add the value "
-            "chain, January 2023 to December 2025.",
-            "Tartu Warehouse opened in July 2024, and Tampere Plant installed rooftop solar panels "
-            "the same month.",
+        section("about_company", 20, 110, 600, 112, 200, "1. About the company", [
+            ("What it makes", "electric pumps and pump systems for water utilities, industry and "
+             "buildings."),
+            ("Plants", "process pumps in Tampere, water and wastewater pumps in Gothenburg, pump "
+             "packages and controls in Tallinn."),
         ]),
-        table("table_sites", 20, 310, 600, 200, 300, [
+        table("table_sites", 20, 226, 600, 198, 300, [
             SITE, COUNTRY, column("dim_site", "site_type", "Site type")], title="The six sites"),
-        section("owners", 20, 520, 600, 160, 400, "Who owns the figures", [
-            "Business owner: Group Sustainability Manager, who signs off the figures.",
-            "Technical owner: Data and AI Specialist, who maintains the model and this report.",
-            "Country managers see only their own country's sites, through row-level security.",
+        section("sources", 20, 432, 600, 116, 350, "2. Where the figures come from", [
+            ("Sites", "each month they report the energy, fuel, refrigerant, flights and waste "
+             "they used."),
+            ("Value chain", "purchasing, logistics, energy contracts and the sales extract."),
+            ("Period", "January 2023 to December 2025, by month."),
         ]),
-        section("page_guide", 640, 110, 620, 250, 500, "What each page answers", [
-            "Overview: how much Fjordvik emits and where. Emissions breakdown: by scope, source "
-            "and country. Value chain: the 15 scope 3 categories. Scope 2 methods: location-based "
-            "beside market-based.",
-            "Intensity and growth: is Fjordvik getting cleaner as it grows? Energy and activity: "
-            "what the sites used. What changed: the change on the prior year. Sites: each site's "
-            "figures. Data quality: do the stored figures reconcile?",
-            "Each page title is a sentence worked out from the data, so it never goes stale.",
+        section("owners", 20, 556, 600, 120, 400, "3. Who owns the figures", [
+            ("Business owner", "Group Sustainability Manager, who signs off the figures."),
+            ("Technical owner", "Data and AI Specialist, who maintains the model and this report."),
+            ("Access", "country managers see only their own country's sites (row-level security)."),
         ]),
-        section("reading_guide", 640, 370, 620, 310, 600, "How to read the figures", [
-            "Each page opens on the latest full year (2025). Pick another year in the Year slicer; "
-            "charts by month or year always show all three years.",
-            "Under each headline number: the same months a year earlier and the change on them.",
-            "Scope 1: fuel burned on site and refrigerant leaks. Scope 2: electricity and heat "
-            "bought, at each country's average factor (location-based); market-based is shown "
-            "beside it. Scope 3: purchases, upstream fuel and grid losses, freight, flights, "
-            "landfill waste and the lifetime electricity of the pumps sold. Totals are "
-            "location-based.",
-            "tCO2e is tonnes of carbon dioxide equivalent. K means thousands, M millions.",
-            "Like-for-like change compares only site-months reported in both years, so a new "
-            "site does not inflate growth.",
+        section("page_guide", 640, 110, 620, 210, 500, "4. What each page answers", [
+            ("Overview", "how much Fjordvik emits, and where."),
+            ("Emissions breakdown", "emissions by scope, source and country."),
+            ("Value chain (scope 3)", "the 15 scope 3 categories: which are counted, and why."),
+            ("Scope 2 methods", "location-based beside market-based."),
+            ("Intensity and growth", "is Fjordvik getting cleaner as it grows?"),
+            ("Energy and activity", "what the sites used, in their own units."),
+            ("What changed", "the change on the prior year, and where it came from."),
+            ("Sites", "each site's emissions and intensity."),
+            ("Data quality", "do the stored figures reconcile?"),
+        ]),
+        section("reading_guide", 640, 330, 620, 340, 600, "5. How to read the figures", [
+            ("Year", "each page opens on the latest full year (2025); pick another in the Year "
+             "slicer and every page follows. Charts by month or year always show all three years."),
+            ("Page titles", "each is a sentence worked out from the data, so it never goes stale."),
+            ("Under each headline number", "the same months a year earlier, and the change."),
+            ("Scope 1", "fuel burned on site and refrigerant leaks."),
+            ("Scope 2", "electricity and heat bought, at each country's average factor "
+             "(location-based); market-based is shown beside it."),
+            ("Scope 3", "purchases, upstream fuel and grid losses, freight, flights, landfill waste "
+             "and the lifetime electricity of the pumps sold."),
+            ("Totals", "location-based."),
+            ("Like-for-like change", "only site-months reported in both years, so a new site does "
+             "not inflate growth."),
+            ("July 2024", "Tartu Warehouse opened, and Tampere Plant installed rooftop solar panels."),
+            ("Units", "tCO2e is tonnes of carbon dioxide equivalent. K means thousands, M millions."),
         ]),
         textbox("footer_note", 20, FOOTER, 820, 29, 900, [f"{CAVEAT} {OWNER}"], size="8pt"),
         words("footer_data", 850, FOOTER, 410, 29, 901, "Report Footer", size=8),
@@ -728,41 +744,47 @@ def portfolio_introduction():
             "Fjordvik Manufacturing Oy: product portfolio report",
             "A portfolio project. Emission pages are in the Fjordvik emissions report "
             "(FjordvikEmissions.pbip), on the same model."], first_bold=True, first_size="16pt"),
-        section("about_portfolio", 20, 110, 600, 230, 200, "The portfolio", [
-            "Three plants make three pump families: industrial process pumps (Tampere), water and "
-            "wastewater pumps (Gothenburg), pump packages and controls (Tallinn). Oulu and Tartu "
-            "ship spare parts and service kits. 4 families, 10 product groups, 24 models, sold in "
-            "four regions.",
-            "Sales come from the ERP extract (simulated), cleaned and reconciled to finance by SQL "
-            "before the report reads them. The budget is Fjordvik's own plan by month, site, "
-            "product group and region.",
-        ]),
-        section("owners", 20, 350, 600, 330, 400, "Who owns the figures", [
-            "Business owner: Head of Portfolio, who chairs the quarterly portfolio review.",
-            "Data owners: regional controllers for sales, the Group Financial Controller for the "
-            "budget, portfolio governance for the product classification.",
-            "Technical owner: Data and AI Specialist, who maintains the model and this report.",
-            "Sales region managers see only their own region's sales and budget, through "
-            "row-level security.",
-        ]),
-        section("page_guide", 640, 110, 620, 250, 500, "What each page answers", [
-            "Portfolio overview: what sells and earns, against last year and budget. Price, volume "
-            "and mix: why margin moved. Portfolio balance: where sales and margin come from, and "
-            "which groups grow. Quarterly scorecard: how the review rates each group, beside its "
-            "figures. Product sustainability: the lifetime emissions of the pumps sold. "
-            "Classification and data quality: what the ERP data got wrong.",
-            "Each page title is a sentence worked out from the data, so it never goes stale.",
-        ]),
-        section("reading_guide", 640, 370, 620, 310, 600, "How to read the figures", [
-            "Each page opens on the latest full year (2025); the scorecard on its latest quarter. "
-            "Charts by month or quarter always show all three years.",
-            "Under each headline number: the same months a year earlier and the change, then the "
-            "budget and the variance on it. A rate (margin %) moves in percentage points (pts).",
-            "The margin bridge follows the ACCA sales variances with the prior year as standard: "
-            "sales prices, mix, delivery volumes (quantity) and variable costs (cost per unit). "
-            "Products sold in only one of the two years are shown apart as not comparable.",
-            "K means thousands, M millions.",
-        ]),
+        section("about_portfolio", 20, 110, 600, 140, 200, "1. The portfolio", [
+            ("Plants", "Tampere makes industrial process pumps, Gothenburg water and wastewater "
+             "pumps, and Tallinn pump packages and controls."),
+            ("Spare parts", "Oulu and Tartu ship spare parts and service kits."),
+            ("Range", "4 families, 10 product groups and 24 models, sold in four regions."),
+        ], size="11pt"),
+        section("sources", 20, 265, 600, 140, 300, "2. Where the figures come from", [
+            ("Sales", "the ERP (enterprise resource planning) extract (simulated), cleaned and "
+             "reconciled to finance revenue by SQL before the report reads it."),
+            ("Budget", "Fjordvik's own plan by month, site, product group and region."),
+            ("Period", "January 2023 to December 2025, by month."),
+        ], size="11pt"),
+        section("owners", 20, 420, 600, 200, 400, "3. Who owns the figures", [
+            ("Business owner", "Head of Portfolio, who chairs the quarterly portfolio review."),
+            ("Data owners", "regional controllers for sales, the Group Financial Controller for "
+             "the budget, and portfolio governance for the product classification."),
+            ("Technical owner", "Data and AI Specialist, who maintains the model and this report."),
+            ("Access", "sales region managers see only their own region's sales and budget "
+             "(row-level security)."),
+        ], size="11pt"),
+        section("page_guide", 640, 110, 620, 185, 500, "4. What each page answers", [
+            ("Portfolio overview", "what sells and earns, against last year and budget."),
+            ("Price, volume and mix", "why margin moved."),
+            ("Portfolio balance", "where sales and margin come from, and which groups grow."),
+            ("Quarterly scorecard", "how the review rates each group, beside its figures."),
+            ("Product sustainability", "the lifetime emissions of the pumps sold."),
+            ("Classification and data quality", "what the ERP data got wrong."),
+        ], size="11pt"),
+        section("reading_guide", 640, 310, 620, 340, 600, "5. How to read the figures", [
+            ("Year", "each page opens on the latest full year (2025), and the scorecard on its "
+             "latest quarter. Charts by month or quarter always show all three years."),
+            ("Page titles", "each is a sentence worked out from the data, so it never goes stale."),
+            ("Under each headline number", "the same months a year earlier and the change, then "
+             "the budget and the variance on it."),
+            ("Rates", "margin % moves in percentage points (pts)."),
+            ("Margin bridge", "the ACCA (Association of Chartered Certified Accountants) sales "
+             "variances, with the prior year as standard: sales prices, mix, delivery volumes "
+             "(quantity) and variable costs (cost per unit)."),
+            ("Not comparable", "products sold in only one of the two years, shown apart."),
+            ("Units", "K means thousands, M millions."),
+        ], size="11pt"),
         textbox("footer_note", 20, FOOTER, 820, 29, 900, [f"{CAVEAT} {OWNER}"], size="8pt"),
         words("footer_data", 850, FOOTER, 410, 29, 901, "Report Footer", size=8),
     ]

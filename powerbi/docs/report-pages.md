@@ -4,7 +4,7 @@ All 17 pages of the two reports, as Power BI Desktop shows them when they open: 
 2025 (the latest full year), the scorecard on its latest quarter, every other slicer on
 all. Select a picture to open it at full size (2,490 by 1,440 pixels). Each picture is a
 page of Power BI Desktop's own PDF export (**File > Export > Export to PDF**), turned into
-an image at 180 dots per inch, so text and lines stay sharp. Taken on 31 October 2026.
+an image at 180 dots per inch, so text and lines stay sharp. Taken on 2 November 2026.
 
 > **Synthetic data only.** Fjordvik Manufacturing Oy is a fictional company, and this is a
 > portfolio project. The emission factors are **illustrative**, not cited, and must not be
@@ -38,7 +38,8 @@ built and tested: [the Power BI README](../README.md).
 
 ### Introduction
 
-What the report is, the six sites, who owns the figures, what each page answers and how
+Five numbered sections in reading order, each line led by a bold label: the company and
+its six sites, where the figures come from, who owns them, what each page answers and how
 to read the figures.
 
 [![Emissions report, Introduction page](images/pages/emissions-01-introduction.png)](images/pages/emissions-01-introduction.png)
@@ -114,7 +115,9 @@ the rows each site reported.
 
 ### Introduction
 
-The portfolio, who owns the figures, what each page answers and how to read the figures.
+Five numbered sections in reading order, each line led by a bold label: the portfolio,
+where the figures come from, who owns them, what each page answers and how to read the
+figures.
 
 [![Portfolio report, Introduction page](images/pages/portfolio-01-introduction.png)](images/pages/portfolio-01-introduction.png)
 

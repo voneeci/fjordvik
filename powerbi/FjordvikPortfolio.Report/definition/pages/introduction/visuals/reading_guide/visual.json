@@ -3,9 +3,9 @@
   "name": "reading_guide",
   "position": {
     "x": 640,
-    "y": 370,
+    "y": 310,
     "z": 600,
-    "height": 310,
+    "height": 340,
     "width": 620,
     "tabOrder": 600
   },
@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "How to read the figures",
+                    "value": "5. How to read the figures",
                     "textStyle": {
                       "fontWeight": "bold",
                       "fontSize": "13pt"
@@ -30,9 +30,9 @@
               {
                 "textRuns": [
                   {
-                    "value": "Each page opens on the latest full year (2025); the scorecard on its latest quarter. Charts by month or quarter always show all three years.",
+                    "value": "",
                     "textStyle": {
-                      "fontSize": "10pt"
+                      "fontSize": "3pt"
                     }
                   }
                 ]
@@ -40,9 +40,16 @@
               {
                 "textRuns": [
                   {
-                    "value": "Under each headline number: the same months a year earlier and the change, then the budget and the variance on it. A rate (margin %) moves in percentage points (pts).",
+                    "value": "Year",
                     "textStyle": {
-                      "fontSize": "10pt"
+                      "fontWeight": "bold",
+                      "fontSize": "11pt"
+                    }
+                  },
+                  {
+                    "value": ": each page opens on the latest full year (2025), and the scorecard on its latest quarter. Charts by month or quarter always show all three years.",
+                    "textStyle": {
+                      "fontSize": "11pt"
                     }
                   }
                 ]
@@ -50,9 +57,16 @@
               {
                 "textRuns": [
                   {
-                    "value": "The margin bridge follows the ACCA sales variances with the prior year as standard: sales prices, mix, delivery volumes (quantity) and variable costs (cost per unit). Products sold in only one of the two years are shown apart as not comparable.",
+                    "value": "Page titles",
                     "textStyle": {
-                      "fontSize": "10pt"
+                      "fontWeight": "bold",
+                      "fontSize": "11pt"
+                    }
+                  },
+                  {
+                    "value": ": each is a sentence worked out from the data, so it never goes stale.",
+                    "textStyle": {
+                      "fontSize": "11pt"
                     }
                   }
                 ]
@@ -60,9 +74,84 @@
               {
                 "textRuns": [
                   {
-                    "value": "K means thousands, M millions.",
+                    "value": "Under each headline number",
                     "textStyle": {
-                      "fontSize": "10pt"
+                      "fontWeight": "bold",
+                      "fontSize": "11pt"
+                    }
+                  },
+                  {
+                    "value": ": the same months a year earlier and the change, then the budget and the variance on it.",
+                    "textStyle": {
+                      "fontSize": "11pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Rates",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "11pt"
+                    }
+                  },
+                  {
+                    "value": ": margin % moves in percentage points (pts).",
+                    "textStyle": {
+                      "fontSize": "11pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Margin bridge",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "11pt"
+                    }
+                  },
+                  {
+                    "value": ": the ACCA (Association of Chartered Certified Accountants) sales variances, with the prior year as standard: sales prices, mix, delivery volumes (quantity) and variable costs (cost per unit).",
+                    "textStyle": {
+                      "fontSize": "11pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Not comparable",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "11pt"
+                    }
+                  },
+                  {
+                    "value": ": products sold in only one of the two years, shown apart.",
+                    "textStyle": {
+                      "fontSize": "11pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Units",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "11pt"
+                    }
+                  },
+                  {
+                    "value": ": K means thousands, M millions.",
+                    "textStyle": {
+                      "fontSize": "11pt"
                     }
                   }
                 ]

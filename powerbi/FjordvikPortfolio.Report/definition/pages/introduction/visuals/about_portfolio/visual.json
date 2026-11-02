@@ -5,7 +5,7 @@
     "x": 20,
     "y": 110,
     "z": 200,
-    "height": 230,
+    "height": 140,
     "width": 600,
     "tabOrder": 200
   },
@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "The portfolio",
+                    "value": "1. The portfolio",
                     "textStyle": {
                       "fontWeight": "bold",
                       "fontSize": "13pt"
@@ -30,9 +30,9 @@
               {
                 "textRuns": [
                   {
-                    "value": "Three plants make three pump families: industrial process pumps (Tampere), water and wastewater pumps (Gothenburg), pump packages and controls (Tallinn). Oulu and Tartu ship spare parts and service kits. 4 families, 10 product groups, 24 models, sold in four regions.",
+                    "value": "",
                     "textStyle": {
-                      "fontSize": "10pt"
+                      "fontSize": "3pt"
                     }
                   }
                 ]
@@ -40,9 +40,50 @@
               {
                 "textRuns": [
                   {
-                    "value": "Sales come from the ERP extract (simulated), cleaned and reconciled to finance by SQL before the report reads them. The budget is Fjordvik's own plan by month, site, product group and region.",
+                    "value": "Plants",
                     "textStyle": {
-                      "fontSize": "10pt"
+                      "fontWeight": "bold",
+                      "fontSize": "11pt"
+                    }
+                  },
+                  {
+                    "value": ": Tampere makes industrial process pumps, Gothenburg water and wastewater pumps, and Tallinn pump packages and controls.",
+                    "textStyle": {
+                      "fontSize": "11pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Spare parts",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "11pt"
+                    }
+                  },
+                  {
+                    "value": ": Oulu and Tartu ship spare parts and service kits.",
+                    "textStyle": {
+                      "fontSize": "11pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Range",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "11pt"
+                    }
+                  },
+                  {
+                    "value": ": 4 families, 10 product groups and 24 models, sold in four regions.",
+                    "textStyle": {
+                      "fontSize": "11pt"
                     }
                   }
                 ]

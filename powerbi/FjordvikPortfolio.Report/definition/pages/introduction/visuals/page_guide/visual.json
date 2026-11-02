@@ -5,7 +5,7 @@
     "x": 640,
     "y": 110,
     "z": 500,
-    "height": 250,
+    "height": 185,
     "width": 620,
     "tabOrder": 500
   },
@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "What each page answers",
+                    "value": "4. What each page answers",
                     "textStyle": {
                       "fontWeight": "bold",
                       "fontSize": "13pt"
@@ -30,9 +30,9 @@
               {
                 "textRuns": [
                   {
-                    "value": "Portfolio overview: what sells and earns, against last year and budget. Price, volume and mix: why margin moved. Portfolio balance: where sales and margin come from, and which groups grow. Quarterly scorecard: how the review rates each group, beside its figures. Product sustainability: the lifetime emissions of the pumps sold. Classification and data quality: what the ERP data got wrong.",
+                    "value": "",
                     "textStyle": {
-                      "fontSize": "10pt"
+                      "fontSize": "3pt"
                     }
                   }
                 ]
@@ -40,9 +40,101 @@
               {
                 "textRuns": [
                   {
-                    "value": "Each page title is a sentence worked out from the data, so it never goes stale.",
+                    "value": "Portfolio overview",
                     "textStyle": {
-                      "fontSize": "10pt"
+                      "fontWeight": "bold",
+                      "fontSize": "11pt"
+                    }
+                  },
+                  {
+                    "value": ": what sells and earns, against last year and budget.",
+                    "textStyle": {
+                      "fontSize": "11pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Price, volume and mix",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "11pt"
+                    }
+                  },
+                  {
+                    "value": ": why margin moved.",
+                    "textStyle": {
+                      "fontSize": "11pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Portfolio balance",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "11pt"
+                    }
+                  },
+                  {
+                    "value": ": where sales and margin come from, and which groups grow.",
+                    "textStyle": {
+                      "fontSize": "11pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Quarterly scorecard",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "11pt"
+                    }
+                  },
+                  {
+                    "value": ": how the review rates each group, beside its figures.",
+                    "textStyle": {
+                      "fontSize": "11pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Product sustainability",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "11pt"
+                    }
+                  },
+                  {
+                    "value": ": the lifetime emissions of the pumps sold.",
+                    "textStyle": {
+                      "fontSize": "11pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Classification and data quality",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "11pt"
+                    }
+                  },
+                  {
+                    "value": ": what the ERP data got wrong.",
+                    "textStyle": {
+                      "fontSize": "11pt"
                     }
                   }
                 ]

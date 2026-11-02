@@ -5,7 +5,7 @@
     "x": 20,
     "y": 110,
     "z": 200,
-    "height": 190,
+    "height": 112,
     "width": 600,
     "tabOrder": 200
   },
@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "About the company",
+                    "value": "1. About the company",
                     "textStyle": {
                       "fontWeight": "bold",
                       "fontSize": "13pt"
@@ -30,7 +30,24 @@
               {
                 "textRuns": [
                   {
-                    "value": "Fjordvik Manufacturing Oy makes electric pumps and pump systems for water utilities, industry and buildings: process pumps in Tampere, water and wastewater pumps in Gothenburg, pump packages and controls in Tallinn, with warehouses in Oulu and Tartu and a head office in Helsinki.",
+                    "value": "",
+                    "textStyle": {
+                      "fontSize": "3pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "What it makes",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "10pt"
+                    }
+                  },
+                  {
+                    "value": ": electric pumps and pump systems for water utilities, industry and buildings.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }
@@ -40,17 +57,14 @@
               {
                 "textRuns": [
                   {
-                    "value": "Each month the sites report the energy, fuel, refrigerant, flights and waste they used; purchasing, logistics, energy contracts and the ERP sales extract add the value chain, January 2023 to December 2025.",
+                    "value": "Plants",
                     "textStyle": {
+                      "fontWeight": "bold",
                       "fontSize": "10pt"
                     }
-                  }
-                ]
-              },
-              {
-                "textRuns": [
+                  },
                   {
-                    "value": "Tartu Warehouse opened in July 2024, and Tampere Plant installed rooftop solar panels the same month.",
+                    "value": ": process pumps in Tampere, water and wastewater pumps in Gothenburg, pump packages and controls in Tallinn.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }
