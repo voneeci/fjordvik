@@ -47,6 +47,17 @@ def test_checker_catches_each_planted_breach(tmp_path):
                                              encoding="utf-8")
     (tmp_path / ".env").write_text("NAME=value\n", encoding="utf-8")
     (tmp_path / ".env.example").write_text("NAME=\n", encoding="utf-8")
+    # L1 and L4: a layout map, a stray folder and an evidence file with no run date
+    (tmp_path / "guardrails").mkdir()
+    (tmp_path / "guardrails" / "layout.md").write_text(
+        "Parts: part\n\n- `*.md`: x\n- `*.py`: x\n- `*.txt`: x\n- `GUARDRAILS.sha256`: x\n"
+        "- `.env.example`: x\n- `guardrails/*`: x\n- `<part>/evidence/*`: x\n", encoding="utf-8")
+    (tmp_path / "scratch").mkdir()
+    (tmp_path / "scratch" / "notes.md").write_text("notes\n", encoding="utf-8")
+    (tmp_path / "part" / "evidence").mkdir(parents=True)
+    (tmp_path / "part" / "evidence" / "run.txt").write_text("1 passed\n", encoding="utf-8")
+    (tmp_path / "part" / "evidence" / "pytest-x-2026-11-02.txt").write_text("1 passed\n",
+                                                                            encoding="utf-8")
     found = "\n".join(check.check(tmp_path))
     assert "GUARDRAILS.md: changed without updating" in found
     assert "W1 dash.md" in found
@@ -58,6 +69,9 @@ def test_checker_catches_each_planted_breach(tmp_path):
     assert "D8 .env:" in found or "D8 .env: a .env file" in found
     assert "quoted.md" not in found and ".env.example" not in found
     assert "placeholder.md" not in found
+    assert "L1 scratch/: 1 file(s) not on the layout map" in found
+    assert "L4 part/evidence/run.txt" in found
+    assert "pytest-x-2026-11-02.txt" not in found and "L1 (root)" not in found
 
 
 def run_hook(call: dict | str, project: Path | None = None) -> str:

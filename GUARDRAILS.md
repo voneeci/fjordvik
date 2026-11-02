@@ -34,6 +34,9 @@ First edition, 2 November 2026. Drafted by the Fjordvik code chat at Reece's req
   section 5 come from Jasila's research note of 2 November 2026
   (`raw/inbox/2026-11-02-jasila-fjordvik-service-ai-guardrail-risks.md` in the knowledge
   folder), adopted by Reece.
+- **Layout.** Section 6 keeps the repository easy to understand as it grows.
+  `guardrails/layout.md` lists where each kind of file lives and why, and `check.py`
+  fails on any file it doesn't list.
 - Each rule has an identifier, so tests, proposals and commit messages can name it.
 
 ## 1. Data and secrets
@@ -104,6 +107,7 @@ First edition, 2 November 2026. Drafted by the Fjordvik code chat at Reece's req
 | W6 | Every README and doc that shows data says it is synthetic, and that the emission factors are illustrative. | Review |
 | W7 | Lead each document with the business need, then the solution and the parts. | Review |
 | W8 | Every model or assistant result says it was measured on synthetic data with planted signals, and never presents it as performance on real pumps. Where the data sets a ceiling (for example the share of failures that have any warning), the result shows it. | Review; a results-page test from phase 2 |
+| W9 | Documents follow Reece's voice guide, `C:\Users\reece\Projects\knowledge\raw\exports\house-style\VOICE.md` (or the reece-voice skill), for tone and style. It stays outside this repository because it holds his own writing samples: never copy or quote it here. Where it differs from W1 to W8, these rules win, and its job-application and spoken-answer sections don't apply. | Review |
 
 ## 5. Models and evaluation (phases 2 to 5)
 
@@ -123,6 +127,17 @@ First edition, 2 November 2026. Drafted by the Fjordvik code chat at Reece's req
 | RS1 | The old portal recommender's logs are biased by exposure: customers only saw what it showed them. Training and evaluation account for that bias and say how. A result measured on logged clicks alone is labelled as biased. | Review; service-ai tests from phase 5 |
 | RS2 | Recommender evaluation uses one global time cut-off: no training event is later than it. It reports hit rate at 5 against most-popular and random-compatible baselines: overall, for pump models with little history, and for events the old recommender did not cause. Compatibility is checked in code for every recommended part. | service-ai tests from phase 5 |
 
+## 6. Repository layout
+
+| Rule | What | Checked by |
+| --- | --- | --- |
+| L1 | Every file in the repository sits where `guardrails/layout.md` allows. A new folder, or a new kind of file at the root or a part's top level, needs a map entry first: suggest it in `guardrails/proposals/` or ask Reece. | `check.py` |
+| L2 | Each part keeps the standard shape in the map. Code lives in `src/` or `scripts/`, never loose at a part's top level, and tests live in `tests/`. | `check.py` (through the map); Review |
+| L3 | One home per kind of document: project-wide documents in `docs/`, handovers in `docs/handover/YYYY-MM-DD-fjordvik-<topic>.md`, phase learning notes in `docs/learning/phase<N>-<topic>.md`, a part's own documents in `<part>/docs/`, and rule suggestions in `guardrails/proposals/`. Update an existing document rather than writing a near copy. | `check.py` (through the map); Review |
+| L4 | Evidence files stay flat in their part's `evidence/` folder, named in lower case with hyphens and the run date, such as `pytest-forecast-2026-11-03.txt`. Nothing is moved or renamed afterwards, so notes that cite a path stay right. | `check.py` |
+| L5 | No scratch, temporary or personal files in the repository: they stay in the chat's scratchpad. Output that is not a deliverable is git-ignored. | `check.py` (it also checks untracked files git would add) |
+| L6 | When a file or folder stops being used, the chat that owns it lists it in its handover. Reece decides whether it goes (RULES.md: delete nothing unless Reece asks). | Review |
+
 ## Suggesting a change
 
 Any chat, or Reece, can suggest a change. Write a new file
@@ -136,3 +151,4 @@ agrees, updates the fingerprint, and adds a line below.
 - 2 November 2026: first edition (Reece asked; drafted by the Fjordvik code chat; maintained by Attena from now on).
 - 2 November 2026: second edition by Attena (Reece asked, in the Attena chat). New G9 (only Attena edits the guardrail files; the hook asks Reece) and G10. D2, D3 and D8 tightened. The hook's `.env` check narrowed to allow search patterns on piped file names (proposal `2026-11-02-fjordvik-code-hook-env-pattern.md`). D7 records that Fjordvik is a learning project. Jasila's 27 proposals adopted: D11 to D17, A11 to A13, W8, section 5, and extensions to A2, A3, A4, A6, A7 and A9.
 - 2 November 2026: hook follow-ups by Attena (Reece asked, in the Attena chat). New G11 (chats start in the repository root). The hook finds the repository root with git, checks Monitor and terminal tool commands as it checks Bash and PowerShell, and its D2 check no longer matches file names that only contain the private list folder's name. `.claude/settings.json` finds the hook through git, then the chat's project folder.
+- 2 November 2026: layout and voice by Attena (Reece asked, in the Attena chat). New section 6, rules L1 to L6, with the layout map `guardrails/layout.md` checked by `check.py`, so the repository stays easy to understand as it grows. New W9: documents follow Reece's voice guide, kept outside the repository; where it differs, W1 to W8 win.

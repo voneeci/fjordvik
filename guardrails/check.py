@@ -1,5 +1,8 @@
 """Check the repository against the rules in GUARDRAILS.md that a script can check.
 
+It also checks the layout (L1: every file matches an entry in guardrails/layout.md;
+L4: evidence names carry the run date), which needs Python 3.13 or later.
+
 Run from anywhere:  python guardrails/check.py
 Exit code 0 when clean, 1 with one line per finding otherwise. Every part's
 tests/test_guardrails.py runs the same checks, and guardrails/pre-commit runs this
@@ -14,7 +17,7 @@ import os
 import re
 import subprocess
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
 MAX_BYTES = 50 * 1024 * 1024
@@ -51,6 +54,11 @@ QUOTED = re.compile("\"[^\"\n]*\"|“[^”\n]*”")
 BANNED_TERMS_FILE = (Path(os.environ.get("LOCALAPPDATA", str(Path.home())))
                      / "fjordvik-guardrails" / "banned-terms.txt")
 SKIP_PROSE_CHECKS = {"GUARDRAILS.md"}
+# The layout map (rules L1 to L6): one "- `pattern`: purpose" line per allowed place.
+LAYOUT = PurePosixPath("guardrails/layout.md")
+LAYOUT_ENTRY = re.compile(r"^- `([^`]+)`", re.MULTILINE)
+LAYOUT_PARTS = re.compile(r"^Parts:\s*(.+)$", re.MULTILINE)
+EVIDENCE_NAME = re.compile(r"^[a-z0-9-]*\d{4}-\d{2}-\d{2}[a-z0-9-]*\.[a-z0-9]+$")
 
 
 def files(root: Path = ROOT) -> list[str]:
@@ -76,6 +84,21 @@ def banned_terms() -> list[str]:
             if t.strip() and not t.startswith("#")]
 
 
+def layout(root: Path = ROOT) -> tuple[list[str], list[str]] | None:
+    """The layout map's patterns, with <part> written out for each part, and the parts.
+    None when the map is missing."""
+    path = root / LAYOUT
+    if not path.is_file():
+        return None
+    text = path.read_text(encoding="utf-8")
+    found = LAYOUT_PARTS.search(text)
+    parts = [p.strip() for p in found.group(1).split(",")] if found else []
+    patterns = []
+    for entry in LAYOUT_ENTRY.findall(text):
+        patterns += [entry.replace("<part>", p) for p in parts] if "<part>" in entry else [entry]
+    return patterns, parts
+
+
 def line_of(text: str, index: int) -> int:
     return text[:index].count("\n") + 1
 
@@ -92,6 +115,10 @@ def check(root: Path = ROOT) -> list[str]:
         if recorded != actual:
             findings.append("GUARDRAILS.md: changed without updating GUARDRAILS.sha256 "
                             "(only Attena edits it; suggest changes in guardrails/proposals/)")
+    mapped = layout(root)
+    if mapped is None:
+        findings.append(f"L1 {LAYOUT}: missing")
+    off_map: dict[str, list[str]] = {}
     for rel in files(root):
         path = root / rel
         name = Path(rel).name
@@ -101,6 +128,15 @@ def check(root: Path = ROOT) -> list[str]:
         if (name == ".env" or name.startswith(".env.")) and name != ".env.example":
             findings.append(f"D8 {rel}: a .env file must never be in git")
             continue
+        if mapped:
+            patterns, parts = mapped
+            p = PurePosixPath(rel)
+            if not any(p.full_match(pattern) for pattern in patterns):
+                off_map.setdefault(str(p.parent), []).append(name)
+            elif (len(p.parts) == 3 and p.parts[0] in parts and p.parts[1] == "evidence"
+                  and rel not in patterns and not EVIDENCE_NAME.match(name)):
+                findings.append(f"L4 {rel}: evidence names need lower case, hyphens "
+                                "and the run date (YYYY-MM-DD)")
         if path.stat().st_size > MAX_BYTES:
             findings.append(f"D9 {rel}: {path.stat().st_size / 1e6:.1f} MB is over 50 MB")
         if Path(rel).suffix.lower() not in TEXT:
@@ -127,6 +163,10 @@ def check(root: Path = ROOT) -> list[str]:
                 findings.append(f"W2 {rel}: American spelling '{m.group(0)}'")
             for m in PROJECT_COUNT.finditer(own):
                 findings.append(f"W5 {rel}: '{m.group(0)}' (Fjordvik is one project in parts)")
+    for folder, names in sorted(off_map.items()):
+        where = "(root)" if folder == "." else f"{folder}/"
+        findings.append(f"L1 {where}: {len(names)} file(s) not on the layout map ({LAYOUT}), "
+                        f"e.g. {names[0]}")
     return findings
 
 

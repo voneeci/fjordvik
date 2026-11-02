@@ -6,7 +6,8 @@ chats suggest changes in `proposals/`.
 
 | File | What it does |
 | --- | --- |
-| `check.py` | Checks the repository: the rules file's fingerprint, em dashes, common American spellings, "projects" counts, secrets and connection strings, `.env` files, files over 50 MB, the old local repositories, and an optional private list of banned names kept outside the repository. `python guardrails/check.py` prints any findings. |
+| `check.py` | Checks the repository: the rules file's fingerprint, em dashes, common American spellings, "projects" counts, secrets and connection strings, `.env` files, files over 50 MB, the old local repositories, the layout map (every file on it, evidence names dated), and an optional private list of banned names kept outside the repository. `python guardrails/check.py` prints any findings. |
+| `layout.md` | The layout map: where each kind of file lives in the repository, and why (rules L1 to L6). A file it doesn't list fails the tests. To add a folder, suggest the entry in `proposals/`. |
 | `shared_tests.py` | Tests every part runs through its own `tests/test_guardrails.py`: the checker finds nothing, the fingerprint matches, the checker catches planted breaches, and the hook blocks, asks or allows as it should. |
 | `claude_hook.py` | The Claude Code hook in `../.claude/settings.json`. Before a tool call runs, it blocks hand edits and shell writes to generated data, any `.env` file (a quoted search pattern on piped file names may name one), the private banned-names list, `git add .`, `-A`, `-u`, `git commit -a`, hook bypasses and force pushes. It checks commands from Bash, PowerShell, Monitor and the terminal tool (`mcp__terminal__run_in_terminal`), and finds the repository root with git. It asks Reece before any edit to the guardrail files (rule G9), and it blocks any call it cannot read. |
 | `pre-commit` | Runs `check.py` before each commit, once installed. |
