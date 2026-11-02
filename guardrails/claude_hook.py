@@ -1,9 +1,10 @@
 """Claude Code PreToolUse hook: stop a tool call that would break GUARDRAILS.md.
 
-Claude Code runs this before Bash, PowerShell, Read, Grep, Edit, Write and
-NotebookEdit calls in this repository (see .claude/settings.json). It reads the
-call as JSON on stdin. Exit code 2 blocks the call and shows the reason; exit
-code 0 lets it run, or asks Reece first when it prints an "ask" decision.
+Claude Code runs this before Bash, PowerShell, Monitor, terminal tool
+(mcp__terminal__run_in_terminal), Read, Grep, Edit, Write and NotebookEdit calls
+in this repository (see .claude/settings.json). It reads the call as JSON on
+stdin. Exit code 2 blocks the call and shows the reason; exit code 0 lets it
+run, or asks Reece first when it prints an "ask" decision.
 
 Rules it enforces (identifiers from GUARDRAILS.md):
   D2  no chat reads or writes the private banned-names list
@@ -13,8 +14,10 @@ Rules it enforces (identifiers from GUARDRAILS.md):
   G2  no hook bypass
   G3  no force push
   G9  ask Reece before any edit to the guardrail files
-It fails closed: a call it cannot read or check is blocked. Paths are compared in one
-form (.. steps resolved, lower case), because Windows file names ignore case.
+It fails closed: a call it cannot read or check is blocked. The repository root comes
+from git (the repository holding this file), not the chat's project folder. Paths are
+compared in one form (.. steps resolved, lower case), because Windows file names ignore
+case.
 
 Maintained by Attena. Other chats suggest changes in guardrails/proposals/.
 """
@@ -23,14 +26,18 @@ import json
 import os
 import posixpath
 import re
+import subprocess
 import sys
 
 GENERATED = ("data/tables/", "data/erp-extract/", "data/corpus/", "data/generator-truth/")
 PROTECTED = ("guardrails.md", "guardrails.sha256", ".claude/settings.json",
              ".claude/settings.local.json")
 PROTECTED_DIR, OPEN_DIR = "guardrails/", "guardrails/proposals/"
+SHELL_TOOLS = {"Bash", "PowerShell", "Monitor", "mcp__terminal__run_in_terminal"}
 ENV_FILE = re.compile(r"(?<![\w-])\.env(\.(?!example\b)\w+)?(?![\w.-])")
-BANNED_LIST = re.compile(r"(?i)fjordvik-guardrails|banned-terms")
+# The private list's folder name only when nothing name-like follows it, so a file such
+# as 2026-11-02-attena-fjordvik-guardrails-second-edition.md is not mistaken for it.
+BANNED_LIST = re.compile(r"(?i)fjordvik-guardrails(?![\w-])|banned-terms")
 GIT_RULES = [
     ("G1", re.compile(r"\bgit\s+add\s+(?:\S+\s+)*?(-u|-A|--all|--update|\.)(\s|$)"),
      "stage named paths only (git add <path> ...), never -u, -A, --all or '.'"),
@@ -51,6 +58,20 @@ FILE_OPTIONS = re.compile(r"(?<!\S)(-[A-Za-z]*f[A-Za-z]*|--file\S*)(?!\S)|(?i:/[
 PS_FILE_OPTIONS = re.compile(r"(?i)(?<!\S)-(p(?!attern\b)\w*|l\w*|inputobject\b)")
 # A folder name followed by "..", which cancels it (a/../b is b).
 PARENT_STEP = re.compile(r"[^\s/'\"]+/\.\./")
+
+
+def repo_root() -> str:
+    """The repository holding this hook, from git; the folder above guardrails/ if git
+    can't say."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    try:
+        result = subprocess.run(["git", "-C", here, "rev-parse", "--show-toplevel"],
+                                capture_output=True, text=True, timeout=3)
+        if result.returncode == 0 and result.stdout.strip():
+            return result.stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return os.path.dirname(here)
 
 
 def relative(path: str, root: str) -> str:
@@ -166,11 +187,20 @@ def shell_reason(command: str, cwd_rel: str) -> str | None:
     return "ask" if ask else None
 
 
+def shell_cwd(call: dict, args: dict, root: str) -> str:
+    """The folder a shell command runs in: the call's own, or for the terminal tool its
+    cwd argument (absolute, ~ or relative to the call's folder)."""
+    cwd = call.get("cwd") or root
+    if call.get("tool_name") == "mcp__terminal__run_in_terminal" and args.get("cwd"):
+        cwd = os.path.join(cwd, os.path.expanduser(args["cwd"]))
+    return cwd
+
+
 def reason(call: dict, root: str) -> str | None:
     """None to allow, "ask" to ask Reece, or the reason to block."""
     tool, args = call.get("tool_name", ""), call.get("tool_input") or {}
     path = args.get("file_path") or args.get("notebook_path") or args.get("path") or ""
-    command = args.get("command", "") if tool in {"Bash", "PowerShell"} else ""
+    command = args.get("command") or "" if tool in SHELL_TOOLS else ""
     if BANNED_LIST.search(path) or BANNED_LIST.search(command):
         return "D2: only Reece reads or writes the private banned-names list"
     if tool in {"Read", "Grep", "Edit", "Write", "NotebookEdit"} and path and is_env_file(path):
@@ -183,7 +213,7 @@ def reason(call: dict, root: str) -> str | None:
         if is_protected(rel):
             return "ask"
     if command:
-        cwd = relative(call.get("cwd") or root, root).rstrip("/")
+        cwd = relative(shell_cwd(call, args, root), root).rstrip("/")
         return shell_reason(command, cwd)
     return None
 
@@ -191,8 +221,7 @@ def reason(call: dict, root: str) -> str | None:
 def main() -> int:
     try:
         call = json.load(sys.stdin)
-        root = os.environ.get("CLAUDE_PROJECT_DIR") or call.get("cwd") or os.getcwd()
-        why = reason(call, root)
+        why = reason(call, repo_root())
     except Exception as error:  # fail closed: a call the hook can't check doesn't run
         print(f"Blocked by GUARDRAILS.md: the guardrail hook could not check this call "
               f"({type(error).__name__}).", file=sys.stderr)

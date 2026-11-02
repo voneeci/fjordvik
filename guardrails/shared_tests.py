@@ -6,6 +6,7 @@ Maintained by Attena (see GUARDRAILS.md).
 
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -59,12 +60,16 @@ def test_checker_catches_each_planted_breach(tmp_path):
     assert "placeholder.md" not in found
 
 
-def run_hook(call: dict | str) -> str:
-    """The hook's decision on one tool call: "block", "ask" or "allow"."""
+def run_hook(call: dict | str, project: Path | None = None) -> str:
+    """The hook's decision on one tool call: "block", "ask" or "allow". A project folder,
+    when given, is the chat's project folder and the call's working folder."""
+    if project is not None:
+        call = {**call, "cwd": str(project)}
     result = subprocess.run([sys.executable, str(HOOK)],
                             input=call if isinstance(call, str) else json.dumps(call),
                             text=True, capture_output=True,
-                            env={"CLAUDE_PROJECT_DIR": str(ROOT), "SYSTEMROOT": "C:\\Windows"})
+                            env={"CLAUDE_PROJECT_DIR": str(project or ROOT),
+                                 "SYSTEMROOT": "C:\\Windows", "PATH": os.environ.get("PATH", "")})
     if result.returncode == 2:
         return "block"
     if result.returncode == 0 and '"permissionDecision": "ask"' in result.stdout:
@@ -78,6 +83,20 @@ def bash(command: str, cwd: Path = ROOT) -> dict:
 
 def powershell(command: str) -> dict:
     return {"tool_name": "PowerShell", "tool_input": {"command": command}, "cwd": str(ROOT)}
+
+
+def monitor(command: str | None = None, ws: str | None = None) -> dict:
+    args = {"description": "x", "timeout_ms": 1000}
+    if command is not None:
+        args["command"] = command
+    if ws is not None:
+        args["ws"] = {"url": ws}
+    return {"tool_name": "Monitor", "tool_input": args, "cwd": str(ROOT)}
+
+
+def terminal(command: str, cwd: str | None = None) -> dict:
+    args = {"command": command} if cwd is None else {"command": command, "cwd": cwd}
+    return {"tool_name": "mcp__terminal__run_in_terminal", "tool_input": args, "cwd": str(ROOT)}
 
 
 def tool(name: str, *parts: str) -> dict:
@@ -125,8 +144,14 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         # D2: the private banned-names list
         {"tool_name": "Read", "tool_input": {"file_path": private_list}},
         powershell(f"Get-Content {private_list}"),
+        powershell("Get-ChildItem $env:LOCALAPPDATA\\fjordvik-guardrails"),
         # fail closed: input the hook can't read
         "not json",
+        # Monitor and terminal tool commands are checked like Bash and PowerShell
+        monitor("cat mcp/.env"),
+        terminal("Set-Content data\\tables\\x.csv x"),
+        terminal("Remove-Item tables\\x.csv", cwd="data"),
+        terminal("Get-Content mcp\\.env"),
     ]
     allowed = [
         bash("git status"),
@@ -150,6 +175,12 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         tool("Read", "guardrails", "check.py"),
         tool("Write", "guardrails", "proposals", "2026-11-02-x-y.md"),
         bash("echo x > guardrails/proposals/2026-11-02-x-y.md"),
+        # D2: a file name that only contains the private folder's name
+        {"tool_name": "Read", "tool_input": {"file_path": "C:\\Users\\x\\Projects\\knowledge\\raw\\inbox\\"
+                                                          "2026-11-02-attena-fjordvik-guardrails-second-edition.md"}},
+        monitor("tail -f data/evidence/x.log"),
+        monitor(ws="wss://example.test/events"),
+        terminal("git status"),
     ]
     ask = [
         tool("Edit", "GUARDRAILS.md"),
@@ -166,7 +197,17 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         tool("Edit", "guardrails", "proposals", "..", "check.py"),
         bash("echo x > guardrails.md"),
         bash("echo x > guardrails/proposals/../check.py"),
+        monitor("echo x >> GUARDRAILS.md"),
+    ]
+    # A chat whose project folder is a part: the root still comes from git (G9, D3)
+    part = ROOT / "service-ai"
+    in_part = [
+        (tool("Edit", "GUARDRAILS.md"), "ask"),
+        ({"tool_name": "Write", "tool_input": {"file_path": tables}}, "block"),
+        (bash("echo x > ../GUARDRAILS.md"), "ask"),
+        (bash("git status"), "allow"),
     ]
     assert {repr(c): run_hook(c) for c in blocked} == {repr(c): "block" for c in blocked}
     assert {repr(c): run_hook(c) for c in allowed} == {repr(c): "allow" for c in allowed}
     assert {repr(c): run_hook(c) for c in ask} == {repr(c): "ask" for c in ask}
+    assert {repr(c): run_hook(c, part) for c, _ in in_part} == {repr(c): e for c, e in in_part}

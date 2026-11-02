@@ -2,12 +2,12 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash|PowerShell|Read|Grep|Edit|Write|NotebookEdit",
+        "matcher": "Bash|PowerShell|Monitor|mcp__terminal__run_in_terminal|Read|Grep|Edit|Write|NotebookEdit",
         "hooks": [
           {
             "type": "command",
             "shell": "bash",
-            "command": "python \"$CLAUDE_PROJECT_DIR/guardrails/claude_hook.py\" || exit 2",
+            "command": "r=$(git rev-parse --show-toplevel 2>/dev/null); [ -f \"$r/guardrails/claude_hook.py\" ] || r=$CLAUDE_PROJECT_DIR; python \"$r/guardrails/claude_hook.py\" || exit 2",
             "timeout": 10,
             "statusMessage": "Checking GUARDRAILS.md"
           }

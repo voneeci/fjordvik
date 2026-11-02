@@ -8,7 +8,7 @@ chats suggest changes in `proposals/`.
 | --- | --- |
 | `check.py` | Checks the repository: the rules file's fingerprint, em dashes, common American spellings, "projects" counts, secrets and connection strings, `.env` files, files over 50 MB, the old local repositories, and an optional private list of banned names kept outside the repository. `python guardrails/check.py` prints any findings. |
 | `shared_tests.py` | Tests every part runs through its own `tests/test_guardrails.py`: the checker finds nothing, the fingerprint matches, the checker catches planted breaches, and the hook blocks, asks or allows as it should. |
-| `claude_hook.py` | The Claude Code hook in `../.claude/settings.json`. Before a tool call runs, it blocks hand edits and shell writes to generated data, any `.env` file (a quoted search pattern on piped file names may name one), the private banned-names list, `git add .`, `-A`, `-u`, `git commit -a`, hook bypasses and force pushes. It asks Reece before any edit to the guardrail files (rule G9), and it blocks any call it cannot read. |
+| `claude_hook.py` | The Claude Code hook in `../.claude/settings.json`. Before a tool call runs, it blocks hand edits and shell writes to generated data, any `.env` file (a quoted search pattern on piped file names may name one), the private banned-names list, `git add .`, `-A`, `-u`, `git commit -a`, hook bypasses and force pushes. It checks commands from Bash, PowerShell, Monitor and the terminal tool (`mcp__terminal__run_in_terminal`), and finds the repository root with git. It asks Reece before any edit to the guardrail files (rule G9), and it blocks any call it cannot read. |
 | `pre-commit` | Runs `check.py` before each commit, once installed. |
 | `proposals/` | Suggested changes to the rules, one file each, for Attena to review. |
 | `CLAUDE.md` | Attena's working rules for this folder. |
@@ -31,9 +31,17 @@ only Reece creates and edits it:
 2. Run `notepad "$env:LOCALAPPDATA\fjordvik-guardrails\banned-terms.txt"`, choose Yes to create it, type one name per line, and save.
 3. From the repository root, run `python guardrails\check.py`. The notice is gone, and any line starting `D2` names a file that holds a banned name (never the name itself).
 
+## Where a chat starts (rule G11)
+
+Claude Code loads `.claude/settings.json`, and so the hook, only from the folder a chat
+starts in. Start every Claude Code chat in this repository with the repository root as its
+folder, and `cd` into a part to work there. A chat started in a part folder runs with no
+guardrail hook. The settings command finds the hook through git from the chat's current
+folder, then through the chat's project folder, so a `cd` elsewhere doesn't lock the chat.
+
 ## If the hook breaks
 
 The hook fails closed, so a broken hook blocks every tool call in this repository,
-including the edit that would fix it. Reece restores the last committed copy by hand:
-`git checkout -- guardrails/claude_hook.py` from the repository root, then restarts the
-chat.
+including the edit that would fix it. Reece restores the last committed copies by hand:
+`git checkout -- guardrails/claude_hook.py .claude/settings.json` from the repository root,
+then restarts the chat.

@@ -20,8 +20,12 @@ First edition, 2 November 2026. Drafted by the Fjordvik code chat at Reece's req
   tests. `GUARDRAILS.sha256` holds this file's fingerprint, so an edit that skips Attena
   fails the tests too.
 - **Hooks.** `guardrails/claude_hook.py` stops Claude Code chats in this repository from
-  breaking the rules marked "hook" below, before the action runs. It asks Reece before any
-  edit to the guardrail files, and it refuses a call it cannot read.
+  breaking the rules marked "hook" below, before the action runs. It checks Bash,
+  PowerShell, Monitor and terminal tool (`mcp__terminal__run_in_terminal`) commands, and
+  Read, Grep, Edit, Write and NotebookEdit calls. It finds the repository root with git, not
+  from the chat's project folder. It asks Reece before any edit to the guardrail files, and
+  it refuses a call it cannot read. Claude Code loads the hook only for a chat started in
+  the repository root: a chat started in a part folder gets no hook (rule G11).
   `guardrails/pre-commit` runs the checks before each commit; Reece installs it by hand,
   because only Reece changes git hook settings.
 - **Rules for later phases.** Rules marked "tests from phase N" are binding now. Each phase
@@ -86,6 +90,7 @@ First edition, 2 November 2026. Drafted by the Fjordvik code chat at Reece's req
 | G8 | Never commit the local `old historical folders/`. | `.git/info/exclude`; `check.py` |
 | G9 | Only Attena edits `GUARDRAILS.md`, `GUARDRAILS.sha256`, `guardrails/` (new files in `guardrails/proposals/` excepted), `.claude/settings.json` and `.claude/settings.local.json`. The hook asks Reece to approve each such edit, and Reece approves only in Attena. | Hook (asks Reece); the fingerprint test |
 | G10 | Library versions are pinned, and random generators are seeded with an explicit bit generator. Every saved result names the data checksum, the commit and the model version. Training twice on the same data gives the same metrics. | Tests in each part from phase 2 |
+| G11 | Every Claude Code chat in this repository starts with the repository root as its folder and works in a part with `cd`. A chat started in a part folder loads no project settings, so the guardrail hook doesn't run for it. | Review |
 
 ## 4. Writing and docs
 
@@ -130,3 +135,4 @@ agrees, updates the fingerprint, and adds a line below.
 
 - 2 November 2026: first edition (Reece asked; drafted by the Fjordvik code chat; maintained by Attena from now on).
 - 2 November 2026: second edition by Attena (Reece asked, in the Attena chat). New G9 (only Attena edits the guardrail files; the hook asks Reece) and G10. D2, D3 and D8 tightened. The hook's `.env` check narrowed to allow search patterns on piped file names (proposal `2026-11-02-fjordvik-code-hook-env-pattern.md`). D7 records that Fjordvik is a learning project. Jasila's 27 proposals adopted: D11 to D17, A11 to A13, W8, section 5, and extensions to A2, A3, A4, A6, A7 and A9.
+- 2 November 2026: hook follow-ups by Attena (Reece asked, in the Attena chat). New G11 (chats start in the repository root). The hook finds the repository root with git, checks Monitor and terminal tool commands as it checks Bash and PowerShell, and its D2 check no longer matches file names that only contain the private list folder's name. `.claude/settings.json` finds the hook through git, then the chat's project folder.
