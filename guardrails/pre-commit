@@ -1,0 +1,7 @@
+#!/bin/sh
+# Runs the GUARDRAILS.md checks before each commit and stops the commit on a finding.
+# Reece installs it by hand (see guardrails/README.md); no chat changes git hook settings.
+python guardrails/check.py || {
+    echo "Commit stopped by GUARDRAILS.md: fix the findings above, then commit again."
+    exit 1
+}

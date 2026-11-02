@@ -1,0 +1,7 @@
+# GUARDRAILS.md is checked against the fingerprint in GUARDRAILS.sha256, and the hook and
+# pre-commit scripts must keep Unix line endings, so these stay byte-for-byte identical
+# on every machine. Each part keeps its own .gitattributes for its other files.
+GUARDRAILS.md     text eol=lf
+GUARDRAILS.sha256 text eol=lf
+guardrails/**     text eol=lf
+.claude/**        text eol=lf
