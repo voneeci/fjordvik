@@ -31,8 +31,9 @@ First edition, 2 November 2026. Drafted by the Fjordvik code chat at Reece's req
   a chat started in a part folder gets no hook (rule G11).
 - **Permission rules.** `.claude/settings.json` also holds Claude Code permission rules,
   which Claude Code applies itself in every mode: deny rules for reading `.env` files and
-  editing the generated folders and `.git/hooks/`, and ask rules for editing the guardrail
-  files. They cover the file tools and shell redirects, whatever form the path takes.
+  the private list's folder, and for editing the generated folders and `.git/hooks/`, and
+  ask rules for editing the guardrail files. They cover the file tools and shell redirects,
+  whatever form the path takes.
 - **Pre-commit.** `guardrails/pre-commit` runs the checks before each commit. Reece
   installed it by hand on 2 November 2026, because only Reece changes git hook settings.
 - **Rules for later phases.** Rules marked "tests from phase N" are binding now. Each phase
@@ -57,7 +58,7 @@ First edition, 2 November 2026. Drafted by the Fjordvik code chat at Reece's req
 | D5 | The checksums of tables that already exist stay fixed. A change that moves one needs Reece's yes, and the test change says which change and why. | `data/tests/test_reproducible.py` |
 | D6 | Reference data (exchange rates, town coordinates) is fetched from its publisher and cited with source, date read and checksum; never typed by hand. | `data/tests` |
 | D7 | Every setting the data generator uses is labelled as Fjordvik's own input. The one exception is the illustrative emission factors (Reece, 12 October 2026), and every doc says so. Reece confirmed this on 2 November 2026: Fjordvik is a learning project that will never be sold, unlike the council platform, so illustrative factors are fine here. | Review |
-| D8 | Never read, copy, quote or commit a `.env` file, key, token, password or connection string. Keys come from environment variables only; `.env.example` holds names, never values. | Hook (common forms, including Artifact and SendUserFile; a search pattern on piped file names may name `.env`); permission rules (deny reads of real `.env` names); `check.py` (secret patterns, connection strings, tracked `.env` files) |
+| D8 | Never read, copy, quote or commit a `.env` file, key, token, password or connection string. Keys come from environment variables only, and are never printed: to check a key is set, use `python -c "import os; print('NAME' in os.environ)"`. `.env.example` holds names, never values. | Hook (common forms, including Artifact and SendUserFile, printing the whole environment or a variable whose name looks like a key, and `gh auth token`; a search pattern on piped file names may name `.env`); permission rules (deny reads of real `.env` names); `check.py` (secret patterns, `NAME_TOKEN=value` lines, connection strings, tracked `.env` files) |
 | D9 | No file in git is over 50 MB. | `check.py` |
 | D10 | `data/generator-truth/` is an answer key for evaluation only: never a model feature, and never read by mcp or an agent while it runs. | Review; service-ai tests from phase 3 |
 | D11 | A feature or driver for day t uses only data recorded on or before day t. A feature that fails the point-in-time test is not used: rebuilding it with every row after day t deleted must not change it. | service-ai tests from phase 2 |
@@ -98,7 +99,7 @@ First edition, 2 November 2026. Drafted by the Fjordvik code chat at Reece's req
 | G6 | Each phase ends with a handover note in `docs/handover/` and a new note in the knowledge folder's `raw/inbox/`. In the knowledge folder, write only new files there; never edit `wiki/` or `registers/`, and never run git there. | Review |
 | G7 | Close Power BI Desktop (Don't save) before regenerating the model or report files, then restore generated files whose content did not change. | Review |
 | G8 | Never commit the local `old historical folders/`. | `.git/info/exclude`; `check.py` |
-| G9 | Only Attena edits `GUARDRAILS.md`, `GUARDRAILS.sha256`, `guardrails/` (new files in `guardrails/proposals/` excepted), `.claude/settings.json`, `.claude/settings.local.json` and each part's `tests/test_guardrails.py`. The hook asks Reece to approve each such change, including a git rollback, move or rename that would change one, and Reece approves only in Attena. | Hook (asks Reece; common forms); permission rules (ask before edits); the fingerprint test, which covers `GUARDRAILS.md`, `claude_hook.py`, `check.py`, `shared_tests.py`, `layout.md`, `.claude/settings.json` and the five `tests/test_guardrails.py` |
+| G9 | Only Attena edits `GUARDRAILS.md`, `GUARDRAILS.sha256`, `guardrails/` (files in `guardrails/proposals/` excepted: any chat writes a proposal there), every file in `.claude/` and each part's `tests/test_guardrails.py`. The hook asks Reece to approve each such change, including a git rollback, move or rename that would change one, and Reece approves only in Attena. | Hook (asks Reece; common forms); permission rules (ask before edits); the fingerprint test, which covers `GUARDRAILS.md`, `claude_hook.py`, `check.py`, `shared_tests.py`, `layout.md`, `.claude/settings.json` and the five `tests/test_guardrails.py` |
 | G10 | Library versions are pinned, and random generators are seeded with an explicit bit generator. Every saved result names the data checksum, the commit and the model version. Training twice on the same data gives the same metrics. | Tests in each part from phase 2 |
 | G11 | Every Claude Code chat in this repository starts with the repository root as its folder and works in a part with `cd`. A chat started in a part folder loads no project settings, so the guardrail hook doesn't run for it. | Review |
 
@@ -142,7 +143,7 @@ First edition, 2 November 2026. Drafted by the Fjordvik code chat at Reece's req
 | L2 | Each part keeps the standard shape in the map. Code lives in `src/` or `scripts/`, never loose at a part's top level, and tests live in `tests/`. | `check.py` (through the map); Review |
 | L3 | One home per kind of document: project-wide documents in `docs/`, handovers in `docs/handover/YYYY-MM-DD-fjordvik-<topic>.md`, phase learning notes in `docs/learning/phase<N>-<topic>.md`, a part's own documents in `<part>/docs/`, and rule suggestions in `guardrails/proposals/`. Update an existing document rather than writing a near copy. | `check.py` (the map, and the names of handovers, learning notes and proposals); Review (near copies) |
 | L4 | Evidence files stay flat in their part's `evidence/` folder, named in lower case with hyphens and the run date, such as `pytest-forecast-2026-11-03.txt`. Nothing is moved or renamed afterwards, so notes that cite a path stay right. | `check.py` |
-| L5 | No scratch, temporary or personal files in the repository: they stay in the chat's scratchpad. Output that is not a deliverable is git-ignored. | `check.py`: the map's file types, and names with words such as scratch, tmp, debug, backup or copy, extensions such as `.log` and `.bak`, or spaces (outside Power BI's own project folders). It also checks untracked files git would add. |
+| L5 | No scratch, temporary or personal files in the repository: they stay in the chat's scratchpad. Output that is not a deliverable is git-ignored. | `check.py`: the map's file types, and file or folder names with the words scratch, tmp, untitled, backup or bak, extensions such as `.log` and `.bak`, or spaces (outside Power BI's own project folders and the generated data). It also checks untracked files git would add. |
 | L6 | When a file or folder stops being used, the chat that owns it lists it in its handover. Reece decides whether it goes. This is stricter than RULES.md, which forbids deleting anything git can't restore. | Review |
 
 ## What the hook doesn't catch
@@ -156,9 +157,15 @@ Forms it misses:
   `':(top)'`, `git config --edit`, and `git stash` or `git apply` without a path.
 - Paths built at run time: a shell variable (`rm $D/x.csv`), `$HOME`, strings joined in
   PowerShell, `New-Object IO.StreamWriter`, and code run through `os.system`, `subprocess`
-  or `node -e`.
+  or `node -e`. In Python the hook follows quoted path parts (`Path('data') / 'tables'`,
+  `os.path.join`, f-strings) and a variable set on its own line, but not a path passed
+  through a function, a class or a loop, or one in a script file over 200 KB.
 - Quoting inside a name (`.e''nv`, ``.e`nv``), a recursive search that reaches a file
-  without naming it, and a short (8.3) name for a file that doesn't exist yet.
+  without naming it, a Grep glob into the private list's folder that doesn't start with its
+  name (the deny rule on that folder still applies), and a short (8.3) name for a file that
+  doesn't exist yet.
+- A code formatter run over the repository (none is installed today): the fingerprints
+  catch a changed guardrail file and the data tests a changed table.
 - Unusual paths: an admin share named by computer name or `[::1]`, a directory junction or
   symbolic link, a terminal `cwd` written with `\\?\` or a trailing dot, and a relative
   terminal `cwd` after a `cd` has moved the session.
@@ -173,10 +180,12 @@ the pre-commit check runs `check.py` before each commit; and Reece's own guard c
 hook settings (G2).
 
 **When to test again.** The guardrails were tested twice by independent read-only chats on
-2 November 2026, and fixed after each test. One final re-test follows, scoped to the
-realistic cases, everyday work (at least 50 calls) and the earlier passes. It passes with no
-high finding, no realistic medium false negative and no everyday false positive. Forms it
-finds that only a deliberate attempt would use go on the list above without a code change.
+2 November 2026, and once more on 3 November 2026, and fixed after each test. The 3 November
+test found 1 high and 3 realistic medium gaps and 2 everyday false positives, so it wasn't
+final. One more re-test follows, scoped to those findings, everyday work (at least 50 calls)
+and the earlier passes. It passes with no high finding, no realistic medium false negative
+and no everyday false positive. Forms it finds that only a deliberate attempt would use go
+on the list above without a code change.
 After that, the guardrails are tested again only when a rule or the hook changes, or a chat
 hits a real incident.
 
@@ -196,3 +205,4 @@ agrees, updates the fingerprint, and adds a line below.
 - 2 November 2026: layout and voice by Attena (Reece asked, in the Attena chat). New section 6, rules L1 to L6, with the layout map `guardrails/layout.md` checked by `check.py`, so the repository stays easy to understand as it grows. New W9: documents follow Reece's voice guide, kept outside the repository; where it differs, W1 to W8 win.
 - 2 November 2026: fixes from the guardrails test by Attena (Reece asked, in the Attena chat; test report `guardrails/evidence/guardrails-test-report-2026-11-02.pdf`). The hook reads git's global options, `git stage`, `:/` and `*`, abbreviated options and `+` refspecs (G1 to G3); follows `cd` and checks writes from the folder they run in, parent deletes, more writing commands and git writes to guardrail files (D3, G9); and reads file paths in one canonical form (D2, D8). `GUARDRAILS.sha256` now fingerprints six guardrail files. The layout map names each guardrails file, limits file types and adds `guardrails/evidence/`; `check.py` checks document names (L3), real evidence dates (L4) and scratch names (L5). The settings command tries the project folder before git. "Checked by" wording made accurate for D2, G2, G9, L3, L5 and L6.
 - 2 November 2026: fixes from the independent re-test by Attena (Reece asked, in the Attena chat, for the realistic 95% of cases and a point to stop re-testing). The hook asks before git rollbacks and before moving `.claude` or `guardrails`; reads wrapped commands (`bash -c`, `cmd /c`, `powershell -Command`, `eval`, `iex`), more writers, heredocs, subshells and `&>`; judges only the destination of copies; reads git rules per command, ignoring commit messages; checks Artifact and SendUserFile; blocks writes to `.git/hooks/`; and asks before edits to each part's `tests/test_guardrails.py`, now fingerprinted. `.claude/settings.json` gains Claude Code permission rules and a hook that blocks on time-out. L5 no longer flags temp, debug, copy or old, and reads folder names; L3 proposal names need a chat name; L4 dates are valid calendar dates from 2020 to 2099. New section "What the hook doesn't catch", with the stopping rule for re-tests.
+- 3 November 2026: fixes from the final re-test by Attena (Reece approved the plan, in the Attena chat). D8: the hook blocks printing the whole environment, a variable whose name looks like a key, `gh auth token` and `git credential fill`; `check.py` finds `NAME_TOKEN=value` lines. D3: Python code is judged by the targets of its write calls, so reading a table and writing elsewhere is allowed, while paths built from parts, a variable's value and script files are followed; restoring generated data from an older revision blocks. Cache folders and files can be deleted, and `find` deletes are judged by their name filter. `mv -t`, `robocopy /MOVE` and every file in `.claude/` are covered (G9). Restoring the whole tree from an older revision now blocks (D3) instead of asking.

@@ -7,7 +7,7 @@ chats suggest changes in `proposals/`.
 | File | What it does |
 | --- | --- |
 | `check.py` | Checks the repository: the fingerprints of eleven guardrail files (`GUARDRAILS.sha256`, including each part's `tests/test_guardrails.py`), document, evidence and scratch names (L3 to L5), em dashes, common American spellings, "projects" counts, secrets and connection strings, `.env` files, files over 50 MB, the old local repositories, the layout map (every file on it), and an optional private list of banned names kept outside the repository. `python guardrails/check.py` prints any findings. |
-| `claude_hook.py` | The Claude Code hook in `../.claude/settings.json`. Before a tool call runs, it blocks hand edits and shell writes to generated data, any `.env` file (a quoted search pattern on piped file names may name one), the private banned-names list, `git add .`, `-A`, `-u`, `git commit -a`, hook bypasses, writes to `.git/hooks/` and force pushes. It checks commands from Bash, PowerShell, Monitor and the terminal tool (`mcp__terminal__run_in_terminal`) from the folder they run in, following `cd`, and reads wrapped commands such as `bash -c` and `powershell -Command`. It checks the files Artifact and SendUserFile would send, reads file paths in one canonical form, and finds the repository root with git. It asks Reece before any change to the guardrail files (rule G9), including a git rollback or a move of `.claude`, and it blocks any call it cannot read. It covers the common forms of each breach; GUARDRAILS.md lists what it doesn't catch. |
+| `claude_hook.py` | The Claude Code hook in `../.claude/settings.json`. Before a tool call runs, it blocks hand edits and shell writes to generated data, any `.env` file (a quoted search pattern on piped file names may name one), the private banned-names list, `git add .`, `-A`, `-u`, `git commit -a`, hook bypasses, writes to `.git/hooks/` and force pushes. It checks commands from Bash, PowerShell, Monitor and the terminal tool (`mcp__terminal__run_in_terminal`) from the folder they run in, following `cd`, and reads wrapped commands such as `bash -c` and `powershell -Command`. It checks the files Artifact and SendUserFile would send, blocks printing the environment or a key (D8), judges Python code and script files by what they write, reads file paths in one canonical form, and finds the repository root with git. It asks Reece before any change to the guardrail files (rule G9), including a git rollback or a move of `.claude`, and it blocks any call it cannot read. It covers the common forms of each breach; GUARDRAILS.md lists what it doesn't catch. |
 | `shared_tests.py` | Tests every part runs through its own `tests/test_guardrails.py`: the checker finds nothing, the fingerprints match, the checker catches planted breaches, and the hook blocks, asks or allows as it should. |
 | `layout.md` | The layout map: where each kind of file lives in the repository, and why (rules L1 to L6). A file it doesn't list fails the tests. To add a folder, suggest the entry in `proposals/`. |
 | `evidence/` | Raw output and reports of guardrails-only tests, such as the read-only tests of 2 November 2026. |
@@ -27,6 +27,15 @@ chats suggest changes in `proposals/`.
 
 A hook that times out blocks the call (`"onFailure": "block"`), so a slow check can't let a
 call through.
+
+## Keys and `.env` files (rule D8)
+
+- To check a key is set without printing it, run
+  `python -c "import os; print('ANTHROPIC_API_KEY' in os.environ)"`. The hook blocks `env`,
+  `printenv`, `Get-ChildItem env:` and reading a variable whose name looks like a key.
+- To check that `.env` files are ignored, search for `env` without the dot, for example
+  `grep -n env mcp/.gitignore`. Only a quoted search pattern on piped file names may name
+  `.env` itself.
 
 ## Installing the pre-commit check (Reece, by hand)
 

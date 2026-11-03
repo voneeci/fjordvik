@@ -39,6 +39,10 @@ SECRET_PATTERNS = [
                r"\b(password|pwd)\s*=\s*[^;\s'\"]{4,}"),       # connection strings
     re.compile(r"\b[a-z][a-z0-9+.\-]*://[^\s/:@'\"]+:[^\s/@'\"$<{]{3,}@"),  # user:pass@ URLs
     re.compile(r"(?i)\b(AccountKey|SharedAccessKey)=[A-Za-z0-9+/=]{20,}"),
+    # NAME_TOKEN=value lines, as an environment dump or a settings file prints them: an
+    # upper-case name holding KEY, TOKEN, SECRET or PASSWORD and an unquoted 12-character value.
+    re.compile(r"(?m)^\s*(?:export\s+|set\s+)?[A-Z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD)"
+               r"[A-Z0-9_]*\s*=\s*['\"]?(?![$<{])[^\s'\"#(),\[\]]{12,}"),
 ]
 AMERICAN = re.compile(
     r"\b(colors?|colored|coloring|organiz(?:e|es|ed|ing|ation|ations)"

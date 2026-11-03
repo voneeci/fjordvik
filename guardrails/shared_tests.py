@@ -48,6 +48,8 @@ def test_checker_catches_each_planted_breach(tmp_path):
     (tmp_path / "azure.txt").write_text("Account" + "Key=" + "A" * 40 + "==\n", encoding="utf-8")
     (tmp_path / "placeholder.md").write_text("postgresql://app:${PASSWORD}@db1/fjordvik\n",
                                              encoding="utf-8")
+    (tmp_path / "envdump.txt").write_text("PATH=/usr/bin\nMY_" + "TOKEN=" + "z" * 16 + "\n",
+                                          encoding="utf-8")
     (tmp_path / ".env").write_text("NAME=value\n", encoding="utf-8")
     (tmp_path / ".env.example").write_text("NAME=\n", encoding="utf-8")
     # L1 and L4: a layout map, a stray folder and an evidence file with no run date
@@ -84,7 +86,7 @@ def test_checker_catches_each_planted_breach(tmp_path):
     assert "W2 spelling.md: American spelling 'analyze'" in found
     assert "W2 spelling.md: American spelling 'color'" in found
     assert "W5 count.md" in found
-    for name in ("key.py", "otherkey.py", "conn.txt", "url.md", "azure.txt"):
+    for name in ("key.py", "otherkey.py", "conn.txt", "url.md", "azure.txt", "envdump.txt"):
         assert f"D8 {name}" in found, name
     assert "D8 .env:" in found or "D8 .env: a .env file" in found
     assert "quoted.md" not in found and ".env.example" not in found
@@ -248,6 +250,24 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         powershell("Get-Content mcp\\*env"),
         {"tool_name": "SendUserFile", "tool_input": {"files": ["mcp/.env"]}, "cwd": str(ROOT)},
         {"tool_name": "Artifact", "tool_input": {"file_path": str(ROOT / "mcp" / ".env")}},
+        # From the final re-test of 3 November 2026. "git checkout <old> -- ." was an ask
+        # (G9); it now blocks, because it also restores old generated tables (D3).
+        bash("git checkout dd6370b -- ."),
+        bash("git checkout b7b9203 -- data/tables"),
+        bash("git restore --source=HEAD~3 data/tables/dim_part.csv"),
+        bash("python -c \"import os; open(os.path.join('data', 'tables', 'x.csv'), 'w')\""),
+        bash("python - <<'EOF'\nfrom pathlib import Path\nout = Path('data') / 'tables' / 'x.csv'\n"
+             "out.write_text('x')\nEOF"),
+        bash("python - <<'EOF'\nROOT = 'C:/x'\nimport pandas as pd\n"
+             "pd.DataFrame().to_csv(f'{ROOT}/data/tables/x.csv')\nEOF"),
+        # D8: printing the environment or a key
+        bash("env"),
+        bash("printenv | sort"),
+        powershell("Get-ChildItem env:"),
+        bash("echo $ANTHROPIC_API_KEY"),
+        powershell("$env:ANTHROPIC_API_KEY"),
+        bash("python -c \"import os; print(os.environ['ANTHROPIC_API_KEY'])\""),
+        bash("gh auth token"),
     ]
     allowed = [
         bash("git status"),
@@ -295,6 +315,17 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         bash("git checkout -b feature/x"),
         bash("git restore --staged guardrails/check.py"),
         bash("echo \"Run 'echo x > data/tables/x.csv' to see the D3 block\" > notes.txt"),
+        # From the final re-test of 3 November 2026: reading tables, caches, environment
+        bash("python -c \"import pandas as pd; pd.read_csv('data/tables/x.csv')"
+             ".to_csv('service-ai/results/x.csv')\""),
+        bash("python -c \"import shutil; shutil.copy('data/tables/x.csv', 'mcp/tests/fixtures/x.csv')\""),
+        bash("find . -name '*.pyc' -delete"),
+        bash("find service-ai -name .pytest_cache -type d -exec rm -rf {} +"),
+        bash("rm -rf */__pycache__"),
+        bash("git restore data/tables/dim_part.csv"),
+        bash("env PYTHONPATH=src python -m pytest -q"),
+        bash("echo $PATH"),
+        bash("python -c \"import os; print('ANTHROPIC_API_KEY' in os.environ)\""),
         {"tool_name": "SendUserFile", "tool_input": {"files": ["docs/company-profile.md"]},
          "cwd": str(ROOT)},
     ]
@@ -326,11 +357,16 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         tool("Edit", "GUARDRAILS.md::$DATA"),
         # G9 rollbacks and moves, a part's guardrail test, and a command the hook can't read
         bash("git reset --hard dd6370b"),
-        bash("git checkout dd6370b -- ."),
+        bash("git checkout dd6370b -- guardrails"),
         bash("mv .claude .claude-old"),
         powershell("Rename-Item .claude x"),
         tool("Edit", "service-ai", "tests", "test_guardrails.py"),
         bash("powershell -EncodedCommand AAAA"),
+        # Moves the final re-test found, and other files in .claude/
+        bash("mv -t /tmp .claude"),
+        powershell("robocopy .claude C:\\temp\\x /MOVE"),
+        tool("Write", ".claude", "hooks", "x.py"),
+        bash("find . -name '*.py' -delete"),
     ]
     # A chat whose project folder is a part: the root still comes from git (G9, D3)
     part = ROOT / "service-ai"

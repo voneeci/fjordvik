@@ -40,6 +40,23 @@ GUARD_TESTS = tuple(f"{part}/tests/test_guardrails.py"
 PROTECTED = ("guardrails.md", "guardrails.sha256", ".claude/settings.json",
              ".claude/settings.local.json") + GUARD_TESTS
 PROTECTED_DIR, OPEN_DIR, GIT_HOOKS = "guardrails/", "guardrails/proposals/", ".git/hooks/"
+CLAUDE_DIR = ".claude/"
+# Cache folders and files: never generated data or guardrail files, so cleaning them is fine.
+CACHES = {"__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache"}
+# Names that find -name patterns are tested against, to see what a filtered delete could hit.
+GENERATED_SAMPLES = ("x.csv", "x.json", "x.md", "x.parquet", "x.txt", "manifest.json")
+GUARD_SAMPLES = ("guardrails.md", "guardrails.sha256", "settings.json", "settings.local.json",
+                 "check.py", "claude_hook.py", "shared_tests.py", "layout.md", "readme.md",
+                 "claude.md", "pre-commit", ".gitattributes", "test_guardrails.py", "x.pdf", "x.txt")
+# Environment variables whose names look like secrets (ANTHROPIC_API_KEY, GITHUB_TOKEN).
+SECRET_PARTS = {"KEY", "APIKEY", "TOKEN", "SECRET", "PASSWORD", "PASSWD", "CREDENTIAL",
+                "CREDENTIALS", "AUTH", "CONNECTION"}
+SHELL_VARIABLE = re.compile(r"\$\{?(?:env:)?([A-Za-z_][A-Za-z0-9_]*)|%([A-Za-z_][A-Za-z0-9_]*)%")
+CODE_VARIABLE = re.compile(r"(?:os\.environ\s*\[|os\.environ\.get\(|os\.getenv\(|environ\s*\[|"
+                           r"GetEnvironmentVariable\()\s*['\"]([A-Za-z_][A-Za-z0-9_]*)['\"]")
+WHOLE_ENVIRONMENT = re.compile(r"(?i)(?<!env=)(?<!in )os\.environ\s*\)|os\.environ\.(?:items|values|copy)\(|"
+                               r"GetEnvironmentVariables\(|\benv:\s*\*?\s*['\"]?\s*(?:$|\||;)|"
+                               r"\benv:\*")
 SHELL_TOOLS = {"Bash", "PowerShell", "Monitor", "mcp__terminal__run_in_terminal"}
 FILE_TOOLS = {"Read", "Grep", "Edit", "Write", "NotebookEdit"}
 SEND_TOOLS = {"Artifact", "SendUserFile"}
@@ -76,6 +93,8 @@ MESSAGES = {
     "D3": ("D3: the generated data folders change only through the generator "
            "(python -m fjordvik_data --out tables, from data/)"),
     "D8": "D8: never read, send or touch a .env file; read settings from environment variables",
+    "D8env": ("D8: never print a key or the whole environment; to check a key is set, run "
+              "python -c \"import os; print('NAME' in os.environ)\""),
     "G2": "G2: never change git hooks or their settings; only Reece does, by hand",
 }
 ASK_REASONS = {
@@ -186,7 +205,45 @@ def is_env_file(path: str) -> bool:
 
 
 def is_protected(rel: str) -> bool:
-    return rel in PROTECTED or (rel.startswith(PROTECTED_DIR) and not rel.startswith(OPEN_DIR))
+    return rel in PROTECTED or rel.startswith(CLAUDE_DIR) or (
+        rel.startswith(PROTECTED_DIR) and not rel.startswith(OPEN_DIR))
+
+
+def secret_name(name: str) -> bool:
+    """True when an environment variable's name looks like a key, token or password."""
+    return name.upper() not in ("PWD", "OLDPWD") and bool(
+        set(name.upper().split("_")) & SECRET_PARTS)
+
+
+def prints_secrets(stage: str) -> bool:
+    """True when a shell stage would print the whole environment or a secret-looking
+    variable, or a stored token (gh auth token, git credential fill)."""
+    words = [unquote(w) for w in stage.strip().lstrip("({").split()]
+    if not words:
+        return False
+    name, args = name_of(words[0]), words[1:]
+    if name in ("env", "printenv") and not [a for a in args if not a.startswith("-")
+                                              and not re.match(r"^[A-Za-z_]\w*=", a)]:
+        return True
+    if name == "printenv" and any(secret_name(a) for a in args):
+        return True
+    if (name == "set" and not args) or (name == "export" and args[:1] == ["-p"]) or \
+            (name in ("declare", "typeset") and args[:1] in (["-p"], ["-x"])):
+        return True
+    if name == "gh" and args[:2] == ["auth", "token"] or \
+            name == "git" and args[:2] == ["credential", "fill"]:
+        return True
+    if WHOLE_ENVIRONMENT.search(stage):
+        return True
+    return any(secret_name(a or b) for a, b in SHELL_VARIABLE.findall(stage)) or \
+        any(secret_name(n) for n in re.findall(r"(?i)\benv:([A-Za-z_][A-Za-z0-9_]*)", stage))
+
+
+def code_prints_secrets(code: str) -> bool:
+    """True when inline code reads a secret-looking variable or the whole environment.
+    'NAME' in os.environ, the safe check, is allowed."""
+    return bool(WHOLE_ENVIRONMENT.search(code)) or any(
+        secret_name(n) for n in CODE_VARIABLE.findall(code))
 
 
 def split_command(command: str) -> list[list[tuple[str, list[tuple[int, int]]]]]:
@@ -322,7 +379,10 @@ def place(segments: list[str], target: str) -> str:
 def judge(segments: list[str], deleting: bool, generated: bool = True) -> str | None:
     """D3 (generated data), G2 (git hooks), G9 (guardrail files) or None for one path a
     command writes, moves or deletes. git's own path commands skip the generated folders
-    (G7 allows restoring them) and .git/hooks (git never writes it)."""
+    (G7 allows restoring them) and .git/hooks (git never writes it). Cache folders and
+    files never count."""
+    if any(s in CACHES for s in segments) or (segments and segments[-1].endswith(".pyc")):
+        return None
     if generated:
         for g in GENERATED:
             where = place(segments, g)
@@ -332,7 +392,7 @@ def judge(segments: list[str], deleting: bool, generated: bool = True) -> str | 
         if where == "in" or (where == "above" and deleting):
             return "G2"
     in_open = place(segments, OPEN_DIR) == "in"
-    for p in PROTECTED + (PROTECTED_DIR,):
+    for p in PROTECTED + (PROTECTED_DIR, CLAUDE_DIR):
         where = place(segments, p)
         if (where == "in" and not in_open) or (where == "above" and deleting):
             return "G9"
@@ -340,8 +400,8 @@ def judge(segments: list[str], deleting: bool, generated: bool = True) -> str | 
 
 
 def worst(codes: list[str | None]) -> str | None:
-    """The strongest verdict: a block (D3, G2) before an ask (G9, wrapped)."""
-    for code in ("D3", "G2", "G9", "wrapped"):
+    """The strongest verdict: a block (D8env, D3, G2) before an ask (G9, wrapped)."""
+    for code in ("D8env", "D3", "G2", "G9", "wrapped"):
         if code in codes:
             return code
     return None
@@ -412,12 +472,28 @@ def git_verdict(stage: str, cwd: str, root: str) -> str | None:
     if sub in GIT_PATH_WRITES:
         after = args[args.index("--") + 1:] if "--" in args else None
         paths = after if after is not None else positional(args)
+        rev = None
+        if sub == "checkout" and after is not None:
+            before = positional(args[:args.index("--")])
+            rev = before[0] if before else None
         if sub == "checkout" and after is None:
             exists = [p for p in paths if unquote(p) in (".", ":/") or
                       (as_path(p, cwd) and os.path.exists(as_path(p, cwd)))]
             if not exists:
                 return "G9" if paths and rolls_back(paths[:1], root) else None
+            rev = next((p for p in paths if p not in exists), None)
             paths = exists
+        if sub == "restore":
+            rev = (option_value(args, {"-s", "--source"}) or [None])[0]
+            paths = [p for p in paths if p != rev]
+        # G7 allows restoring generated files from HEAD only: an older revision changes
+        # the data without the generator (D3).
+        if rev and unquote(rev).upper() != "HEAD":
+            for p in ["." if unquote(p) in (":/", ":/*") else p for p in paths]:
+                path = as_path(p, cwd)
+                segments = in_repo(path, root) if path else None
+                if segments is not None and any(place(segments, g) for g in GENERATED):
+                    return "D3"
         if sub == "clean":
             if any(re.fullmatch(r"-\w*n\w*|--dry-run", a) for a in args):
                 return None
@@ -440,18 +516,114 @@ def git_verdict(stage: str, cwd: str, root: str) -> str | None:
     return None
 
 
+WRITE_CALL = re.compile(
+    r"(?i)(?<![\w.])open\(|\.to_(?:csv|parquet|excel|json|pickle|feather|html|xml|hdf|stata)\("
+    r"|shutil\.(?:copy\w*|move|rmtree)\(|os\.(?:remove|unlink|rmdir|removedirs|rename|replace"
+    r"|makedirs|mkdir)\(|\.(?:write_text|write_bytes|unlink|rename|replace|rmdir|touch|mkdir)\("
+    r"|\[(?:system\.)?io\.(?:file|directory)\]::(?:write|append|delete|copy|move|create|replace)\w*\(")
+LITERAL = re.compile(r"[rRbBuU]?(['\"])(.*?)\1")
+
+
+def call_args(code: str, start: int) -> list[str]:
+    """The top-level arguments of the call whose opening bracket is at start."""
+    args, depth, quote, begin = [], 0, "", start + 1
+    for i in range(start, len(code)):
+        ch = code[i]
+        if quote:
+            quote = "" if ch == quote else quote
+        elif ch in "'\"":
+            quote = ch
+        elif ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth -= 1
+            if depth == 0:
+                args.append(code[begin:i])
+                return [a.strip() for a in args if a.strip()]
+        elif ch == "," and depth == 1:
+            args.append(code[begin:i])
+            begin = i + 1
+    return [a.strip() for a in args if a.strip()]
+
+
+def receiver(code: str, end: int) -> str:
+    """The expression a method is called on: Path('x') in Path('x').write_text(...)."""
+    i, depth = end, 0
+    while i > 0:
+        ch = code[i - 1]
+        if ch in ")]":
+            depth += 1
+        elif ch in "([":
+            if depth == 0:
+                break
+            depth -= 1
+        elif depth == 0 and not (ch.isalnum() or ch in "_."):
+            break
+        i -= 1
+    return code[i:end]
+
+
+def write_targets(code: str) -> list[tuple[str, bool]]:
+    """(target expression, deleting) for each file a piece of Python or PowerShell code
+    writes, moves or deletes. Paths it only reads are left out."""
+    found = []
+    for m in WRITE_CALL.finditer(code):
+        call, args = m.group(0).lower(), call_args(code, m.end() - 1)
+        positional_args = [a for a in args if not re.match(r"^\w+\s*=", a)]
+        if call == "open(":
+            mode = next((a.split("=", 1)[1] for a in args if a.startswith("mode")),
+                        positional_args[1] if len(positional_args) > 1 else "'r'")
+            if positional_args and re.search(r"[wax+]", unquote(mode.strip())):
+                found.append((positional_args[0], False))
+        elif call.startswith(".to_"):
+            found += [(positional_args[0], False)] if positional_args else []
+        elif call.startswith("shutil.copy"):
+            found += [(positional_args[1], False)] if len(positional_args) > 1 else []
+        elif call == "shutil.move(":
+            found += [(a, i == 0) for i, a in enumerate(positional_args[:2])]
+        elif call.startswith(("shutil.rmtree", "os.")):
+            found += [(a, True) for a in positional_args[:2 if "rename" in call or "replace" in call else 1]]
+        elif call.startswith("["):
+            found += [(positional_args[0], "delete" in call)] if positional_args else []
+        else:
+            target = receiver(code, m.start())
+            # str.replace and DataFrame.rename are common; only a Path(...) receiver is a file.
+            if call not in (".replace(", ".rename(") or "Path(" in target:
+                found.append((target, call in (".unlink(", ".rmdir(")))
+    return found
+
+
 def code_verdict(code: str, cwd: str, root: str, writes: bool = False) -> str | None:
-    """D3, G9 or None for inline code that writes files: every quoted path in it is
-    judged from the folder it runs in."""
-    if not (writes or CODE_WRITES.search(code)):
+    """D3, G9 or None for code that writes files. Each write target is judged: a quoted
+    path as written, a path built from quoted parts (Path('data') / 'tables', os.path.join,
+    an f-string) by joining the parts. A target held in a variable counts as generated data
+    or a guardrail file when the code names one (a quoted 'tables', 'guardrails' and so on),
+    or when the code runs inside one."""
+    targets = write_targets(code)
+    if not targets and not (writes or CODE_WRITES.search(code)):
         return None
     here = in_repo(cwd, root)
-    codes = [judge(here, False)] if here is not None else []
-    for literal in re.findall(r"['\"]([^'\"\n]+)['\"]", code):
-        path = as_path(literal, cwd)
-        segments = in_repo(path, root) if path else None
-        if segments is not None:
-            codes.append(judge(segments, False))
+    codes = []
+    for expression, deleting in targets:
+        # A target held in a variable: judge what the variable was set to (out = ... ).
+        name = expression.strip()
+        if re.fullmatch(r"[A-Za-z_]\w*", name):
+            assigned = re.findall(rf"(?m)^\s*{name}\s*=\s*(.+)$", code)
+            expressions = assigned or [name]
+        else:
+            expressions = [expression]
+        for text in expressions:
+            parts = [re.sub(r"\{[^}]*\}", "", lit).strip("/\\") for _, lit in LITERAL.findall(text)]
+            parts = [p for p in parts if p]
+            if parts:
+                base = root if re.search(r"f['\"]\{|\bROOT\b|parents\[", text) else cwd
+                path = as_path("/".join(parts), base)
+                segments = in_repo(path, root) if path else None
+                codes.append(judge(segments, deleting) if segments is not None else None)
+            elif here is not None:
+                codes.append(judge(here, False))  # unknown target: counts only inside a protected folder
+    if not targets and here is not None:
+        codes.append(judge(here, False))
     return worst(codes)
 
 
@@ -492,7 +664,11 @@ def stage_verdict(stage: str, spans: list[tuple[int, int]], cwd: str, root: str,
     # A > inside quotes is text, not a redirect; a quoted target after a real > still counts.
     redirects = [m.group(2) for m in REDIRECT.finditer(stage)
                  if not any(a <= m.start() < b for a, b in spans)]
-    stage = stage.strip().lstrip("({").rstrip(")}").strip()
+    stage = stage.strip()
+    if stage[:1] in "({":  # a subshell or brace group: (cd x && rm y) or { cd x; rm y; }
+        stage = stage.lstrip("({").strip()
+    if stage.endswith(("}", ")")) and stage.count("(") < stage.count(")") + (stage[-1] == "}"):
+        stage = stage.rstrip(")}").strip()
     words = [m.group(0) for m in TOKEN.finditer(stage)]
     i = 0
     while i < len(words) and (name_of(words[i]) in PREFIXES or re.match(r"^[A-Za-z_]\w*=", words[i])
@@ -518,24 +694,39 @@ def stage_verdict(stage: str, spans: list[tuple[int, int]], cwd: str, root: str,
         flags = [a for a in args if re.fullmatch(r"-\w*c", a)]
         if flags:
             j = args.index(flags[0])
-            codes.append(code_verdict(unquote(args[j + 1]) if j + 1 < len(args) else "", cwd, root))
+            code = unquote(args[j + 1]) if j + 1 < len(args) else ""
+            if code_prints_secrets(code):
+                return "D8env"
+            codes.append(code_verdict(code, cwd, root))
         for marker in re.findall(r"__heredoc_(\d+)__", stage):
+            if code_prints_secrets(bodies[int(marker)]):
+                return "D8env"
             codes.append(code_verdict(bodies[int(marker)], cwd, root))
+        # A script file: read it and check its writes (python -m <module> isn't read, so
+        # the data generator runs as usual).
+        script = next((a for a in args if not a.startswith("-")), None) if not flags and \
+            not any(a == "-m" for a in args) else None
+        path = as_path(script, cwd) if script and unquote(script).lower().endswith(".py") else None
+        if path and os.path.isfile(path) and os.path.getsize(path) <= 200_000:
+            with open(path, encoding="utf-8", errors="replace") as handle:
+                codes.append(code_verdict(handle.read(), cwd, root))
         return worst(codes)
     if IO_WRITE.search(stage):
         codes.append(code_verdict(stage, cwd, root, writes=True))
     pos = positional(args)
     if name in COPIERS:
-        dest = option_value(args, {"-destination", "-dest", "-target"})
+        dest = option_value(args, {"-destination", "-dest", "-target", "-t", "--target-directory"})
         dest = dest or (pos[1:2] if name == "robocopy" else pos[-1:])
         codes.append(check_paths([(d, False) for d in dest], cwd, root))
+        if name == "robocopy" and any(a.lower() in ("/mov", "/move") for a in args):
+            codes.append(check_paths([(s, True) for s in pos[:1]], cwd, root))
         # Copying a folder named like a generated one into its parent (cp -r x/tables data/)
         names = {g.rstrip("/").rsplit("/", 1)[-1] for g in GENERATED}
         if any(name_of(s).rstrip("/") in names for s in pos if s not in dest):
             codes.append(check_paths([(posixpath.join(unquote(d).replace("\\", "/"), n), False)
                                       for d in dest for n in names], cwd, root))
     elif name in MOVERS:
-        dest = option_value(args, {"-destination", "-dest"})
+        dest = option_value(args, {"-destination", "-dest", "-t", "--target-directory"})
         sources = [p for p in pos if p not in dest]
         if not dest and name not in RENAMERS and len(sources) > 1:
             dest = sources[-1:]
@@ -549,8 +740,25 @@ def stage_verdict(stage: str, spans: list[tuple[int, int]], cwd: str, root: str,
         codes.append(check_paths([(p, name in DELETERS) for p in pos], cwd, root))
     elif name == "find" and ("-delete" in args or "-exec" in args):
         start = [a for a in args[:next((k for k, a in enumerate(args) if a.startswith("-")),
-                                       len(args))]]
-        codes.append(check_paths([(s, True) for s in start or ["."]], cwd, root))
+                                       len(args))]] or ["."]
+        filters = [unquote(f).lower().rsplit("/", 1)[-1]
+                   for f in option_value(args, {"-name", "-iname", "-path", "-ipath"})]
+        if not filters:
+            codes.append(check_paths([(s, True) for s in start], cwd, root))
+        else:
+            # A filtered delete only removes what the filter matches: judge it by whether
+            # the pattern could match a generated file or a guardrail file's name.
+            hits_data = any(fnmatch.fnmatchcase(n, f) for f in filters for n in GENERATED_SAMPLES)
+            hits_guard = any(fnmatch.fnmatchcase(n, f) for f in filters for n in GUARD_SAMPLES)
+            for s in start:
+                path = as_path(s, cwd)
+                segments = in_repo(path, root) if path else None
+                if segments is None:
+                    continue
+                if hits_data and any(place(segments, g) for g in GENERATED):
+                    codes.append("D3")
+                if hits_guard and any(place(segments, p) for p in PROTECTED + (PROTECTED_DIR, CLAUDE_DIR)):
+                    codes.append("G9")
     elif name == "tar":
         flags = "".join(a.lstrip("-") for a in args if re.fullmatch(r"-?[a-zA-Z]+", a) and
                         (a.startswith("-") or args.index(a) == 0))
@@ -610,6 +818,8 @@ def shell_verdict(command: str, cwd: str, root: str, depth: int = 0) -> str | No
                 return MESSAGES["D8"]
             if any(banned_glob(w) for w in words):
                 return MESSAGES["D2"]
+            if prints_secrets(seen):
+                return MESSAGES["D8env"]
             if git:
                 flat = git_normal(seen)
                 for rule, pattern, why in GIT_RULES:
@@ -620,7 +830,7 @@ def shell_verdict(command: str, cwd: str, root: str, depth: int = 0) -> str | No
                 if name_of(stage.split()[0]) in PYTHONS and ENV_FILE.search(body):
                     return MESSAGES["D8"]
             code = stage_verdict(stage, spans, cwd, root, bodies, depth)
-            if code in ("D3", "G2"):
+            if code in ("D3", "G2", "D8env"):
                 return MESSAGES[code]
             if code and ":" in code:
                 return code  # a block message from a wrapped command
