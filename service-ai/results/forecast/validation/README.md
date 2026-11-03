@@ -2,7 +2,7 @@
 
 > **Measured on synthetic data with planted signals: Fjordvik Manufacturing Oy is fictional; these are not results on real pumps or warehouses.** The demand drivers were planted by the data generator, so these scores show the method works on a known signal, not how it would do on live demand.
 
-Data checksum `379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68`, commit `71a13e4cc1dd815352e111f53a5abe67ddf6e3ef`, model version `forecast-1.0.0`. Settings chosen on validation: moving average of 6 months; driver model without a season term.
+Data checksum `379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68`, commit `12a43b7f5bd5c842557ac1d9e61a8c07a4121815`, model version `forecast-1.0.0`. Settings chosen on validation: moving average of 6 months; driver model without a season term.
 
 MASE is mean absolute scaled error: each method's error divided by seasonal naive's error on the origin's training months. Below 1 beats that scale.
 

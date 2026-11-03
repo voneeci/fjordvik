@@ -1,0 +1,18 @@
+Independent MASE recheck (synthetic data with planted signals)
+results: results\forecast\validation
+  validation 3-month  FI03 driver_base            overall MASE 1.477342 (8 series)
+  validation 6-month  FI03 driver_base            overall MASE 1.784075 (8 series)
+  validation 3-month  FI03 driver_season          overall MASE 1.496971 (8 series)
+  validation 6-month  FI03 driver_season          overall MASE 1.805277 (8 series)
+  validation 3-month  FI03 moving_average_w12     overall MASE 1.185019 (8 series)
+  validation 6-month  FI03 moving_average_w12     overall MASE 1.465785 (8 series)
+  validation 3-month  FI03 moving_average_w3      overall MASE 1.215250 (8 series)
+  validation 6-month  FI03 moving_average_w3      overall MASE 1.422474 (8 series)
+  validation 3-month  FI03 moving_average_w6      overall MASE 1.189902 (8 series)
+  validation 6-month  FI03 moving_average_w6      overall MASE 1.371229 (8 series)
+  validation 3-month  FI03 naive                  overall MASE 1.603052 (8 series)
+  validation 6-month  FI03 naive                  overall MASE 1.751734 (8 series)
+  validation 3-month  FI03 seasonal_naive         overall MASE 1.638890 (8 series)
+  validation 6-month  FI03 seasonal_naive         overall MASE 1.943160 (8 series)
+series checked: 112; actual values differing from the order lines: 0; MASE mismatches: 0
+OK: saved MASE matches the independent recomputation

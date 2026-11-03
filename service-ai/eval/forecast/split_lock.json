@@ -49,9 +49,17 @@
     ]
   },
   "data_sha256": "379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68",
-  "commit": "71a13e4cc1dd815352e111f53a5abe67ddf6e3ef",
+  "commit": "12a43b7f5bd5c842557ac1d9e61a8c07a4121815",
   "model_version": "forecast-1.0.0",
   "data_basis": "synthetic data with planted signals",
-  "validation_manifest_sha256": "1336099080404b0a00e2831dd716610ae5476a83ee3e53002a5d9caf49e377bb",
+  "environment": {
+    "python": "3.14.7",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "scipy": "1.18.1",
+    "statsmodels": "0.14.6",
+    "patsy": "1.0.3"
+  },
+  "validation_manifest_sha256": "d615bead58c91af76186c41799e05ce7e0a21ecea649458f71da3485fbd61a3f",
   "written": "2026-11-03"
 }
