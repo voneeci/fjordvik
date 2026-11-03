@@ -268,6 +268,20 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         powershell("$env:ANTHROPIC_API_KEY"),
         bash("python -c \"import os; print(os.environ['ANTHROPIC_API_KEY'])\""),
         bash("gh auth token"),
+        # From the scoped re-test of 3 November 2026: other spellings of the environment,
+        # Path.open, constants plus parts, and deletes fed through a pipe
+        powershell("Get-ChildItem Env:\\"),
+        powershell("Get-Item Env:\\ANTHROPIC_API_KEY"),
+        powershell("[Environment]::GetEnvironmentVariable('ANTHROPIC_API_KEY', 'User')"),
+        bash("export | grep -i api"),
+        bash("python - <<'EOF'\nimport os\nfor k in os.environ:\n    print(k, os.environ[k])\nEOF"),
+        bash("python - <<'EOF'\nfrom pathlib import Path\nwith Path('data/tables/x.csv').open('w') as f:\n"
+             "    f.write('x')\nEOF"),
+        bash("python - <<'EOF'\nfrom pathlib import Path\nimport pandas as pd\n"
+             "TABLES = Path('data') / 'tables'\npd.DataFrame().to_csv(TABLES / 'dim_part.csv')\nEOF"),
+        powershell("Get-ChildItem data\\tables -Filter *.csv | Remove-Item"),
+        bash("ls data/tables/*.csv | xargs rm"),
+        bash("git ls-files data/tables | xargs rm"),
     ]
     allowed = [
         bash("git status"),
@@ -328,6 +342,17 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         bash("python -c \"import os; print('ANTHROPIC_API_KEY' in os.environ)\""),
         {"tool_name": "SendUserFile", "tool_input": {"files": ["docs/company-profile.md"]},
          "cwd": str(ROOT)},
+        # From the scoped re-test of 3 November 2026: set checks, reads, caches and pipes
+        powershell("Test-Path Env:\\ANTHROPIC_API_KEY"),
+        powershell("[Environment]::GetEnvironmentVariable('ANTHROPIC_API_KEY', 'User') -ne $null"),
+        powershell("[Environment]::GetEnvironmentVariable('PATH', 'User')"),
+        bash("python - <<'EOF'\nfrom pathlib import Path\nimport pandas as pd\n"
+             "TABLES = Path('data') / 'tables'\nRESULTS = Path('service-ai') / 'results'\n"
+             "pd.read_csv(TABLES / 'dim_part.csv').to_csv(RESULTS / 'x.csv')\nEOF"),
+        powershell("Get-ChildItem -Recurse -Filter __pycache__ | Remove-Item -Recurse -Force"),
+        bash("find . -path '*/__pycache__/*' -delete"),
+        bash("git ls-files data/tables | wc -l"),
+        bash("git checkout @ -- data/tables"),
     ]
     ask = [
         tool("Edit", "GUARDRAILS.md"),

@@ -52,11 +52,19 @@ GUARD_SAMPLES = ("guardrails.md", "guardrails.sha256", "settings.json", "setting
 SECRET_PARTS = {"KEY", "APIKEY", "TOKEN", "SECRET", "PASSWORD", "PASSWD", "CREDENTIAL",
                 "CREDENTIALS", "AUTH", "CONNECTION"}
 SHELL_VARIABLE = re.compile(r"\$\{?(?:env:)?([A-Za-z_][A-Za-z0-9_]*)|%([A-Za-z_][A-Za-z0-9_]*)%")
-CODE_VARIABLE = re.compile(r"(?:os\.environ\s*\[|os\.environ\.get\(|os\.getenv\(|environ\s*\[|"
+CODE_VARIABLE = re.compile(r"(?i)(?:os\.environ\s*\[|os\.environ\.get\(|os\.getenv\(|environ\s*\[|"
                            r"GetEnvironmentVariable\()\s*['\"]([A-Za-z_][A-Za-z0-9_]*)['\"]")
+# The whole environment: os.environ dumps, os.environ[k] read in a loop, PowerShell's env:
+# drive (env:, Env:\, env:*), .NET and /proc/<id>/environ.
 WHOLE_ENVIRONMENT = re.compile(r"(?i)(?<!env=)(?<!in )os\.environ\s*\)|os\.environ\.(?:items|values|copy)\(|"
-                               r"GetEnvironmentVariables\(|\benv:\s*\*?\s*['\"]?\s*(?:$|\||;)|"
-                               r"\benv:\*")
+                               r"os\.environ\s*\[\s*[A-Za-z_]\w*\s*\](?!\s*=(?!=))|"
+                               r"GetEnvironmentVariables\(|\benv:\\?\s*\*?\s*['\"]?\s*(?:$|\||;)|"
+                               r"\benv:\\?\*|/proc/[^/\s]+/environ")
+_ENV_READ = (r"(?:\[(?:system\.)?environment\]::GetEnvironmentVariable\([^)]*\)"
+             r"|\$\{?env:[A-Za-z_]\w*\}?)")
+# A set check in expression form, at the start of a stage or inside brackets
+# (echo $env:NAME -ne $null would print the key, so it doesn't count).
+SET_CHECK = re.compile(rf"(?i)(^\s*|\(\s*)(?:\$null\s*-(?:ne|eq)\s*{_ENV_READ}|{_ENV_READ}\s*-(?:ne|eq)\s*\$null)")
 SHELL_TOOLS = {"Bash", "PowerShell", "Monitor", "mcp__terminal__run_in_terminal"}
 FILE_TOOLS = {"Read", "Grep", "Edit", "Write", "NotebookEdit"}
 SEND_TOOLS = {"Artifact", "SendUserFile"}
@@ -227,16 +235,22 @@ def prints_secrets(stage: str) -> bool:
         return True
     if name == "printenv" and any(secret_name(a) for a in args):
         return True
-    if (name == "set" and not args) or (name == "export" and args[:1] == ["-p"]) or \
-            (name in ("declare", "typeset") and args[:1] in (["-p"], ["-x"])):
+    if (name == "set" and not args) or (name == "export" and args[:1] in ([], ["-p"])) or \
+            (name in ("declare", "typeset") and args[:1] in ([], ["-p"], ["-x"])):
         return True
     if name == "gh" and args[:2] == ["auth", "token"] or \
+            name == "gh" and args[:2] == ["auth", "status"] and ("--show-token" in args or "-t" in args) or \
             name == "git" and args[:2] == ["credential", "fill"]:
         return True
     if WHOLE_ENVIRONMENT.search(stage):
         return True
+    # Test-Path Env:\NAME and a comparison with $null only say whether a key is set, so
+    # they may name one. A search may name a key in code it looks for (grep "getenv('NAME')").
+    stage = SET_CHECK.sub(lambda m: m.group(1), stage)
+    drive = [] if name == "test-path" else re.findall(r"(?i)\benv:\\?([A-Za-z_][A-Za-z0-9_]*)", stage)
+    calls = [] if name in SEARCHERS else CODE_VARIABLE.findall(stage)
     return any(secret_name(a or b) for a, b in SHELL_VARIABLE.findall(stage)) or \
-        any(secret_name(n) for n in re.findall(r"(?i)\benv:([A-Za-z_][A-Za-z0-9_]*)", stage))
+        any(secret_name(n) for n in drive + calls)
 
 
 def code_prints_secrets(code: str) -> bool:
@@ -488,7 +502,7 @@ def git_verdict(stage: str, cwd: str, root: str) -> str | None:
             paths = [p for p in paths if p != rev]
         # G7 allows restoring generated files from HEAD only: an older revision changes
         # the data without the generator (D3).
-        if rev and unquote(rev).upper() != "HEAD":
+        if rev and unquote(rev).upper() not in ("HEAD", "@"):
             for p in ["." if unquote(p) in (":/", ":/*") else p for p in paths]:
                 path = as_path(p, cwd)
                 segments = in_repo(path, root) if path else None
@@ -505,7 +519,7 @@ def git_verdict(stage: str, cwd: str, root: str) -> str | None:
                            generated=sub in {"rm", "mv", "clean"})
     if sub == "reset" and any(a in ("--hard", "--keep", "--merge") for a in args):
         revs = [a for a in positional(args) if a != "--"][:1]
-        return "G9" if revs and unquote(revs[0]).upper() != "HEAD" and rolls_back(revs, root) else None
+        return "G9" if revs and unquote(revs[0]).upper() not in ("HEAD", "@") and rolls_back(revs, root) else None
     if sub == "revert":
         revs = positional(args)
         return "G9" if revs and rolls_back(revs, root, commits=True) else None
@@ -517,7 +531,7 @@ def git_verdict(stage: str, cwd: str, root: str) -> str | None:
 
 
 WRITE_CALL = re.compile(
-    r"(?i)(?<![\w.])open\(|\.to_(?:csv|parquet|excel|json|pickle|feather|html|xml|hdf|stata)\("
+    r"(?i)(?<![\w.])open\(|\.open\(|\.to_(?:csv|parquet|excel|json|pickle|feather|html|xml|hdf|stata)\("
     r"|shutil\.(?:copy\w*|move|rmtree)\(|os\.(?:remove|unlink|rmdir|removedirs|rename|replace"
     r"|makedirs|mkdir)\(|\.(?:write_text|write_bytes|unlink|rename|replace|rmdir|touch|mkdir)\("
     r"|\[(?:system\.)?io\.(?:file|directory)\]::(?:write|append|delete|copy|move|create|replace)\w*\(")
@@ -570,11 +584,28 @@ def write_targets(code: str) -> list[tuple[str, bool]]:
     for m in WRITE_CALL.finditer(code):
         call, args = m.group(0).lower(), call_args(code, m.end() - 1)
         positional_args = [a for a in args if not re.match(r"^\w+\s*=", a)]
+        named = {k: v.strip() for k, v in (re.match(r"^(\w+)\s*=(.*)$", a, re.S).groups()
+                                           for a in args if re.match(r"^\w+\s*=", a))}
+        # A path given by keyword: open(file=...), to_csv(path_or_buf=...).
+        positional_args = positional_args or [named[k] for k in ("file", "path_or_buf", "path")
+                                              if k in named][:1]
         if call == "open(":
-            mode = next((a.split("=", 1)[1] for a in args if a.startswith("mode")),
-                        positional_args[1] if len(positional_args) > 1 else "'r'")
+            mode = named.get("mode", positional_args[1] if len(positional_args) > 1 else "'r'")
             if positional_args and re.search(r"[wax+]", unquote(mode.strip())):
                 found.append((positional_args[0], False))
+        elif call == ".open(":
+            # Path(...).open('w') writes its receiver; tarfile.open(name, 'w') its first argument.
+            first = unquote(positional_args[0]) if positional_args else ""
+            mode = named.get("mode", "'r'")
+            if re.fullmatch(r"[rwaxbt+]+", first):
+                mode = positional_args[0]
+                if re.search(r"[wax+]", unquote(mode.strip())):
+                    found.append((receiver(code, m.start()), False))
+            elif positional_args and re.search(r"[wax+]", unquote(
+                    (positional_args[1] if len(positional_args) > 1 else mode).strip())):
+                found.append((positional_args[0], False))
+            elif re.search(r"[wax+]", unquote(mode.strip())):
+                found.append((receiver(code, m.start()), False))
         elif call.startswith(".to_"):
             found += [(positional_args[0], False)] if positional_args else []
         elif call.startswith("shutil.copy"):
@@ -593,6 +624,35 @@ def write_targets(code: str) -> list[tuple[str, bool]]:
     return found
 
 
+def replace_name(text: str, name: str, value: str) -> str:
+    """text with each use of the name (outside quotes, not an attribute or a call) replaced
+    by (value)."""
+    blanked = LITERAL.sub(lambda m: " " * len(m.group(0)), text)
+    spans = [m.span() for m in re.finditer(rf"(?<![\w.]){re.escape(name)}(?!\w)(?!\s*\()", blanked)]
+    for a, b in reversed(spans):
+        text = text[:a] + f"({value})" + text[b:]
+    return text
+
+
+def expand(expression: str, code: str, depth: int = 0) -> list[str]:
+    """The forms a write target can take, with each name assigned in the code (at the start
+    of a line or after ;) replaced by its value, up to three levels: TABLES / 'x.csv' with
+    TABLES = Path('data') / 'tables' becomes (Path('data') / 'tables') / 'x.csv'."""
+    if depth >= 3:
+        return [expression]
+    blanked = LITERAL.sub(lambda m: " " * len(m.group(0)), expression)
+    names = dict.fromkeys(re.findall(r"(?<![\w.])([A-Za-z_]\w*)(?!\w)(?!\s*\()", blanked))
+    forms = [expression]
+    for name in names:
+        values = re.findall(rf"(?m)(?:^|;)\s*{re.escape(name)}\s*(?::[^=\n]+)?=(?!=)\s*([^;\n]+)", code)
+        values = [v.strip() for v in values if v.strip() != name][:4]
+        if values:
+            forms = [replace_name(f, name, v) for f in forms for v in values][:8]
+    if forms == [expression]:
+        return forms
+    return [g for f in forms for g in expand(f, code, depth + 1)][:8]
+
+
 def code_verdict(code: str, cwd: str, root: str, writes: bool = False) -> str | None:
     """D3, G9 or None for code that writes files. Each write target is judged: a quoted
     path as written, a path built from quoted parts (Path('data') / 'tables', os.path.join,
@@ -605,14 +665,7 @@ def code_verdict(code: str, cwd: str, root: str, writes: bool = False) -> str | 
     here = in_repo(cwd, root)
     codes = []
     for expression, deleting in targets:
-        # A target held in a variable: judge what the variable was set to (out = ... ).
-        name = expression.strip()
-        if re.fullmatch(r"[A-Za-z_]\w*", name):
-            assigned = re.findall(rf"(?m)^\s*{name}\s*=\s*(.+)$", code)
-            expressions = assigned or [name]
-        else:
-            expressions = [expression]
-        for text in expressions:
+        for text in expand(expression.strip(), code):
             parts = [re.sub(r"\{[^}]*\}", "", lit).strip("/\\") for _, lit in LITERAL.findall(text)]
             parts = [p for p in parts if p]
             if parts:
@@ -658,8 +711,70 @@ def inner_command(words: list[str], i: int) -> str | None:
     return None
 
 
+def find_parts(args: list[str]) -> tuple[list[str], list[str]]:
+    """A find command's start folders and its -name, -iname, -path and -ipath patterns."""
+    start = [a for a in args[:next((k for k, a in enumerate(args) if a.startswith("-")),
+                                   len(args))]] or ["."]
+    return start, option_value(args, {"-name", "-iname", "-path", "-ipath"})
+
+
+def filtered_delete(starts: list[str], filters: list[str], cwd: str, root: str) -> str | None:
+    """D3, G9 or None for deleting what name filters match under the start folders
+    (find -name ... -delete, Get-ChildItem -Filter ... | Remove-Item). A filter naming a
+    cache folder or file only cleans caches; without a filter, the folders themselves go."""
+    def cache(f: str) -> bool:
+        bare = unquote(f).lower()
+        return any(p in CACHES for p in re.split(r"[/\\]", bare)) or bare.endswith((".pyc", ".py[co]"))
+
+    if filters and all(cache(f) for f in filters):
+        return None
+    names = [unquote(f).lower().rsplit("/", 1)[-1] for f in filters if not cache(f)]
+    if not names:
+        return check_paths([(s, True) for s in starts], cwd, root)
+    # A filtered delete only removes what the filter matches: judge it by whether the
+    # pattern could match a generated file or a guardrail file's name.
+    hits_data = any(fnmatch.fnmatchcase(n, f) for f in names for n in GENERATED_SAMPLES)
+    hits_guard = any(fnmatch.fnmatchcase(n, f) for f in names for n in GUARD_SAMPLES)
+    codes = []
+    for s in starts:
+        path = as_path(s, cwd)
+        segments = in_repo(path, root) if path else None
+        if segments is None:
+            continue
+        if hits_data and any(place(segments, g) for g in GENERATED):
+            codes.append("D3")
+        if hits_guard and any(place(segments, p) for p in PROTECTED + (PROTECTED_DIR, CLAUDE_DIR)):
+            codes.append("G9")
+    return worst(codes)
+
+
+LISTERS = {"get-childitem", "gci", "ls", "dir"}
+
+
+def piped_delete(before: list[tuple[str, list[tuple[int, int]]]], cwd: str, root: str) -> str | None:
+    """D3, G9 or None for a delete fed by the stages before it: find's folders and filters,
+    Get-ChildItem's paths and -Filter or -Include, or any other command's path arguments
+    (git ls-files data/tables | xargs rm)."""
+    codes = []
+    for stage, _ in before:
+        words = [m.group(0) for m in TOKEN.finditer(stage.strip())]
+        if not words:
+            continue
+        name, args = name_of(words[0]), words[1:]
+        if name == "find":
+            codes.append(filtered_delete(*find_parts(args), cwd, root))
+        elif name in LISTERS:
+            filters = option_value(args, {"-filter", "-include"})
+            skip = set(filters + option_value(args, {"-exclude", "-depth"}))
+            paths = [p for p in positional(args) if p not in skip] or ["."]
+            codes.append(filtered_delete(paths, filters, cwd, root))
+        else:
+            codes.append(check_paths([(p, True) for p in positional(args)], cwd, root))
+    return worst(codes)
+
+
 def stage_verdict(stage: str, spans: list[tuple[int, int]], cwd: str, root: str,
-                  bodies: list[str], depth: int) -> str | None:
+                  bodies: list[str], depth: int, before: list | None = None) -> str | None:
     """D3, G2, G9, wrapped or None for one pipe stage run in the folder cwd."""
     # A > inside quotes is text, not a redirect; a quoted target after a real > still counts.
     redirects = [m.group(2) for m in REDIRECT.finditer(stage)
@@ -667,7 +782,8 @@ def stage_verdict(stage: str, spans: list[tuple[int, int]], cwd: str, root: str,
     stage = stage.strip()
     if stage[:1] in "({":  # a subshell or brace group: (cd x && rm y) or { cd x; rm y; }
         stage = stage.lstrip("({").strip()
-    if stage.endswith(("}", ")")) and stage.count("(") < stage.count(")") + (stage[-1] == "}"):
+    if stage.endswith(("}", ")")) and not stage.endswith("{}") and \
+            stage.count("(") < stage.count(")") + (stage[-1] == "}"):
         stage = stage.rstrip(")}").strip()
     words = [m.group(0) for m in TOKEN.finditer(stage)]
     i = 0
@@ -738,27 +854,13 @@ def stage_verdict(stage: str, spans: list[tuple[int, int]], cwd: str, root: str,
     elif name in WRITE_ALL or (name in {"sed", "perl"} and any(
             re.fullmatch(r"-\w*i\S*|--in-place\S*", unquote(a)) for a in args)):
         codes.append(check_paths([(p, name in DELETERS) for p in pos], cwd, root))
+        # A delete with no path of its own (... | Remove-Item, ... | xargs rm, $_ or {})
+        # deletes what the stages before it list.
+        if name in DELETERS and before and all(unquote(p) == "{}" or unquote(p).startswith("$")
+                                               for p in pos):
+            codes.append(piped_delete(before, cwd, root))
     elif name == "find" and ("-delete" in args or "-exec" in args):
-        start = [a for a in args[:next((k for k, a in enumerate(args) if a.startswith("-")),
-                                       len(args))]] or ["."]
-        filters = [unquote(f).lower().rsplit("/", 1)[-1]
-                   for f in option_value(args, {"-name", "-iname", "-path", "-ipath"})]
-        if not filters:
-            codes.append(check_paths([(s, True) for s in start], cwd, root))
-        else:
-            # A filtered delete only removes what the filter matches: judge it by whether
-            # the pattern could match a generated file or a guardrail file's name.
-            hits_data = any(fnmatch.fnmatchcase(n, f) for f in filters for n in GENERATED_SAMPLES)
-            hits_guard = any(fnmatch.fnmatchcase(n, f) for f in filters for n in GUARD_SAMPLES)
-            for s in start:
-                path = as_path(s, cwd)
-                segments = in_repo(path, root) if path else None
-                if segments is None:
-                    continue
-                if hits_data and any(place(segments, g) for g in GENERATED):
-                    codes.append("D3")
-                if hits_guard and any(place(segments, p) for p in PROTECTED + (PROTECTED_DIR, CLAUDE_DIR)):
-                    codes.append("G9")
+        codes.append(filtered_delete(*find_parts(args), cwd, root))
     elif name == "tar":
         flags = "".join(a.lstrip("-") for a in args if re.fullmatch(r"-?[a-zA-Z]+", a) and
                         (a.startswith("-") or args.index(a) == 0))
@@ -829,7 +931,7 @@ def shell_verdict(command: str, cwd: str, root: str, depth: int = 0) -> str | No
                 body = bodies[int(marker)]
                 if name_of(stage.split()[0]) in PYTHONS and ENV_FILE.search(body):
                     return MESSAGES["D8"]
-            code = stage_verdict(stage, spans, cwd, root, bodies, depth)
+            code = stage_verdict(stage, spans, cwd, root, bodies, depth, stages[:index])
             if code in ("D3", "G2", "D8env"):
                 return MESSAGES[code]
             if code and ":" in code:

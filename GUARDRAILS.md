@@ -53,12 +53,12 @@ First edition, 2 November 2026. Drafted by the Fjordvik code chat at Reece's req
 | --- | --- | --- |
 | D1 | Synthetic data only. Fjordvik Manufacturing Oy is fictional; this is a portfolio project, never client work. | Review |
 | D2 | Never name a real company, employer, client or job advert anywhere in the repository; it is public. Customer and supplier names are invented, and the docs say every name is fictional. Only Reece writes names into the private list; no chat reads or writes it. | Review; `check.py` reads an optional private list of names kept outside the repository, so the list itself names no one; the hook stops chats reading or writing that list by its name or a wildcard starting with its name; a permission rule denies reading its folder |
-| D3 | Change `data/tables/`, `data/erp-extract/`, `data/corpus/` and `data/generator-truth/` only by running the generator in `data`. Commit code and data together. | Hook (Edit, Write and the common forms of shell writes; see "What the hook doesn't catch"); permission rules (deny edits); `data/tests/test_reproducible.py` |
+| D3 | Change `data/tables/`, `data/erp-extract/`, `data/corpus/` and `data/generator-truth/` only by running the generator in `data`. Commit code and data together. | Hook (Edit, Write, the common forms of shell writes, deletes fed through a pipe, and Python writes including `Path.open('w')` and paths held in constants; see "What the hook doesn't catch"); permission rules (deny edits); `data/tests/test_reproducible.py` |
 | D4 | Never rename a table or column. Add new ones instead. | `data/tests/test_schema.py` |
 | D5 | The checksums of tables that already exist stay fixed. A change that moves one needs Reece's yes, and the test change says which change and why. | `data/tests/test_reproducible.py` |
 | D6 | Reference data (exchange rates, town coordinates) is fetched from its publisher and cited with source, date read and checksum; never typed by hand. | `data/tests` |
 | D7 | Every setting the data generator uses is labelled as Fjordvik's own input. The one exception is the illustrative emission factors (Reece, 12 October 2026), and every doc says so. Reece confirmed this on 2 November 2026: Fjordvik is a learning project that will never be sold, unlike the council platform, so illustrative factors are fine here. | Review |
-| D8 | Never read, copy, quote or commit a `.env` file, key, token, password or connection string. Keys come from environment variables only, and are never printed: to check a key is set, use `python -c "import os; print('NAME' in os.environ)"`. `.env.example` holds names, never values. | Hook (common forms, including Artifact and SendUserFile, printing the whole environment or a variable whose name looks like a key, and `gh auth token`; a search pattern on piped file names may name `.env`); permission rules (deny reads of real `.env` names); `check.py` (secret patterns, `NAME_TOKEN=value` lines, connection strings, tracked `.env` files) |
+| D8 | Never read, copy, quote or commit a `.env` file, key, token, password or connection string. Keys come from environment variables only, and are never printed: to check a key is set, use `python -c "import os; print('NAME' in os.environ)"`. `.env.example` holds names, never values. | Hook (common forms, including Artifact and SendUserFile, printing the whole environment or a variable whose name looks like a key in Bash, PowerShell (the `Env:\` drive and .NET) and inline Python, and `gh auth token`; `Test-Path Env:\NAME` and a comparison with `$null` stay allowed; a search pattern on piped file names may name `.env`); permission rules (deny reads of real `.env` names); `check.py` (secret patterns, `NAME_TOKEN=value` lines, connection strings, tracked `.env` files) |
 | D9 | No file in git is over 50 MB. | `check.py` |
 | D10 | `data/generator-truth/` is an answer key for evaluation only: never a model feature, and never read by mcp or an agent while it runs. | Review; service-ai tests from phase 3 |
 | D11 | A feature or driver for day t uses only data recorded on or before day t. A feature that fails the point-in-time test is not used: rebuilding it with every row after day t deleted must not change it. | service-ai tests from phase 2 |
@@ -158,8 +158,17 @@ Forms it misses:
 - Paths built at run time: a shell variable (`rm $D/x.csv`), `$HOME`, strings joined in
   PowerShell, `New-Object IO.StreamWriter`, and code run through `os.system`, `subprocess`
   or `node -e`. In Python the hook follows quoted path parts (`Path('data') / 'tables'`,
-  `os.path.join`, f-strings) and a variable set on its own line, but not a path passed
-  through a function, a class or a loop, or one in a script file over 200 KB.
+  `os.path.join`, f-strings) and names assigned in the same code, up to three levels
+  (`TABLES = Path('data') / 'tables'`, then `TABLES / 'x.csv'`), but not a path passed
+  through a function, a class or a loop, a name inside an f-string, or one in a script file
+  over 200 KB. It knows `open`, `Path` methods, pandas `to_*`, `shutil` and `os`, but not
+  other writers such as `pyarrow`'s `write_table` or `numpy.savetxt` (every table today is
+  CSV). It checks inline code and heredocs for D8, not script files, because part scripts
+  read keys to use them.
+- Deletes fed through a pipe are judged by the stages before them (`Get-ChildItem`, `ls`,
+  `find`, `git ls-files`), but not by `ForEach-Object { Remove-Item $_ }`, or by a file
+  list read from a file (`cat list.txt | xargs rm`). `find . -not -name '*.py' -delete`
+  asks rather than blocks.
 - Quoting inside a name (`.e''nv`, ``.e`nv``), a recursive search that reaches a file
   without naming it, a Grep glob into the private list's folder that doesn't start with its
   name (the deny rule on that folder still applies), and a short (8.3) name for a file that
@@ -173,6 +182,12 @@ Forms it misses:
   blocks (`& { ... }`).
 - A command over 20,000 characters is not read; the hook asks Reece instead.
 
+It also blocks a few forms that are safe, because it can't tell them from unsafe ones:
+`generate.py` run as a file from `data/` (run `python -m fjordvik_data` instead); one
+variable reused for a table read and then a results write (use two names); and a script
+that holds write calls as text, such as a test runner's cases (keep the cases in a JSON
+file or an imported module).
+
 The backstops catch what matters in these cases: the data tests catch any change to the
 generated tables (D3, D5); the fingerprints in `GUARDRAILS.sha256` catch any change to the
 guardrail files (G9); the permission rules cover file tools and redirects in any path form;
@@ -180,10 +195,11 @@ the pre-commit check runs `check.py` before each commit; and Reece's own guard c
 hook settings (G2).
 
 **When to test again.** The guardrails were tested twice by independent read-only chats on
-2 November 2026, and once more on 3 November 2026, and fixed after each test. The 3 November
-test found 1 high and 3 realistic medium gaps and 2 everyday false positives, so it wasn't
-final. One more re-test follows, scoped to those findings, everyday work (at least 50 calls)
-and the earlier passes. It passes with no high finding, no realistic medium false negative
+2 November 2026, and twice more on 3 November 2026, and fixed after each test. The scoped
+re-test of 3 November found no regressions and no everyday false positives, but 1 high and 3
+realistic medium gaps in spellings next to the forms already fixed, so it wasn't final. One
+more scoped re-test follows, covering those findings, everyday work (at least 50 calls) and
+the earlier passes. It passes with no high finding, no realistic medium false negative
 and no everyday false positive. Forms it finds that only a deliberate attempt would use go
 on the list above without a code change.
 After that, the guardrails are tested again only when a rule or the hook changes, or a chat
@@ -206,3 +222,4 @@ agrees, updates the fingerprint, and adds a line below.
 - 2 November 2026: fixes from the guardrails test by Attena (Reece asked, in the Attena chat; test report `guardrails/evidence/guardrails-test-report-2026-11-02.pdf`). The hook reads git's global options, `git stage`, `:/` and `*`, abbreviated options and `+` refspecs (G1 to G3); follows `cd` and checks writes from the folder they run in, parent deletes, more writing commands and git writes to guardrail files (D3, G9); and reads file paths in one canonical form (D2, D8). `GUARDRAILS.sha256` now fingerprints six guardrail files. The layout map names each guardrails file, limits file types and adds `guardrails/evidence/`; `check.py` checks document names (L3), real evidence dates (L4) and scratch names (L5). The settings command tries the project folder before git. "Checked by" wording made accurate for D2, G2, G9, L3, L5 and L6.
 - 2 November 2026: fixes from the independent re-test by Attena (Reece asked, in the Attena chat, for the realistic 95% of cases and a point to stop re-testing). The hook asks before git rollbacks and before moving `.claude` or `guardrails`; reads wrapped commands (`bash -c`, `cmd /c`, `powershell -Command`, `eval`, `iex`), more writers, heredocs, subshells and `&>`; judges only the destination of copies; reads git rules per command, ignoring commit messages; checks Artifact and SendUserFile; blocks writes to `.git/hooks/`; and asks before edits to each part's `tests/test_guardrails.py`, now fingerprinted. `.claude/settings.json` gains Claude Code permission rules and a hook that blocks on time-out. L5 no longer flags temp, debug, copy or old, and reads folder names; L3 proposal names need a chat name; L4 dates are valid calendar dates from 2020 to 2099. New section "What the hook doesn't catch", with the stopping rule for re-tests.
 - 3 November 2026: fixes from the final re-test by Attena (Reece approved the plan, in the Attena chat). D8: the hook blocks printing the whole environment, a variable whose name looks like a key, `gh auth token` and `git credential fill`; `check.py` finds `NAME_TOKEN=value` lines. D3: Python code is judged by the targets of its write calls, so reading a table and writing elsewhere is allowed, while paths built from parts, a variable's value and script files are followed; restoring generated data from an older revision blocks. Cache folders and files can be deleted, and `find` deletes are judged by their name filter. `mv -t`, `robocopy /MOVE` and every file in `.claude/` are covered (G9). Restoring the whole tree from an older revision now blocks (D3) instead of asking.
+- 3 November 2026: fixes from the scoped re-test by Attena (Reece approved the plan, in the Attena chat). D8: the hook also blocks PowerShell's `Env:\` drive, .NET `GetEnvironmentVariable` for a key, a bare `export` or `declare`, `os.environ[k]` read in inline code, `gh auth status --show-token` and `/proc/<id>/environ`; `Test-Path Env:\NAME` and a comparison with `$null` stay allowed. D3: `Path.open('w')`, keyword targets, names assigned in the same code (constants plus parts) and deletes fed through a pipe are followed. A `find` filter naming a cache folder is a cache clean, and `@` counts as HEAD. The known-limits list names the edge forms that test found.
