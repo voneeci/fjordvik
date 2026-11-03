@@ -2,7 +2,7 @@
 
 > **Measured on synthetic data with planted signals: Fjordvik Manufacturing Oy is fictional; these are not results on real pumps or warehouses.** The demand drivers were planted by the data generator, so these scores show the method works on a known signal, not how it would do on live demand.
 
-Data checksum `379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68`, commit `4e524c787812886a0e56f20a1757a96f98391f02`, model version `forecast-1.0.0`. Settings chosen on validation: moving average of 6 months; driver model without a season term.
+Data checksum `379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68`, commit `d7d236149e0dec30c1b568a2541557b803bbf87a`, model version `forecast-1.0.0`. Settings chosen on validation: moving average of 6 months; driver model without a season term.
 
 MASE is mean absolute scaled error: each method's error divided by seasonal naive's error on the origin's training months. Below 1 beats that scale.
 
@@ -15,7 +15,7 @@ MASE is mean absolute scaled error: each method's error divided by seasonal naiv
 
 Pass marks: MASE pass; coverage pass.
 
-EE02 is reported apart: fewer than 6 test origins; not pooled into the pass mark.
+EE02 is reported apart: fewer than 6 test origins; not pooled into the pass mark. Its first months (from 2024-07) are in every scale q, so if trade was still ramping up then, its ranges are wider and its MASE lower than they would otherwise be.
 
 Driver model per origin:
 
@@ -42,7 +42,7 @@ Driver model per origin:
 
 Pass marks: MASE pass; coverage pass.
 
-EE02 is reported apart: fewer than 6 test origins; not pooled into the pass mark.
+EE02 is reported apart: fewer than 6 test origins; not pooled into the pass mark. Its first months (from 2024-07) are in every scale q, so if trade was still ramping up then, its ranges are wider and its MASE lower than they would otherwise be.
 
 Driver model per origin:
 

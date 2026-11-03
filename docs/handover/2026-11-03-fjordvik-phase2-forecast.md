@@ -4,7 +4,10 @@
 `service-ai/phase2-forecast`, made from `73604c6`. **Commits made:** `72551d0`
 (evaluation set and pass marks, before any code), `71a13e4` (code and tests), `4e524c7`
 (validation results and the split lock, before the test run), `bce2ea8` (the test run,
-results, evidence and docs), and this note. Nothing pushed.
+results, evidence and docs), and this note (`3ae1f0d`, pushed). After Jinny's review
+(`00df3e2`): `12a43b7` (code and test fixes), `d7d2361` (validation rerun and lock), and the
+commit with the test rerun, results and these updates (see "Fixes after Jinny's review").
+Also `9efe2df`, a proposal for Attena.
 
 Measured on synthetic data with planted signals: Fjordvik Manufacturing Oy is fictional.
 
@@ -46,8 +49,9 @@ Measured on synthetic data with planted signals: Fjordvik Manufacturing Oy is fi
 | 3-month forecast | 10 | 1.404 | 1.253 | 1.062 | 0.983 | 83.8% (201 of 240) |
 | 6-month forecast | 7 | 1.399 | 1.159 | 1.082 | 0.999 | 84.2% (283 of 336) |
 
-Both pass marks are met at both lengths. The margin over the moving average is 7% to 8%,
-and the driver model wins in 5 of 8 families. Five of the ten 3-month origins (January to
+Both pass marks are met at both lengths. The margin over the moving average is 7% to 8%;
+the driver model beats the moving average in 5 of 8 families and is best outright in 4
+(seasonal naive is best for overhaul kits and service kits). Five of the ten 3-month origins (January to
 May 2025) score above 1, and one origin (April 2025) has 67% coverage. On validation, with
 15 to 17 training months, the driver model lost to the moving average (6-month MASE 1.784
 against 1.371). Tartu has one 3-month test origin and no 6-month one: reported apart. At
@@ -86,6 +90,35 @@ Runs: `service-ai/evidence/run-forecast-validation-2026-11-03.txt`,
   `mcp/evidence/pytest-desktop-config-entry-2026-11-03.txt` is still in the folder,
   untouched. That session ended before committing.
 - The hook blocked nothing in this phase.
+
+## Fixes after Jinny's review
+
+Jinny reviewed `73604c6` to `3ae1f0d` in her own clone: "fix first", 1 blocker and 6
+minor (`service-ai/evidence/review-forecast-2026-11-03.md`). Reece chose to fix them all and
+rerun with the same frozen settings.
+
+- **Blocker:** `summary.json`, the results README, the manifests, the lock and the run log
+  were written with Windows line endings, but git keeps `eval/` and `results/` as LF, so
+  their checksums failed in any fresh checkout (26 passed, 1 failed there). Every file is
+  now written with `newline="\n"`, and a test fails on any carriage return in written or
+  committed results.
+- **Reruns with the same settings** (`settings_sha256` `a3243708…`): validation at
+  `12a43b7` and the locked test at `d7d2361`. Every table matches the first runs apart from
+  the stamp columns; the run log's second entry records identical scores. The test step
+  now compares scores without the stamps, so a rerun at a later commit can be checked.
+- **Minor:** exact library versions in the manifest, summary and lock; the scale test runs
+  the backtest's own path; the committed-results test no longer skips; the learning note
+  says "best outright in four", "24 to 33 training months", and that Tartu's ramp months
+  widen its ranges 1.1 to 3.7 times and flatter its scores.
+- Tests after the fixes: service-ai 27 passed, data 96 passed
+  (`pytest-forecast-fixes-2026-11-03.txt` in each); independent recheck 160 series, no
+  mismatches; `check.py` no findings. mcp, power-automate and powerbi weren't rerun: no file
+  they read changed, and `check.py` is clean.
+- **For Attena, from Jinny's "worth considering":** A9 can't be shown from git when the
+  builder writes an evaluation set that isn't a question set (the evaluation commit came
+  21 seconds before the code commit); and E1 could refuse a test run under a second,
+  different lock. **For Reece, later:** whether a warehouse's ramp months should leave its
+  MASE scale (a change to `evaluation.json`, so a new phase or a rerun from the start).
 
 ## Files no longer used (L6)
 

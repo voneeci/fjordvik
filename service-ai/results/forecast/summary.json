@@ -1,6 +1,6 @@
 {
   "data_sha256": "379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68",
-  "commit": "4e524c787812886a0e56f20a1757a96f98391f02",
+  "commit": "d7d236149e0dec30c1b568a2541557b803bbf87a",
   "model_version": "forecast-1.0.0",
   "data_basis": "synthetic data with planted signals",
   "period": "test",
@@ -26,13 +26,21 @@
       "of": "driver model's 80% intervals, pooled over test origins, series and horizons"
     }
   },
+  "environment": {
+    "python": "3.14.7",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "scipy": "1.18.1",
+    "statsmodels": "0.14.6",
+    "patsy": "1.0.3"
+  },
   "warehouses": {
     "EE02": {
       "3-month": {
         "origins": 1,
         "test_origins": 1,
         "in_scope": false,
-        "reported_apart": "fewer than 6 test origins; not pooled into the pass mark",
+        "reported_apart": "fewer than 6 test origins; not pooled into the pass mark. Its first months (from 2024-07) are in every scale q, so if trade was still ramping up then, its ranges are wider and its MASE lower than they would otherwise be",
         "mase": {
           "naive": 0.43457453476393615,
           "seasonal_naive": 0.5027115209343362,
@@ -49,7 +57,7 @@
         "origins": 0,
         "test_origins": 0,
         "in_scope": false,
-        "reported_apart": "fewer than 6 test origins; not pooled into the pass mark"
+        "reported_apart": "fewer than 6 test origins; not pooled into the pass mark. Its first months (from 2024-07) are in every scale q, so if trade was still ramping up then, its ranges are wider and its MASE lower than they would otherwise be"
       }
     },
     "FI03": {
@@ -101,18 +109,15 @@
   "validation": {
     "EE02": {
       "3-month": {
-        "origins": 0,
-        "test_origins": 1
+        "origins": 0
       },
       "6-month": {
-        "origins": 0,
-        "test_origins": 0
+        "origins": 0
       }
     },
     "FI03": {
       "3-month": {
         "origins": 6,
-        "test_origins": 10,
         "mase": {
           "naive": 1.6030520952065002,
           "seasonal_naive": 1.6388896220024907,
@@ -125,7 +130,6 @@
       },
       "6-month": {
         "origins": 3,
-        "test_origins": 7,
         "mase": {
           "naive": 1.7517335695802083,
           "seasonal_naive": 1.943159591851339,
