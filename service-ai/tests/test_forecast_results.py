@@ -17,7 +17,7 @@ import pytest
 from fjordvik_service.forecast import DATA_BASIS, MODEL_VERSION, backtest, report
 from fjordvik_service.forecast.lock import check_lock
 from fjordvik_service.forecast.splits import EVALUATION_PATH, LOCK_PATH
-from fjordvik_service.forecast.stamps import STAMP_FIELDS, sha256_file, stamp
+from fjordvik_service.forecast.stamps import STAMP_FIELDS, environment, sha256_file, stamp
 
 SERVICE_AI = Path(__file__).resolve().parents[1]
 RECHECK = SERVICE_AI / "scripts" / "recheck_forecast.py"
@@ -88,6 +88,9 @@ def test_every_results_file_is_stamped_and_says_synthetic(written, data_dir):
     assert all(summary[f] == manifest[f] for f in STAMP_FIELDS)
     note = (out / "README.md").read_text(encoding="utf-8")
     assert DATA_BASIS in note and manifest["data_sha256"] in note and MODEL_VERSION in note
+    assert manifest["environment"] == environment() == summary["environment"]
+    for path in sorted(out.iterdir()):
+        assert b"\r" not in path.read_bytes(), f"{path.name} has Windows line endings, so its checksum breaks on checkout"
 
 
 def test_the_summary_carries_the_pass_marks_unchanged(written, ev):
@@ -104,11 +107,15 @@ def test_two_runs_give_identical_metrics(data_dir, ev):
     pdt.assert_frame_equal(first[1], second[1])
 
 
-@pytest.mark.skipif(not (COMMITTED / "summary.json").exists(), reason="before the locked test run")
 def test_committed_test_results_match_their_manifest_and_recheck(data_dir):
     manifest = json.loads((COMMITTED / "manifest.json").read_text(encoding="utf-8"))
     for name, info in manifest["files"].items():
         assert sha256_file(COMMITTED / name) == info["sha256"], name
+    for folder in [COMMITTED, COMMITTED / "validation", LOCK_PATH.parent]:
+        for path in sorted(p for p in folder.iterdir() if p.is_file()):
+            assert b"\r" not in path.read_bytes(), f"{path} has Windows line endings"
+    lock = json.loads(LOCK_PATH.read_text(encoding="utf-8"))
+    assert lock["validation_manifest_sha256"] == sha256_file(COMMITTED / "validation" / "manifest.json")
     assert manifest["data_sha256"] == sha256_file(Path(data_dir) / "manifest.json")
     summary = json.loads((COMMITTED / "summary.json").read_text(encoding="utf-8"))
     assert summary["period"] == "test" and summary["settings"] == check_lock(LOCK_PATH, EVALUATION_PATH)

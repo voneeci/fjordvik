@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 
 from fjordvik_service.forecast import benchmarks
+from fjordvik_service.forecast.backtest import Inputs, forecast_origin
 from fjordvik_service.forecast.checks import PipelineCheckError
 from fjordvik_service.forecast.intervals import add_intervals
 from fjordvik_service.forecast.metrics import covered, mase, scale_q, winkler
@@ -25,11 +26,25 @@ def test_benchmarks_on_a_toy_series():
         benchmarks.seasonal_naive(train, [13])
 
 
-def test_scale_uses_training_months_only():
-    train = toy(15)
-    assert scale_q(train) == 120.0  # every y_t - y_(t-12) is 12 x 10
-    longer = pd.concat([train, pd.Series([1e6], index=[train.index[-1] + 1])])
-    assert scale_q(longer[longer.index <= train.index[-1]]) == 120.0
+def toy_inputs(series):
+    """A one-warehouse, one-family Inputs around a toy series, for the backtest's own path."""
+    demand = pd.DataFrame({"warehouse": "W", "part_family": "A", "month": series.index, "units": series.to_numpy()})
+    region_units = pd.DataFrame({"warehouse": "W", "region": "NOR", "month": series.index, "units": 1})
+    return Inputs(demand=demand, region_units=region_units, hours=None, assets=None,
+                  families=["A"], last_month=series.index[-1])
+
+
+def test_the_backtest_scales_by_training_months_only():
+    series = toy(20)  # 10, 20, ... 200
+    origin = series.index[14]  # 15 training months
+    specs = {"naive": ("naive", None)}
+    fc, _ = forecast_origin(toy_inputs(series), "W", origin, specs, None, [1, 2, 3])
+    assert set(fc["q"]) == {120.0}  # every y_t - y_(t-12) is 12 x 10
+    later = series.copy()
+    later[later.index > origin] = 1e6
+    fc_later, _ = forecast_origin(toy_inputs(later), "W", origin, specs, None, [1, 2, 3])
+    assert set(fc_later["q"]) == {120.0}
+    assert scale_q(later) != 120.0  # the full series would give another scale
     assert mase([10, 20], [12, 16], 2.0) == 1.5
     with pytest.raises(PipelineCheckError):
         scale_q(toy(12))

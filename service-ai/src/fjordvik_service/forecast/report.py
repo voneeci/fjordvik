@@ -10,7 +10,7 @@ from . import DATA_BASIS
 from .backtest import count_test_origins, driver_id, overall
 from .checks import check_frame
 from .splits import lengths
-from .stamps import STAMP_FIELDS, sha256_file
+from .stamps import STAMP_FIELDS, environment, sha256_file
 
 
 def roles(settings):
@@ -32,11 +32,15 @@ def summarise(by_series, inputs, ev, settings, stamps, period):
         for wh in inputs.warehouses():
             entry = warehouses.setdefault(wh, {})
             origins_n = int(rows.loc[rows["warehouse"] == wh, "n_origins"].max()) if (rows["warehouse"] == wh).any() else 0
-            item = {"origins": origins_n, "test_origins": counts[wh][name]}
+            item = {"origins": origins_n}
             if period == "test":
+                item["test_origins"] = counts[wh][name]
                 item["in_scope"] = counts[wh][name] >= minimum
                 if not item["in_scope"]:
-                    item["reported_apart"] = f"fewer than {minimum} test origins; not pooled into the pass mark"
+                    item["reported_apart"] = (
+                        f"fewer than {minimum} test origins; not pooled into the pass mark. Its first months "
+                        f"(from {inputs.first_month(wh)}) are in every scale q, so if trade was still ramping "
+                        "up then, its ranges are wider and its MASE lower than they would otherwise be")
             if origins_n:
                 mase = {m: float(scores[(wh, m)]) for m in benchmarks + [driver] if (wh, m) in scores.index}
                 best = min(benchmarks, key=lambda m: mase[m])
@@ -70,6 +74,7 @@ def summarise(by_series, inputs, ev, settings, stamps, period):
         "driver_model": driver,
         "minimum_test_origins": minimum,
         "pass_marks": marks,
+        "environment": environment(),
         "warehouses": warehouses,
     }
     if period == "test":
@@ -90,7 +95,11 @@ def tidy(df):
 
 
 def write_results(out_dir, tables, summary, stamps, readme):
-    """Write each table with the stamp columns, the summary, the note and a manifest of checksums."""
+    """Write each table with the stamp columns, the summary, the note and a manifest of checksums.
+
+    Every file is written with Unix line endings, the bytes git keeps for results/ and eval/
+    (service-ai/.gitattributes), so its checksum holds in any checkout.
+    """
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     files = {}
@@ -101,15 +110,15 @@ def write_results(out_dir, tables, summary, stamps, readme):
         stamped.to_csv(target, index=False, lineterminator="\n")
         files[target.name] = {"rows": len(stamped)}
     summary_target = out_dir / "summary.json"
-    summary_target.write_text(json.dumps(summary, indent=2, default=_json) + "\n", encoding="utf-8")
+    summary_target.write_text(json.dumps(summary, indent=2, default=_json) + "\n", encoding="utf-8", newline="\n")
     files[summary_target.name] = {}
     note_target = out_dir / "README.md"
-    note_target.write_text(readme, encoding="utf-8")
+    note_target.write_text(readme, encoding="utf-8", newline="\n")
     files[note_target.name] = {}
     for fname in files:
         files[fname]["sha256"] = sha256_file(out_dir / fname)
-    manifest = {**stamps, "files": files}
-    (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    manifest = {**stamps, "environment": environment(), "files": files}
+    (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
     return manifest
 
 

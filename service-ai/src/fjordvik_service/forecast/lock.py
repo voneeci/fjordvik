@@ -21,7 +21,8 @@ def write_lock(lock_path, evaluation_path, settings, chosen_from, extra):
         "chosen_from": chosen_from,
         **extra,
     }
-    Path(lock_path).write_text(json.dumps(lock, indent=2) + "\n", encoding="utf-8")
+    # Unix line endings, the bytes git keeps for eval/, so the lock reads the same in any checkout.
+    Path(lock_path).write_text(json.dumps(lock, indent=2) + "\n", encoding="utf-8", newline="\n")
     return lock
 
 
