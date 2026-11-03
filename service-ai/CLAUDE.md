@@ -9,6 +9,9 @@ this file.
 
 ## Rules for this part
 
+- Before any work on a phase, read `docs/phase-rules.md`: the "Every phase" section and
+  that phase's section. They are binding, like `..\GUARDRAILS.md`. The phase's pass-mark
+  commit names the sections read.
 - Synthetic data only. Read `..\data\tables` and `..\data\corpus` in place; never write
   under `..\data`. `tests/test_data.py` checks the tables against their manifest.
 - `..\data\generator-truth` is an answer key for evaluation only: never a model feature.
