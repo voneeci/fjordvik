@@ -1,0 +1,30 @@
+{
+  "data_sha256": "379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68",
+  "commit": "71a13e4cc1dd815352e111f53a5abe67ddf6e3ef",
+  "model_version": "forecast-1.0.0",
+  "data_basis": "synthetic data with planted signals",
+  "files": {
+    "backtest_forecasts.csv": {
+      "rows": 3024,
+      "sha256": "c9fb8525d2ee6369c19962babff0849be5df899116644ac516ab9edb3612a7d2"
+    },
+    "metrics_by_series.csv": {
+      "rows": 112,
+      "sha256": "509eb10e5ceb26a0ba7526358e34b2a0b15fe6c9bda8211caad1e092cee1a58e"
+    },
+    "metrics_by_origin.csv": {
+      "rows": 63,
+      "sha256": "bf5d3400f02004d2a85ddfcd82824034c0aa9c579432b5526b36e1e4f2ceadc3"
+    },
+    "drivers.csv": {
+      "rows": 918,
+      "sha256": "ae52476c245fbb4ad12b05f42acd628355d50503559414d50ba4956cb83163e8"
+    },
+    "summary.json": {
+      "sha256": "763a0dfc3768d0d419241b0bcc36bd2feba5b0f608a13a9fab9f991831c402cd"
+    },
+    "README.md": {
+      "sha256": "8c0e8d0f4df4b368edcb1b9eeba3515f00b58e746e5270b15ed81785f9222d5b"
+    }
+  }
+}
