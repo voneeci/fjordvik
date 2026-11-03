@@ -1,0 +1,122 @@
+## ruff ruff 0.17.0 config /c/Users/reece/Projects/quality-checks/config/ruff.toml
+B007 Loop control variable `fam` not used within loop body
+   --> service-ai\scripts\recheck_forecast.py:106:14
+    |
+105 |     overall = defaultdict(list)
+106 |     for (wh, fam, method, period, name), values in scores.items():
+    |              ^^^
+107 |         overall[(wh, method, period, name)].append(sum(values) / len(values))
+108 |     print("Independent MASE recheck (synthetic data with planted signals)")
+    |
+help: Rename unused `fam` to `_fam`
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> service-ai\scripts\run_forecast.py:86:9
+   |
+84 |         settings = check_lock(LOCK_PATH, EVALUATION_PATH)
+85 |     except LockError as err:
+86 |         raise SystemExit(f"Refusing to run the test period: {err}")
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+87 |     commit = require_committed(CODE_PATHS + [LOCK_PATH])
+88 |     ev = load_evaluation()
+   |
+
+B905 `zip()` without an explicit `strict=` parameter
+   --> service-ai\src\fjordvik_service\forecast\backtest.py:103:33
+    |
+101 |             else:
+102 |                 f = driver_forecast(train, blended, origin, horizons, param)
+103 |             for h, t, fv, av in zip(horizons, targets, f, actual):
+    |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+104 |                 rows.append((warehouse, family, method, origin, h, t, float(fv), av, q))
+105 |     out = pd.DataFrame(rows, columns=FORECAST_KEYS + ["target_month", "forecast", "actual", "q"])
+    |
+help: Add explicit value for parameter `strict=`
+    |
+102 |                 f = driver_forecast(train, blended, origin, horizons, param)
+    -             for h, t, fv, av in zip(horizons, targets, f, actual):
+103 +             for h, t, fv, av in zip(horizons, targets, f, actual, strict=False):
+104 |                 rows.append((warehouse, family, method, origin, h, t, float(fv), av, q))
+    |
+note: This is an unsafe fix and may change runtime behavior
+
+PLW1510 `subprocess.run` without explicit `check` argument
+  --> service-ai\tests\test_forecast_results.py:49:12
+   |
+48 | def recheck(results_dir, data_dir):
+49 |     return subprocess.run([sys.executable, str(RECHECK), "--results", str(results_dir), "--data-dir", str(data_dir)],
+   |            ^^^^^^^^^^^^^^
+50 |                           capture_output=True, text=True)
+   |
+help: Add explicit `check=False`
+   |
+49 |     return subprocess.run([sys.executable, str(RECHECK), "--results", str(results_dir), "--data-dir", str(data_dir)],
+   -                           capture_output=True, text=True)
+50 +                           check=False, capture_output=True, text=True)
+51 |
+   |
+note: This suggestion may be incorrect or produce invalid syntax. It requires manual review and cannot be applied automatically
+
+B007 Loop control variable `name` not used within loop body
+  --> service-ai\tests\test_forecast_splits.py:20:17
+   |
+18 |         assert (all_origins[0] - first).n + 1 == ev["origins"]["min_training_months"]
+19 |         for o in all_origins:
+20 |             for name, hs in lengths(ev).items():
+   |                 ^^^^
+21 |                 assert min(o + h for h in hs) > o
+22 |                 period = period_for(o, hs, ev)
+   |
+help: Rename unused `name` to `_name`
+   |
+19 |         for o in all_origins:
+   -             for name, hs in lengths(ev).items():
+20 +             for _name, hs in lengths(ev).items():
+21 |                 assert min(o + h for h in hs) > o
+   |
+note: This is an unsafe fix and may change runtime behavior
+
+Found 5 errors.
+2 unsafe fixes available with `--fix --unsafe-fixes`.
+exit 1
+## ruff full default plus likely-mistake set for info: count by rule
+warning: `incorrect-blank-line-before-class` (D203) and `blank-line-before-class` (D211) are incompatible. Ignoring `incorrect-blank-line-before-class`.
+warning: `multi-line-summary-first-line` (D212) and `multi-line-summary-second-line` (D213) are incompatible. Ignoring `multi-line-summary-second-line`.
+214	ANN001 	[ ] missing-type-function-argument
+192	E501   	[ ] line-too-long
+102	ANN201 	[ ] missing-return-type-undocumented-public-function
+ 62	D103   	[ ] undocumented-public-function
+ 55	S101   	[ ] assert
+ 29	TRY003 	[ ] raise-vanilla-args
+ 22	CPY001 	[ ] missing-copyright-notice
+ 20	EM102  	[ ] f-string-in-exception
+ 14	T201   	[ ] print
+ 10	D401   	[ ] non-imperative-mood
+  9	RUF005 	[ ] collection-literal-concatenation
+  9	INP001 	[ ] implicit-namespace-package
+  9	EM101  	[ ] raw-string-in-exception
+  8	PLR2004	[ ] magic-value-comparison
+  8	I001   	[*] unsorted-imports
+  5	PTH123 	[ ] builtin-open
+  5	PT018  	[ ] pytest-composite-assertion
+  4	COM812 	[*] missing-trailing-comma
+  3	ISC004 	[ ] implicit-string-concatenation-in-collection-literal
+  3	PLC0415	[ ] import-outside-top-level
+  3	PERF401	[ ] manual-list-comprehension
+  3	PLR0913	[ ] too-many-arguments
+  3	D102   	[ ] undocumented-public-method
+  2	C901   	[ ] complex-structure
+  2	UP017  	[*] datetime-timezone-utc
+  2	D205   	[ ] missing-blank-line-after-summary
+  2	ANN202 	[ ] missing-return-type-private-function
+  2	D209   	[*] new-line-after-last-paragraph
+  2	PD010  	[ ] pandas-use-of-dot-pivot-or-unstack
+  2	S607   	[ ] start-process-with-partial-path
+  2	S603   	[ ] subprocess-without-shell-equals-true
+  2	PLR0917	[ ] too-many-positional-arguments
+  2	B007   	[ ] unused-loop-control-variable
+  1	SIM102 	[ ] collapsible-if
+  1	PLC0206	[ ] dict-index-missing-items
+  1	PERF102	[ ] incorrect-dict-iterator
+  1	RUF043 	[ ] pytest-raises-ambiguous-pattern
+  1	B904   	[ ] raise-without-from-inside-except

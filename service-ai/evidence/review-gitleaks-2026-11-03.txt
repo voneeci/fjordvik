@@ -1,0 +1,6 @@
+## gitleaks over origin/main..3ae1f0d
+[90m1:14PM[0m [32mINF[0m [1mUnknown SCM platform. Use --platform to include links in findings.[0m [36mhost=[0m
+[90m1:14PM[0m [32mINF[0m [1m5 commits scanned.[0m
+[90m1:14PM[0m [32mINF[0m [1mscanned ~3577458 bytes (3.58 MB) in 376ms[0m
+[90m1:14PM[0m [32mINF[0m [1mno leaks found[0m
+exit 0

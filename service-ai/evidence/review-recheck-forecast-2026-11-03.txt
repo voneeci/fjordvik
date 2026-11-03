@@ -1,0 +1,26 @@
+3ae1f0de00e4c893a2623d06c66544b464a7500c
+Independent MASE recheck (synthetic data with planted signals)
+results: C:\Users\reece\Projects\quality-checks\work\fjordvik-phase2-review\service-ai\results\forecast
+  test       3-month  EE02 driver_base            overall MASE 0.769674 (8 series)
+  test       3-month  EE02 moving_average_w6      overall MASE 0.445777 (8 series)
+  test       3-month  EE02 naive                  overall MASE 0.434575 (8 series)
+  test       3-month  EE02 seasonal_naive         overall MASE 0.502712 (8 series)
+  test       3-month  FI03 driver_base            overall MASE 0.982715 (8 series)
+  test       6-month  FI03 driver_base            overall MASE 0.998958 (8 series)
+  validation 3-month  FI03 driver_base            overall MASE 1.477342 (8 series)
+  validation 6-month  FI03 driver_base            overall MASE 1.784075 (8 series)
+  test       3-month  FI03 moving_average_w6      overall MASE 1.061729 (8 series)
+  test       6-month  FI03 moving_average_w6      overall MASE 1.081559 (8 series)
+  validation 3-month  FI03 moving_average_w6      overall MASE 1.189902 (8 series)
+  validation 6-month  FI03 moving_average_w6      overall MASE 1.371229 (8 series)
+  test       3-month  FI03 naive                  overall MASE 1.404415 (8 series)
+  test       6-month  FI03 naive                  overall MASE 1.399445 (8 series)
+  validation 3-month  FI03 naive                  overall MASE 1.603052 (8 series)
+  validation 6-month  FI03 naive                  overall MASE 1.751734 (8 series)
+  test       3-month  FI03 seasonal_naive         overall MASE 1.253351 (8 series)
+  test       6-month  FI03 seasonal_naive         overall MASE 1.158837 (8 series)
+  validation 3-month  FI03 seasonal_naive         overall MASE 1.638890 (8 series)
+  validation 6-month  FI03 seasonal_naive         overall MASE 1.943160 (8 series)
+series checked: 160; actual values differing from the order lines: 0; MASE mismatches: 0
+OK: saved MASE matches the independent recomputation
+exit 0

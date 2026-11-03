@@ -1,0 +1,9 @@
+months 202407 to 202512 18
+Bearings                 first 6 months [78, 160, 323, 282, 237, 264] | q all pairs 97.7 | q without the 3 ramp pairs 82.3
+Consumables              first 6 months [443, 757, 996, 1045, 1044, 956] | q all pairs 276.0 | q without the 3 ramp pairs 112.3
+Impellers                first 6 months [34, 66, 84, 71, 95, 76] | q all pairs 23.0 | q without the 3 ramp pairs 17.7
+Mechanical seals         first 6 months [105, 217, 241, 310, 279, 293] | q all pairs 90.0 | q without the 3 ramp pairs 82.3
+Motor and electrical     first 6 months [66, 109, 140, 112, 85, 187] | q all pairs 53.8 | q without the 3 ramp pairs 46.3
+Overhaul kits            first 6 months [10, 12, 18, 20, 23, 30] | q all pairs 6.2 | q without the 3 ramp pairs 4.0
+Service kits             first 6 months [107, 209, 259, 264, 281, 291] | q all pairs 44.5 | q without the 3 ramp pairs 13.7
+Wear rings and gaskets   first 6 months [533, 908, 1180, 1228, 1241, 1151] | q all pairs 252.0 | q without the 3 ramp pairs 67.3
