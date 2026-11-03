@@ -113,7 +113,9 @@ rerun with the same frozen settings.
 - Tests after the fixes: service-ai 27 passed, data 96 passed
   (`pytest-forecast-fixes-2026-11-03.txt` in each); independent recheck 160 series, no
   mismatches; `check.py` no findings. mcp, power-automate and powerbi weren't rerun: no file
-  they read changed, and `check.py` is clean.
+  they read changed, and `check.py` is clean. A fresh clone at `6b26067` gives 27 passed,
+  where Jinny's clone gave 26 passed, 1 failed
+  (`service-ai/evidence/pytest-forecast-fresh-clone-2026-11-03.txt`).
 - **For Attena, from Jinny's "worth considering":** A9 can't be shown from git when the
   builder writes an evaluation set that isn't a question set (the evaluation commit came
   21 seconds before the code commit); and E1 could refuse a test run under a second,
