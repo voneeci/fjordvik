@@ -1,0 +1,100 @@
+{
+  "name": "phase 2 spare parts demand forecast: evaluation set and pass marks",
+  "written": "2026-11-03",
+  "written_before_code": true,
+  "rules": ["A9", "E1", "F1", "F2", "D11", "D15", "G10", "W8"],
+  "phase_rules_read": ["Every phase", "Phase 2"],
+  "data_basis": "synthetic data with planted signals",
+  "decided_by": "Reece, question boxes on 3 November 2026",
+  "demand": {
+    "unit": "units",
+    "grain": "month, warehouse (site_id), part family (dim_part.part_family)",
+    "source": "fact_parts_order.quantity joined to dim_part on part_id",
+    "channels": "all, service technician lines included",
+    "warehouses": {"FI03": "Oulu Warehouse", "EE02": "Tartu Warehouse"},
+    "series_start": "each warehouse's first month with orders; no backfilling",
+    "families": [
+      "Bearings",
+      "Consumables",
+      "Impellers",
+      "Mechanical seals",
+      "Motor and electrical",
+      "Overhaul kits",
+      "Service kits",
+      "Wear rings and gaskets"
+    ]
+  },
+  "origins": {
+    "definition": "origin = last training month T; forecast date = first day of month T+1; forecasts for months T+1 to T+6",
+    "step_months": 1,
+    "max_horizon": 6,
+    "forecast_lengths": {"3-month": [1, 2, 3], "6-month": [1, 2, 3, 4, 5, 6]},
+    "min_training_months": 15,
+    "scored_in_period": "an origin is scored in a period for a forecast length only if all its target months for that length lie in the period"
+  },
+  "periods": {
+    "training_only": {"first_month": "2023-01", "last_month": "2024-03"},
+    "validation": {"first_target_month": "2024-04", "last_target_month": "2024-11"},
+    "gap": {"months": ["2024-12"], "rule": "E1: never a scored target month in either period"},
+    "test": {"first_target_month": "2025-01", "last_target_month": "2025-12"},
+    "forward": {"origin": "2025-12", "target_months": ["2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06"]}
+  },
+  "minimum_test_origins": {
+    "value": 6,
+    "applies_to": "each warehouse and forecast length",
+    "below_minimum": "reported apart with its scores and a forward forecast; never pooled into the pass mark"
+  },
+  "methods": {
+    "benchmarks": {
+      "naive": "forecast = last training month",
+      "seasonal_naive": "forecast for month m = actual of month m-12",
+      "moving_average": "forecast = mean of the last w training months"
+    },
+    "driver_model": "Poisson generalised linear model, log link, one per warehouse and part family, on running hours and mean installed-base age, with an optional yearly season term",
+    "drivers": {
+      "regions": {"NOR": ["Finland", "Sweden"], "BAL": ["Estonia", "Latvia"]},
+      "warehouse_blend": "weighted by the warehouse's unit share per region over the origin's training months",
+      "running_hours": {
+        "value": "mean running hours per pump-day in the month, pumps with telemetry",
+        "known_from": "first day of the next month",
+        "in_forecasts": "forecast by the same month a year earlier (seasonal naive of the driver), known from the first day of month m-11"
+      },
+      "mean_age_years": {
+        "value": "mean age at month end of pumps installed on or before that date",
+        "known_from": "first day of the next month for months in training; the forecast date for forecast months",
+        "in_forecasts": "pumps in the register at the forecast date, aged forward; later installs are unknown"
+      }
+    },
+    "intervals": {
+      "level": 0.8,
+      "method": "rolling backtest errors: at each origin, errors of earlier origins whose target months are on or before T, divided by their series' scale q, pooled over the warehouse's part families per horizon; 10th and 90th percentiles added to the forecast after multiplying by this series' q; lower bound floored at 0",
+      "min_errors_per_horizon": 16,
+      "too_few_errors": "no interval, and the origin is not scored for coverage or Winkler"
+    }
+  },
+  "chosen_on_validation": {
+    "criterion": "lowest overall MASE of the 6-month forecast over validation origins; ties go to the simpler setting",
+    "candidates": {
+      "moving_average_window": [3, 6, 12],
+      "driver_model_season_term": [false, true]
+    },
+    "simpler_first": {"moving_average_window": [12, 6, 3], "driver_model_season_term": [false, true]},
+    "recorded_in": "eval/forecast/split_lock.json, committed before the first test run"
+  },
+  "metrics": {
+    "scale_q": "mean of |y_t - y_(t-12)| over the origin's training months t with t-12 in the series",
+    "mase_series_origin": "mean absolute error over the horizons of the forecast length, divided by q",
+    "mase_series": "mean over the series' scored origins",
+    "mase_overall": "mean over the warehouse's part family series",
+    "by_horizon": "MASE per single horizon, reported for information",
+    "coverage": "share of actuals inside the 80% interval, per origin and pooled over origins, series and horizons",
+    "winkler": "upper - lower + (2 / 0.2) x (lower - actual) if actual < lower, + (2 / 0.2) x (actual - upper) if actual > upper; per origin and pooled, in units and divided by q",
+    "recheck": "MASE recomputed by scripts/recheck_forecast.py from the saved forecasts and the raw tables, importing nothing from the forecast package"
+  },
+  "pass_marks": {
+    "set_by": "Reece, phase 2 prompt, 3 November 2026; never changed to pass (A9)",
+    "scope": "test origins; warehouses meeting the minimum; judged for both the 3-month and the 6-month forecast",
+    "mase": "driver model's overall MASE is below seasonal naive's and below the lowest overall MASE of naive, seasonal naive and moving average",
+    "coverage": {"low": 0.70, "high": 0.90, "of": "driver model's 80% intervals, pooled over test origins, series and horizons"}
+  }
+}

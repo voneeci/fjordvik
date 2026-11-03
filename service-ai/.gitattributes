@@ -1,0 +1,4 @@
+# Evaluation sets, the split lock and the results are pinned by SHA-256 checksums (A9, E1,
+# G10), so they keep Unix line endings on every machine and checkout never changes a byte.
+eval/**    text eol=lf
+results/** text eol=lf
