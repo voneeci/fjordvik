@@ -1,0 +1,8 @@
+Measured on synthetic data with planted signals: Fjordvik Manufacturing Oy is fictional; these are not results on real pumps or warehouses.
+settings: {'moving_average_window': 6, 'driver_model_season_term': False}
+EE02 3-month: origins 1, MASE {'naive': 0.43457453476393615, 'seasonal_naive': 0.5027115209343362, 'moving_average_w6': 0.4457766189847653, 'driver_base': 0.7696744220311933}, driver coverage 0.9583333333333334
+EE02 6-month: origins 0, MASE None, driver coverage None
+FI03 3-month: origins 10, MASE {'naive': 1.4044153605957295, 'seasonal_naive': 1.2533510146474516, 'moving_average_w6': 1.061728687602524, 'driver_base': 0.9827148550767125}, driver coverage 0.8375
+FI03 6-month: origins 7, MASE {'naive': 1.3994448190732796, 'seasonal_naive': 1.1588369459690728, 'moving_average_w6': 1.081558745077304, 'driver_base': 0.998957852480466}, driver coverage 0.8422619047619048
+verdict: {'3-month': {'mase': 'pass', 'coverage': 'pass'}, '6-month': {'mase': 'pass', 'coverage': 'pass'}}; all pass marks met: True
+test run 1 logged in C:\Users\reece\Projects\fjordvik\service-ai\eval\forecast\test_runs.jsonl; wrote 7 files to C:\Users\reece\Projects\fjordvik\service-ai\results\forecast
