@@ -21,8 +21,8 @@ this file.
   and run without a key or network; live runs save their full output as evidence.
 - Agent drafts go to `outbox/` (git-ignored) with a unique request ID; nothing is applied
   without Reece's approve command, and never twice.
-- Each phase ends with `docs/learning/phase<N>-<topic>.md`, a handover note and an inbox
-  note in the knowledge folder.
+- Each phase ends with its section in the root `docs/learning/service-ai.md`, a handover
+  note and an inbox note in the knowledge folder.
 - Writing: no em dashes, Australian spelling, spell out acronyms on first use.
 
 ## Commands

@@ -69,8 +69,8 @@ mark, and what would change with live data.
 
 **Status, 3 November 2026:** the service data is generated and tested (phase 1), and the
 demand forecast (capability 1, phase 2) meets its pass marks at Oulu on synthetic data
-([learning note](docs/learning/phase2-forecast.md)). The other capabilities follow in the
-order of the table.
+([learning notes](docs/learning/service-ai.md#phase-2-forecasting-spare-parts-demand)). The
+other capabilities follow in the order of the table.
 
 ## The parts
 

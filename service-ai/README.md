@@ -35,9 +35,9 @@ Service manuals for each product group, the service terms and the warranty polic
 
 ## The build
 
-Each phase sets its pass mark before any code, and writes a learning note in
-[`docs/learning`](../docs/learning): the idea in plain English, how the code does it, the
-result, and what would change with live data.
+Each phase sets its pass mark before any code, and adds a section to the learning notes,
+[`docs/learning/service-ai.md`](../docs/learning/service-ai.md): the idea in plain English,
+how the code does it, the result, and what would change with live data.
 
 | Phase | Capability | Pass mark | Status |
 | --- | --- | --- | --- |
@@ -56,8 +56,8 @@ rolling origins against three simple forecasts (naive, seasonal naive and a movi
 average), with the evaluation dates and pass marks committed before the code
 ([`eval/forecast/`](eval/forecast)). The driver model is a Poisson regression on the
 connected fleet's running hours and age, using each driver only as it was known on the
-forecast date. The method and its limits are in the learning note,
-[`docs/learning/phase2-forecast.md`](../docs/learning/phase2-forecast.md).
+forecast date. The method and its limits are in the
+[learning notes](../docs/learning/service-ai.md#phase-2-forecasting-spare-parts-demand).
 
 Result at Oulu on the test period (January to December 2025), measured on synthetic data
 with planted signals. Lower MASE is better:
