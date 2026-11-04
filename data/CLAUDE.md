@@ -36,7 +36,7 @@ then this file.
   service-ai read `data/tables/` in place (no copies), so rerun their tests after any data
   change.
 - A deliberate change to an expected value in a test says which change and why.
-- Writing: no em dashes, Australian spelling, spell out acronyms on first use.
+- Writing: no em dashes, UK English spelling, spell out acronyms on first use.
 
 ## Commands
 

@@ -35,7 +35,7 @@ this file.
 - Live tests (`tests/test_measures_live.py`) need Desktop open and refreshed; the
   runner finds the local engine's port from the msmdsrv.exe process.
 - A deliberate change to an expected value says which change and why.
-- Writing: no em dashes, Australian spelling, spell out acronyms on first use.
+- Writing: no em dashes, UK English spelling, spell out acronyms on first use.
 
 ## Commands
 

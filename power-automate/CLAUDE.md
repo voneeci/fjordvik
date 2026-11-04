@@ -26,7 +26,7 @@ this file.
   edit it from here; after a data change, rebuild the intake files and rerun the tests.
 - Power Automate facts in the docs come from Microsoft Learn pages read on 12 October
   2026; mark anything unconfirmed as "to check during the build".
-- Writing: no em dashes, Australian spelling, spell out acronyms on first use.
+- Writing: no em dashes, UK English spelling, spell out acronyms on first use.
 
 ## Commands
 

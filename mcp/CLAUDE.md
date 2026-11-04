@@ -24,7 +24,7 @@ then `..\GUARDRAILS.md`, then this file.
   calls `permitted()` first, and the roles in `auth.py` mirror the Power BI security
   roles. The sign-in page is a demo: no passwords or secrets, ever. Opening the server to
   other machines or adding a role needs Reece's yes.
-- Writing: no em dashes, Australian spelling, spell out acronyms on first use.
+- Writing: no em dashes, UK English spelling, spell out acronyms on first use.
 
 ## Commands
 

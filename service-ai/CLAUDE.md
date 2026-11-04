@@ -23,7 +23,7 @@ this file.
   without Reece's approve command, and never twice.
 - Each phase ends with its section in the root `docs/learning/service-ai.md`, a handover
   note and an inbox note in the knowledge folder.
-- Writing: no em dashes, Australian spelling, spell out acronyms on first use.
+- Writing: no em dashes, UK English spelling, spell out acronyms on first use.
 
 ## Commands
 

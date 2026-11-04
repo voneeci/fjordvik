@@ -91,7 +91,7 @@ First edition, 2 November 2026. Slimmed on 3 November 2026 after Jasila's review
 
 | Rule | What | Checked by |
 | --- | --- | --- |
-| W1 to W4 | Writing follows RULES.md: no em dashes (W1), Australian spelling (W2), acronyms spelled out at first use (W3), plain English with the point first and no filler qualifiers (W4). | `check.py` (W1, and common American spellings for W2); Review |
+| W1 to W4 | Writing follows RULES.md: no em dashes (W1), UK English spelling (W2), acronyms spelled out at first use (W3), plain English with the point first and no filler qualifiers (W4). | `check.py` (W1, and common American spellings for W2); Review |
 | W5 | Fjordvik is one project in five parts (data, mcp, powerbi, power-automate, service-ai), never "five projects" or "pieces". | `check.py` |
 | W6 | Every README and doc that shows data says it is synthetic, and that the emission factors are illustrative. | Review |
 | W7 | Lead each document with the business need, then the solution and the parts. | Review |
@@ -154,3 +154,4 @@ agrees, updates the fingerprint, and adds a line below.
 - 4 November 2026: L3: the service AI learning notes move to one file, `docs/learning/service-ai.md`, with a section per phase (Reece chose this on 3 November; proposal `2026-11-03-fjordvik-code-learning-one-file.md`). The map and `check.py` accept `phase1-service-data.md` and `phase2-forecast.md` only until a code chat merges them.
 - 4 November 2026: follow-ups (Reece approved, in the Attena chat). The notes are merged, so `check.py` and the map now accept only `service-ai.md`. The hook and its settings also check files sent by the claude-artifacts tools `publish_files` and `upload_asset`, which replaced the `Artifact` tool: a recorded gap, fixed under the freeze with its hook cases.
 - 4 November 2026: A1 names the one server it covers, Fjordvik's own `mcp` part, and says chats may use other MCP servers with write tools (Reece approved, in the Attena chat). A3 and A11 still limit the service desk agent.
+- 4 November 2026: W2 is UK English spelling, not Australian (Reece asked, in the Attena chat). `check.py` still looks for common American spellings. A-ron makes the same change in RULES.md.

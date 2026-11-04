@@ -30,7 +30,7 @@ own `CLAUDE.md` holds the rules for that part and applies to any file in it.
   commit hashes still exist in this history. Reece deleted the four old GitHub repositories
   on 2 November 2026; work happens here. A local copy of them sits in
   `old historical folders/`, kept out of git by `.git/info/exclude`: never commit it.
-- Writing: no em dashes, Australian spelling, spell out acronyms on first use.
+- Writing: no em dashes, UK English spelling, spell out acronyms on first use.
 
 ## Commands
 
