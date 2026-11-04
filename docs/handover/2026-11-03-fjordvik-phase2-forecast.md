@@ -128,7 +128,9 @@ None. `results/forecast/validation/` stays as the record of how the settings wer
 
 ## Open
 
-- Push `service-ai/phase2-forecast` when Reece says.
+- Merge `service-ai/phase2-forecast` into `main`. Jinny's recheck of `00df3e2` to `59bc110`
+  says merge: all 7 findings fixed, no new ones (report in the quality-checks repository,
+  `reports/2026-11-03-fjordvik-phase2-recheck.md`).
 - From phase 1, still open: `docs/learning-guide.md` and the process map need a service AI
   section.
 - Tartu's forecast needs more history before any accuracy claim: rerun the backtest once
