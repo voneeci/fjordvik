@@ -1,9 +1,10 @@
 """Claude Code PreToolUse hook: stop a tool call that would break GUARDRAILS.md.
 
 Claude Code runs this before Bash, PowerShell, Monitor, terminal tool
-(mcp__terminal__run_in_terminal), Read, Grep, Edit, Write, NotebookEdit, Artifact
-and SendUserFile calls in this repository (see .claude/settings.json). It reads the
-call as JSON on stdin. Exit code 2 blocks the call and shows the reason; exit code 0
+(mcp__terminal__run_in_terminal), Read, Grep, Edit, Write, NotebookEdit, Artifact,
+SendUserFile and the claude-artifacts tools that send local files (publish_files,
+upload_asset) in this repository (see .claude/settings.json). It reads the call as
+JSON on stdin. Exit code 2 blocks the call and shows the reason; exit code 0
 lets it run, or asks Reece first when it prints an "ask" decision.
 
 Rules it enforces (identifiers from GUARDRAILS.md):
@@ -67,7 +68,8 @@ _ENV_READ = (r"(?:\[(?:system\.)?environment\]::GetEnvironmentVariable\([^)]*\)"
 SET_CHECK = re.compile(rf"(?i)(^\s*|\(\s*)(?:\$null\s*-(?:ne|eq)\s*{_ENV_READ}|{_ENV_READ}\s*-(?:ne|eq)\s*\$null)")
 SHELL_TOOLS = {"Bash", "PowerShell", "Monitor", "mcp__terminal__run_in_terminal"}
 FILE_TOOLS = {"Read", "Grep", "Edit", "Write", "NotebookEdit"}
-SEND_TOOLS = {"Artifact", "SendUserFile"}
+SEND_TOOLS = {"Artifact", "SendUserFile", "mcp__claude-artifacts__publish_files",
+              "mcp__claude-artifacts__upload_asset"}
 LONGEST = 20000
 ENV_FILE = re.compile(r"(?i)(?<![\w-])\.env(\.(?!example\b)\w+)?(?![\w.-])")
 ENV_NAMES = (".env", ".env.local")
@@ -952,7 +954,7 @@ def shell_cwd(call: dict, args: dict, root: str) -> str:
 
 
 def sent_paths(args: dict) -> list[str]:
-    """Every local file path an Artifact or SendUserFile call would publish or send."""
+    """Every local file path a publishing or sending tool (SEND_TOOLS) would send."""
     found = [args.get("file_path"), args.get("root")] + list(args.get("file_paths") or [])
     files = args.get("files") or []
     for item in files.values() if isinstance(files, dict) else files:

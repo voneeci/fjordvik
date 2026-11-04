@@ -35,3 +35,5 @@ above in L3 and the layout map, and a planted-breach case in `shared_tests.py`. 
 until a code chat merges the notes, `check.py` and the map also accept
 `phase1-service-data.md` and `phase2-forecast.md` by name, so they keep passing. A new
 `phase<N>` file now fails. Once the notes are merged, Attena removes those two names.
+
+The notes were merged in `2578ed5`, and Attena removed the two names on 4 November 2026.

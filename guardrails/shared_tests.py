@@ -255,6 +255,10 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         powershell("Get-Content mcp\\*env"),
         {"tool_name": "SendUserFile", "tool_input": {"files": ["mcp/.env"]}, "cwd": str(ROOT)},
         {"tool_name": "Artifact", "tool_input": {"file_path": str(ROOT / "mcp" / ".env")}},
+        {"tool_name": "mcp__claude-artifacts__publish_files", "cwd": str(ROOT),
+         "tool_input": {"files": [{"as": "index.html", "path": str(ROOT / "mcp" / ".env")}]}},
+        {"tool_name": "mcp__claude-artifacts__upload_asset", "cwd": str(ROOT),
+         "tool_input": {"slug": "x", "files": [{"name": "a.txt", "path": str(ROOT / "mcp" / ".env")}]}},
         # From the final re-test of 3 November 2026. "git checkout <old> -- ." was an ask
         # (G9); it now blocks, because it also restores old generated tables (D3).
         bash("git checkout dd6370b -- ."),
@@ -347,6 +351,10 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         bash("python -c \"import os; print('ANTHROPIC_API_KEY' in os.environ)\""),
         {"tool_name": "SendUserFile", "tool_input": {"files": ["docs/company-profile.md"]},
          "cwd": str(ROOT)},
+        {"tool_name": "mcp__claude-artifacts__publish_files", "cwd": str(ROOT),
+         "tool_input": {"files": [{"as": "index.html", "path": str(ROOT / "docs" / "x.html")}]}},
+        {"tool_name": "mcp__claude-artifacts__upload_asset", "cwd": str(ROOT),
+         "tool_input": {"slug": "x", "files": [{"name": "a.png", "path": str(ROOT / "docs" / "a.png")}]}},
         # From the scoped re-test of 3 November 2026: set checks, reads, caches and pipes
         powershell("Test-Path Env:\\ANTHROPIC_API_KEY"),
         powershell("[Environment]::GetEnvironmentVariable('ANTHROPIC_API_KEY', 'User') -ne $null"),

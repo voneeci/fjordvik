@@ -45,8 +45,6 @@ Parts: data, mcp, powerbi, power-automate, service-ai
 - `docs/process-map.html`: the reporting process map, also published on GitHub Pages.
 - `docs/handover/*.md`: handover notes, named `YYYY-MM-DD-fjordvik-<topic>.md`.
 - `docs/learning/service-ai.md`: the service AI learning notes, one section per phase.
-- `docs/learning/phase1-service-data.md`: waiting to be merged into `service-ai.md`.
-- `docs/learning/phase2-forecast.md`: waiting to be merged into `service-ai.md`.
 
 ## The standard shape of every part
 

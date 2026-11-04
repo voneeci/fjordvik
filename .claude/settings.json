@@ -29,7 +29,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash|PowerShell|Monitor|mcp__terminal__run_in_terminal|Read|Grep|Edit|Write|NotebookEdit|Artifact|SendUserFile",
+        "matcher": "Bash|PowerShell|Monitor|mcp__terminal__run_in_terminal|Read|Grep|Edit|Write|NotebookEdit|Artifact|SendUserFile|mcp__claude-artifacts__publish_files|mcp__claude-artifacts__upload_asset",
         "hooks": [
           {
             "type": "command",
