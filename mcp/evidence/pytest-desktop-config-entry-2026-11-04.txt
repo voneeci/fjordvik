@@ -1,0 +1,5 @@
+# mcp tests, 4 November 2026, commit 66aca55 (main), after writing the fjordvik entry to Claude Desktop's Claude-Data config
+# command: .venv\Scripts\python -m pytest -q (from mcp)
+........................................................................ [ 86%]
+...........                                                              [100%]
+83 passed in 31.65s
