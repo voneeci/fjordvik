@@ -1,0 +1,14 @@
+validation backtest: max origin 2024-11 max target with an actual 2024-11 rows 3024
+validation drivers: max known_from 2024-12-01 max actual month 2024-11
+test drivers: rows 2824 known_from after forecast_date 0 missing known_from 0
+kinds by month vs origin: {('actual', False), ('forecast', True)}
+stamp columns in each csv:
+  backtest_forecasts.csv {'data_sha256': ['379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68'], 'commit': ['4e524c787812886a0e56f20a1757a96f98391f02'], 'model_version': ['forecast-1.0.0'], 'data_basis': ['synthetic data with planted signals']}
+  drivers.csv {'data_sha256': ['379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68'], 'commit': ['4e524c787812886a0e56f20a1757a96f98391f02'], 'model_version': ['forecast-1.0.0'], 'data_basis': ['synthetic data with planted signals']}
+  forecast_2026h1.csv {'data_sha256': ['379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68'], 'commit': ['4e524c787812886a0e56f20a1757a96f98391f02'], 'model_version': ['forecast-1.0.0'], 'data_basis': ['synthetic data with planted signals']}
+  metrics_by_origin.csv {'data_sha256': ['379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68'], 'commit': ['4e524c787812886a0e56f20a1757a96f98391f02'], 'model_version': ['forecast-1.0.0'], 'data_basis': ['synthetic data with planted signals']}
+  metrics_by_series.csv {'data_sha256': ['379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68'], 'commit': ['4e524c787812886a0e56f20a1757a96f98391f02'], 'model_version': ['forecast-1.0.0'], 'data_basis': ['synthetic data with planted signals']}
+  validation\backtest_forecasts.csv {'data_sha256': ['379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68'], 'commit': ['71a13e4cc1dd815352e111f53a5abe67ddf6e3ef'], 'model_version': ['forecast-1.0.0'], 'data_basis': ['synthetic data with planted signals']}
+  validation\drivers.csv {'data_sha256': ['379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68'], 'commit': ['71a13e4cc1dd815352e111f53a5abe67ddf6e3ef'], 'model_version': ['forecast-1.0.0'], 'data_basis': ['synthetic data with planted signals']}
+  validation\metrics_by_origin.csv {'data_sha256': ['379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68'], 'commit': ['71a13e4cc1dd815352e111f53a5abe67ddf6e3ef'], 'model_version': ['forecast-1.0.0'], 'data_basis': ['synthetic data with planted signals']}
+  validation\metrics_by_series.csv {'data_sha256': ['379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68'], 'commit': ['71a13e4cc1dd815352e111f53a5abe67ddf6e3ef'], 'model_version': ['forecast-1.0.0'], 'data_basis': ['synthetic data with planted signals']}

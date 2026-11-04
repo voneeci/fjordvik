@@ -67,8 +67,10 @@ forecast, part recommendations and manual search. Each capability comes with a
 plain-English note on its method, how the code applies it, its result against the pass
 mark, and what would change with live data.
 
-**Status, 2 November 2026:** the service data is generated and tested (phase 1). The seven
-capabilities follow in the order of the table.
+**Status, 3 November 2026:** the service data is generated and tested (phase 1), and the
+demand forecast (capability 1, phase 2) meets its pass marks at Oulu on synthetic data
+([learning note](docs/learning/phase2-forecast.md)). The other capabilities follow in the
+order of the table.
 
 ## The parts
 
@@ -78,7 +80,7 @@ capabilities follow in the order of the table.
 | [`mcp`](mcp) | A Model Context Protocol (MCP) server that gives Claude read-only tools over the data (Python, DuckDB), in Claude Desktop or over HTTP with sign-in and per-role access | 83 |
 | [`powerbi`](powerbi) | A Power BI Project: one semantic model in Tabular Model Definition Language (TMDL), 134 Data Analysis Expressions (DAX) measures, seven row-level security roles, and two reports on it (emissions, 10 pages; portfolio, 7 pages) | 733 (154 need Power BI Desktop open) |
 | [`power-automate`](power-automate) | Power Automate intake and reminder flows with ten written rules, designed and tested offline | 30 |
-| [`service-ai`](service-ai) | The seven AI capabilities above, each with its test set, results and pass mark (Python); being built, phase by phase | 6 |
+| [`service-ai`](service-ai) | The seven AI capabilities above, each with its test set, results and pass mark (Python); being built, phase by phase | 27 |
 
 Every part also runs the project's guardrail checks. The master rules are in
 [GUARDRAILS.md](GUARDRAILS.md): synthetic data only, data changed only through the
@@ -153,7 +155,7 @@ no account or company system. The data is synthetic, so nothing needs a login.
 
 | Software | Needed for | Where to get it |
 | --- | --- | --- |
-| Python 3.10 or newer | The tests and the data generator in every folder | [python.org](https://www.python.org/downloads/) (tick **Add python.exe to PATH** when installing) |
+| Python 3.11 or newer | The tests and the data generator in every folder (3.10 is enough for every part except service-ai) | [python.org](https://www.python.org/downloads/) (tick **Add python.exe to PATH** when installing) |
 | Git (optional) | Downloading with `git clone` | [git-scm.com](https://git-scm.com/downloads), or use Download ZIP instead |
 | Power BI Desktop (optional, free) | Opening the report and running the live measure tests | Microsoft Store |
 | Claude Desktop (optional) | Asking Claude questions through the connector | [claude.ai/download](https://claude.ai/download) |
@@ -223,7 +225,7 @@ python -m venv .venv
 ```
 
 Each should end with a line such as `96 passed`: 96 for data, 83 for mcp, 30 for
-power-automate, 6 for service-ai, and 579 for powerbi (with 154 skipped until
+power-automate, 27 for service-ai, and 579 for powerbi (with 154 skipped until
 Power BI Desktop is open).
 On macOS or Linux, use `.venv/bin/python` in place of `.venv\Scripts\python`.
 

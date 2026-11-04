@@ -29,5 +29,7 @@ this file.
 
 ```bash
 .venv\Scripts\python -m pip install -e ".[dev]"
-.venv\Scripts\python -m pytest -q        # 6 tests
+.venv\Scripts\python -m pytest -q        # 27 tests
+.venv\Scripts\python scripts\run_forecast.py --period test   # phase 2, needs the split lock
+.venv\Scripts\python scripts\recheck_forecast.py             # independent MASE recheck
 ```

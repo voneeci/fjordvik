@@ -41,16 +41,48 @@ result, and what would change with live data.
 
 | Phase | Capability | Pass mark | Status |
 | --- | --- | --- | --- |
-| 2 | Spare parts demand forecast | Beats seasonal naive on mean absolute scaled error (MASE); 80% ranges hold 70 to 90% of actuals | Not started |
+| 2 | Spare parts demand forecast | Beats seasonal naive and the best simple forecast on mean absolute scaled error (MASE); 80% ranges hold 70 to 90% of actuals | Met at Oulu, 3 November 2026 (below); Tartu too new to test |
 | 3 | Anomaly detection and failure prediction | At least 3 times a dummy model's average precision; catches at least 60% of warned failures; cheaper than visiting all pumps or none | Not started |
 | 4 | Technician scheduling | Breaks no constraint; cheaper than the simple rule in at least 9 of 10 weeks | Not started |
 | 5 | Parts recommendations | Beats most-popular on hit rate at 5; never suggests a part that does not fit | Not started |
 | 6 | Service assistant (retrieval-augmented generation) | Right section in the top 5 for 90% of answerable questions; "not found" for every unanswerable one | Not started |
 | 7 | Service desk agent | At least 57 of 60 scenario runs correct; nothing applied without approval; planted instructions never followed | Not started |
 
+## Phase 2: the spare parts demand forecast
+
+Planners at Oulu and Tartu warehouses get a monthly forecast in units for each of the
+eight part families, three and six months ahead, with an 80% range. It is tested on
+rolling origins against three simple forecasts (naive, seasonal naive and a moving
+average), with the evaluation dates and pass marks committed before the code
+([`eval/forecast/`](eval/forecast)). The driver model is a Poisson regression on the
+connected fleet's running hours and age, using each driver only as it was known on the
+forecast date. The method and its limits are in the learning note,
+[`docs/learning/phase2-forecast.md`](../docs/learning/phase2-forecast.md).
+
+Result at Oulu on the test period (January to December 2025), measured on synthetic data
+with planted signals. Lower MASE is better:
+
+| Oulu | Origins | Seasonal naive | Best simple forecast (6-month moving average) | Driver model | Driver 80% coverage |
+| --- | --- | --- | --- | --- | --- |
+| 3-month forecast | 10 | 1.25 | 1.06 | 0.98 | 84% |
+| 6-month forecast | 7 | 1.16 | 1.08 | 1.00 | 84% |
+
+Both pass marks are met at both lengths, by a small margin. Tartu opened in July 2024, so
+it has one test origin, below the minimum of six: it is reported apart, with a forward
+forecast and no accuracy claim. Full results, per origin and per family, are in
+[`results/forecast/`](results/forecast), each file stamped with the data checksum, the
+commit and the model version.
+
+To rerun it (the test step refuses to run without the committed split lock):
+
+```powershell
+.venv\Scripts\python scripts\run_forecast.py --period test
+.venv\Scripts\python scripts\recheck_forecast.py
+```
+
 ## How to run the tests
 
-You need Python 3.10 or newer. From this folder:
+You need Python 3.11 or newer. From this folder:
 
 ```powershell
 python -m venv .venv
@@ -58,8 +90,10 @@ python -m venv .venv
 .venv\Scripts\python -m pytest -q
 ```
 
-Today the tests check that the shared data matches its manifest, and run the project's
-guardrail checks ([GUARDRAILS.md](../GUARDRAILS.md)). No key or network is needed.
+27 tests check that the shared data matches its manifest, run the project's guardrail
+checks ([GUARDRAILS.md](../GUARDRAILS.md)), and test the forecast: point-in-time drivers,
+rolling origins and the split lock, the scores, the stamped results and the independent
+recheck. No key or network is needed.
 
 ## Guardrails
 

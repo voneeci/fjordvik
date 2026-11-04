@@ -1,0 +1,37 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.7, pytest-9.2.0, pluggy-1.7.0 -- C:\Users\reece\Projects\fjordvik\service-ai\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\reece\Projects\fjordvik\service-ai
+configfile: pyproject.toml
+testpaths: tests
+collecting ... collected 27 items
+
+tests/test_data.py::test_shared_files_match_manifest_checksums PASSED    [  3%]
+tests/test_data.py::test_service_ai_reads_the_shared_data_folder PASSED  [  7%]
+tests/test_forecast_checks.py::test_empty_input_raises PASSED            [ 11%]
+tests/test_forecast_checks.py::test_missing_value_raises PASSED          [ 14%]
+tests/test_forecast_checks.py::test_duplicate_key_raises PASSED          [ 18%]
+tests/test_forecast_demand.py::test_monthly_units_add_up_to_the_order_lines PASSED [ 22%]
+tests/test_forecast_drivers.py::test_rebuilding_with_later_rows_deleted_changes_no_driver PASSED [ 25%]
+tests/test_forecast_drivers.py::test_changing_later_data_moves_no_forecast PASSED [ 29%]
+tests/test_forecast_drivers.py::test_every_driver_value_was_known_by_the_forecast_date PASSED [ 33%]
+tests/test_forecast_metrics.py::test_benchmarks_on_a_toy_series PASSED   [ 37%]
+tests/test_forecast_metrics.py::test_the_backtest_scales_by_training_months_only PASSED [ 40%]
+tests/test_forecast_metrics.py::test_coverage_and_winkler_on_toy_values PASSED [ 44%]
+tests/test_forecast_metrics.py::test_an_interval_uses_only_errors_already_known_at_its_origin PASSED [ 48%]
+tests/test_forecast_results.py::test_independent_recheck_matches_the_saved_mase PASSED [ 51%]
+tests/test_forecast_results.py::test_a_warehouse_below_the_minimum_is_reported_apart PASSED [ 55%]
+tests/test_forecast_results.py::test_every_results_file_is_stamped_and_says_synthetic PASSED [ 59%]
+tests/test_forecast_results.py::test_the_summary_carries_the_pass_marks_unchanged PASSED [ 62%]
+tests/test_forecast_results.py::test_two_runs_give_identical_metrics PASSED [ 66%]
+tests/test_forecast_results.py::test_committed_test_results_match_their_manifest_and_recheck PASSED [ 70%]
+tests/test_forecast_splits.py::test_each_origin_forecasts_only_months_after_its_training PASSED [ 74%]
+tests/test_forecast_splits.py::test_validation_gap_and_test_are_disjoint_and_in_order PASSED [ 77%]
+tests/test_forecast_splits.py::test_the_test_run_refuses_without_a_valid_lock PASSED [ 81%]
+tests/test_forecast_splits.py::test_settings_are_chosen_on_validation_origins_only PASSED [ 85%]
+tests/test_guardrails.py::test_repository_has_no_guardrail_findings PASSED [ 88%]
+tests/test_guardrails.py::test_guardrails_file_matches_its_fingerprint PASSED [ 92%]
+tests/test_guardrails.py::test_checker_catches_each_planted_breach PASSED [ 96%]
+tests/test_guardrails.py::test_claude_hook_blocks_breaches_and_allows_normal_work PASSED [100%]
+
+============================= 27 passed in 33.69s =============================

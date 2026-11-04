@@ -1,0 +1,14 @@
+## carriage returns per file: original checkout (Reece's working copy, read only) vs clean clone at 3ae1f0d
+results/forecast/summary.json original CR=141 clone CR=0
+results/forecast/README.md original CR=57 clone CR=0
+results/forecast/manifest.json original CR=34 clone CR=0
+results/forecast/metrics_by_series.csv original CR=0 clone CR=0
+results/forecast/validation/summary.json original CR=79 clone CR=0
+results/forecast/validation/manifest.json original CR=30 clone CR=0
+eval/forecast/evaluation.json original CR=0 clone CR=0
+eval/forecast/split_lock.json original CR=57 clone CR=0
+eval/forecast/test_runs.jsonl original CR=1 clone CR=0
+## evaluation.json sha256: clone 9841c411681d4dc8d240c15b71c867e0db5a1c7dabd88d272b9d05210cb614f1 original 9841c411681d4dc8d240c15b71c867e0db5a1c7dabd88d272b9d05210cb614f1; lock says 9841c411681d4dc8d240c15b71c867e0db5a1c7dabd88d272b9d05210cb614f1
+## validation manifest sha256: clone 942acf473f3b070280ac97b7fc491b6e3780eeae6cd41fb358aa29b418968496 original 1336099080404b0a00e2831dd716610ae5476a83ee3e53002a5d9caf49e377bb; lock says 1336099080404b0a00e2831dd716610ae5476a83ee3e53002a5d9caf49e377bb
+## original summary.json with CRs removed: 98037703557cda5b891f154b54ec45bc3ffa4f13d3458e55a0902cc3d6132838 (git blob 98037703...)
+## clone summary.json with LF turned into CRLF: bc986d602b6278503f1239350b5f80a2ab557d95ee409ad6490cdb65654cd442 (manifest bc986d60...)

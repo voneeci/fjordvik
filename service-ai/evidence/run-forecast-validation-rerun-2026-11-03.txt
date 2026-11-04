@@ -1,0 +1,9 @@
+Measured on synthetic data with planted signals: Fjordvik Manufacturing Oy is fictional; these are not results on real pumps or warehouses.
+settings: {'moving_average_window': 6, 'driver_model_season_term': False}
+EE02 3-month: origins 0, MASE None, driver coverage None
+EE02 6-month: origins 0, MASE None, driver coverage None
+FI03 3-month: origins 6, MASE {'naive': 1.6030520952065002, 'seasonal_naive': 1.6388896220024907, 'moving_average_w6': 1.1899024220988472, 'driver_base': 1.4773421013926333}, driver coverage 0.7083333333333334
+FI03 6-month: origins 3, MASE {'naive': 1.7517335695802083, 'seasonal_naive': 1.943159591851339, 'moving_average_w6': 1.3712285961168447, 'driver_base': 1.7840753039443478}, driver coverage 0.5
+candidates (overall 6-month MASE on validation): {'driver_base': 1.7840753039443478, 'driver_season': 1.805277296630606, 'moving_average_w12': 1.4657847085207139, 'moving_average_w3': 1.422473846280275, 'moving_average_w6': 1.3712285961168447, 'naive': 1.7517335695802083, 'seasonal_naive': 1.943159591851339}
+chosen: {'moving_average_window': 6, 'driver_model_season_term': False}; lock settings_sha256 a3243708a0459856969cf981f019c78dfdab02e2636b7a7c54821aab265ff81d
+wrote 6 files to C:\Users\reece\Projects\fjordvik\service-ai\results\forecast\validation and C:\Users\reece\Projects\fjordvik\service-ai\eval\forecast\split_lock.json

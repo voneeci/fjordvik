@@ -7,10 +7,16 @@ name = "fjordvik-service"
 version = "0.1.0"
 description = "After-sales service AI for Fjordvik Manufacturing Oy, a fictional company: forecasting, machine learning, scheduling, recommendations, a service assistant and an agent, on synthetic data."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
-# Each phase adds the libraries it needs (see README.md, "The build").
-dependencies = []
+# Each phase adds the libraries it needs (see README.md, "The build"), pinned to a minor
+# range so results reproduce (phase rule G10). Phase 2: the demand forecast.
+dependencies = [
+    "numpy>=2.5,<2.6",
+    "pandas>=3.1,<3.2",
+    "scipy>=1.18,<1.19",
+    "statsmodels>=0.14.6,<0.15",
+]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
@@ -21,3 +27,5 @@ where = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+# statsmodels 0.14 uses a pandas helper that pandas 3.1 marks for removal; harmless here.
+filterwarnings = ["ignore::DeprecationWarning:statsmodels", "ignore:Appender is deprecated"]

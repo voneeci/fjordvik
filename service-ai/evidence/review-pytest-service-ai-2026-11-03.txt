@@ -1,0 +1,21 @@
+3ae1f0de00e4c893a2623d06c66544b464a7500c
+..................F........                                              [100%]
+================================== FAILURES ===================================
+________ test_committed_test_results_match_their_manifest_and_recheck _________
+
+data_dir = WindowsPath('C:/Users/reece/Projects/quality-checks/work/fjordvik-phase2-review/data/tables')
+
+    @pytest.mark.skipif(not (COMMITTED / "summary.json").exists(), reason="before the locked test run")
+    def test_committed_test_results_match_their_manifest_and_recheck(data_dir):
+        manifest = json.loads((COMMITTED / "manifest.json").read_text(encoding="utf-8"))
+        for name, info in manifest["files"].items():
+>           assert sha256_file(COMMITTED / name) == info["sha256"], name
+E           AssertionError: summary.json
+E           assert '98037703557c...02cc3d6132838' == 'bc986d602b62...cdb65654cd442'
+E             
+E             - bc986d602b6278503f1239350b5f80a2ab557d95ee409ad6490cdb65654cd442
+E             + 98037703557cda5b891f154b54ec45bc3ffa4f13d3458e55a0902cc3d6132838
+
+tests\test_forecast_results.py:111: AssertionError
+1 failed, 26 passed in 64.56s (0:01:04)
+exit 1

@@ -1,0 +1,42 @@
+{
+  "data_sha256": "379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68",
+  "commit": "d7d236149e0dec30c1b568a2541557b803bbf87a",
+  "model_version": "forecast-1.0.0",
+  "data_basis": "synthetic data with planted signals",
+  "environment": {
+    "python": "3.14.7",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "scipy": "1.18.1",
+    "statsmodels": "0.14.6",
+    "patsy": "1.0.3"
+  },
+  "files": {
+    "backtest_forecasts.csv": {
+      "rows": 4992,
+      "sha256": "b8eee6fdbae6f30da70ced8c69fa86bfeec1a0bafd43ab2fdbe0606d9a1d0781"
+    },
+    "metrics_by_series.csv": {
+      "rows": 160,
+      "sha256": "d9fe7087faa8dd6f75f531d6811039a0c9ff1eda3a414a901a0223adc33894c8"
+    },
+    "metrics_by_origin.csv": {
+      "rows": 108,
+      "sha256": "434668ed68d20b664f02d7aa044a9367d3acdef4eb9621fbfb523a46774061c5"
+    },
+    "drivers.csv": {
+      "rows": 2824,
+      "sha256": "22e0d254c385dbbe10aeb5fe08f6743a741642751a51630732def1fd1ca89ef1"
+    },
+    "forecast_2026h1.csv": {
+      "rows": 384,
+      "sha256": "351e556d3ceaa880fa6c8939f9c53b1cb6448db3627f73abcb4ce37ef780161f"
+    },
+    "summary.json": {
+      "sha256": "63d76f9bb44eda3fe8728d602d79c8c3fc69b5cd9d3b54c9520ee14c5df8c94a"
+    },
+    "README.md": {
+      "sha256": "a45cdb1e98b44155f03f57fb9956ddbe1d9e536088abd3e238eb6cb2f4ed5828"
+    }
+  }
+}

@@ -1,0 +1,206 @@
+## git log with dates
+3ae1f0d 2026-11-03 12:58:20 +0200 Reece Venema Phase 2 handover: spare parts demand forecast
+bce2ea8 2026-11-03 12:57:30 +0200 Reece Venema service-ai phase 2: locked test run, results, evidence and the learning note
+4e524c7 2026-11-03 12:48:39 +0200 Reece Venema service-ai phase 2: validation results and the split lock, before the test run
+71a13e4 2026-11-03 12:48:03 +0200 Reece Venema service-ai phase 2: forecast code and tests
+72551d0 2026-11-03 12:47:42 +0200 Reece Venema service-ai phase 2: forecast evaluation set and pass marks, before any code
+## files in 72551d0
+72551d0 service-ai phase 2: forecast evaluation set and pass marks, before any code
+Read phase-rules.md: Every phase, Phase 2.
+
+Fixes the phase 2 evaluation before the forecast code is committed (GUARDRAILS.md A9, E1;
+phase rules F1, F2, D15, G10, W8): demand per warehouse and part family from every order
+line; origins with at least 15 training months; validation targets April to November
+2024, a gap month in December 2024 (E1), test targets January to December 2025; a minimum
+of 6 test origins per warehouse; the candidate settings chosen on validation only; and
+Reece's pass marks (driver model's mean MASE below seasonal naive's and the best
+benchmark's; 80% intervals cover 70 to 90% of actuals), unchanged.
+
+service-ai/.gitattributes keeps eval/ and results/ in Unix line endings, so their
+checksums hold on every checkout. Synthetic data only.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+
+ service-ai/.gitattributes                |   4 ++
+ service-ai/eval/forecast/README.md       |  29 +++++++++
+ service-ai/eval/forecast/evaluation.json | 100 +++++++++++++++++++++++++++++++
+ 3 files changed, 133 insertions(+)
+## files in 71a13e4
+71a13e4 service-ai phase 2: forecast code and tests
+The forecast package (src/fjordvik_service/forecast/): monthly demand per warehouse and
+part family, regional fleet drivers as known at each forecast date, naive, seasonal naive
+and moving-average benchmarks, a Poisson driver model, rolling backtest intervals, MASE,
+coverage and Winkler scores, stamped results and the split lock. scripts/run_forecast.py
+runs validation (writes the lock) and the locked test run; scripts/recheck_forecast.py
+recomputes MASE independently with the standard library.
+
+21 new tests (D15, D11, F1, F2, E1, G10, W8). Libraries pinned to a minor range;
+requires Python 3.11 (pandas 3.1). statsmodels' GLM is imported directly because this
+laptop's Windows Application Control blocks one statsmodels compiled file.
+
+The evaluation set was committed first (72551d0). Synthetic data only.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+
+ service-ai/pyproject.toml                          |  14 +-
+ service-ai/scripts/recheck_forecast.py             | 122 +++++++++++
+ service-ai/scripts/run_forecast.py                 | 125 +++++++++++
+ .../src/fjordvik_service/forecast/__init__.py      |   7 +
+ .../src/fjordvik_service/forecast/backtest.py      | 239 +++++++++++++++++++++
+ .../src/fjordvik_service/forecast/benchmarks.py    |  31 +++
+ service-ai/src/fjordvik_service/forecast/checks.py |  37 ++++
+ service-ai/src/fjordvik_service/forecast/demand.py |  72 +++++++
+ .../src/fjordvik_service/forecast/drivers.py       | 119 ++++++++++
+ .../src/fjordvik_service/forecast/intervals.py     |  38 ++++
+ service-ai/src/fjordvik_service/forecast/lock.py   |  41 ++++
+ .../src/fjordvik_service/forecast/metrics.py       |  37 ++++
+ service-ai/src/fjordvik_service/forecast/model.py  |  53 +++++
+ service-ai/src/fjordvik_service/forecast/report.py | 175 +++++++++++++++
+ service-ai/src/fjordvik_service/forecast/splits.py |  59 +++++
+ service-ai/src/fjordvik_service/forecast/stamps.py |  48 +++++
+ service-ai/tests/conftest.py                       |  27 +++
+ service-ai/tests/test_forecast_checks.py           |  27 +++
+ service-ai/tests/test_forecast_demand.py           |  16 ++
+ service-ai/tests/test_forecast_drivers.py          |  64 ++++++
+ service-ai/tests/test_forecast_metrics.py          |  68 ++++++
+ service-ai/tests/test_forecast_results.py          | 116 ++++++++++
+ service-ai/tests/test_forecast_splits.py           |  76 +++++++
+## files in 4e524c7
+4e524c7 service-ai phase 2: validation results and the split lock, before the test run
+scripts/run_forecast.py --period validation at 71a13e4, on data up to November 2024 only:
+every candidate setting backtested on the validation origins (Oulu; Tartu has none). Chosen
+on the lowest overall 6-month MASE: a 6-month moving average, and the driver model without
+a season term. eval/forecast/split_lock.json pins the dates, the hash of evaluation.json
+and the chosen settings (E1), committed before the first test run.
+
+The independent recheck matches all 112 saved series. Raw output in
+evidence/run-forecast-validation-2026-11-03.txt and
+evidence/recheck-forecast-validation-2026-11-03.txt. Measured on synthetic data with
+planted signals.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+
+ service-ai/eval/forecast/split_lock.json           |   57 +
+ .../recheck-forecast-validation-2026-11-03.txt     |   18 +
+ .../run-forecast-validation-2026-11-03.txt         |    9 +
+ service-ai/results/forecast/validation/README.md   |   40 +
+ .../results/forecast/validation/manifest.json      |   30 +
+ .../results/forecast/validation/summary.json       |   79 +
+ 10 files changed, 4354 insertions(+)
+## files in bce2ea8
+bce2ea8 service-ai phase 2: locked test run, results, evidence and the learning note
+scripts/run_forecast.py --period test at 4e524c7, once, with the split lock's settings
+(6-month moving average; driver model without a season term). Oulu, test period January
+to December 2025, mean MASE:
+- 3-month: driver 0.983; moving average 1.062; seasonal naive 1.253; naive 1.404;
+  driver 80% coverage 83.8% (201 of 240).
+- 6-month: driver 0.999; moving average 1.082; seasonal naive 1.159; naive 1.399;
+  driver 80% coverage 84.2% (283 of 336).
+Both pass marks met at both lengths (A9: unchanged since 72551d0). Tartu has 1 test origin,
+below the minimum of 6, so it is reported apart with a forward forecast and no accuracy
+claim. The independent recheck matches all 160 saved series.
+
+results/forecast/ holds the stamped results and their manifest (G10, W8);
+eval/forecast/test_runs.jsonl logs the run. Tests: service-ai 27, data 96, mcp 83,
+power-automate 30, powerbi 579 passed and 154 skipped; raw output in each part's
+evidence/pytest-forecast-2026-11-03.txt. check.py: no findings.
+
+Docs: docs/learning/phase2-forecast.md; service-ai/README.md (phase 2 result, Python
+3.11); root README.md (test count, status, Python 3.11). CLAUDE.md and
+service-ai/CLAUDE.md change only their test counts, so no running chat needs to restart.
+
+Measured on synthetic data with planted signals.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+
+ CLAUDE.md                                          |    2 +-
+ README.md                                          |   12 +-
+ data/evidence/pytest-forecast-2026-11-03.txt       |    3 +
+ docs/learning/phase2-forecast.md                   |  135 +
+ mcp/evidence/pytest-forecast-2026-11-03.txt        |    3 +
+ .../evidence/pytest-forecast-2026-11-03.txt        |    2 +
+ powerbi/evidence/pytest-forecast-2026-11-03.txt    |   12 +
+ service-ai/CLAUDE.md                               |    4 +-
+ service-ai/README.md                               |   42 +-
+ service-ai/eval/forecast/test_runs.jsonl           |    1 +
+ service-ai/evidence/pytest-forecast-2026-11-03.txt |   37 +
+ .../evidence/recheck-forecast-2026-11-03.txt       |   24 +
+ .../evidence/run-forecast-test-2026-11-03.txt      |    8 +
+ service-ai/results/forecast/README.md              |   57 +
+## files in 3ae1f0d
+3ae1f0d Phase 2 handover: spare parts demand forecast
+Commits bce2ea8 and earlier on service-ai/phase2-forecast; read at 73604c6. Synthetic data only.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+
+ .../2026-11-03-fjordvik-phase2-forecast.md         | 106 +++++++++++++++++++++
+ 1 file changed, 106 insertions(+)
+## evaluation.json diff 72551d0..3ae1f0d
+(end)
+## src/scripts/tests/pyproject changes 71a13e4..3ae1f0d
+(end)
+## lock
+{
+  "rule": "E1: dates fixed before building; settings chosen on validation only; written before the first test run",
+  "evaluation_sha256": "9841c411681d4dc8d240c15b71c867e0db5a1c7dabd88d272b9d05210cb614f1",
+  "periods": {
+    "training_only": {
+      "first_month": "2023-01",
+      "last_month": "2024-03"
+    },
+    "validation": {
+      "first_target_month": "2024-04",
+      "last_target_month": "2024-11"
+    },
+    "gap": {
+      "months": [
+        "2024-12"
+      ],
+      "rule": "E1: never a scored target month in either period"
+    },
+    "test": {
+      "first_target_month": "2025-01",
+      "last_target_month": "2025-12"
+    },
+    "forward": {
+      "origin": "2025-12",
+      "target_months": [
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-06"
+      ]
+    }
+  },
+  "settings": {
+    "moving_average_window": 6,
+    "driver_model_season_term": false
+  },
+  "settings_sha256": "a3243708a0459856969cf981f019c78dfdab02e2636b7a7c54821aab265ff81d",
+  "chosen_from": {
+    "period": "validation",
+    "origins": [
+      "2024-03",
+      "2024-04",
+      "2024-05",
+      "2024-06",
+      "2024-07",
+      "2024-08"
+    ]
+  },
+  "data_sha256": "379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68",
+  "commit": "71a13e4cc1dd815352e111f53a5abe67ddf6e3ef",
+  "model_version": "forecast-1.0.0",
+  "data_basis": "synthetic data with planted signals",
+  "validation_manifest_sha256": "1336099080404b0a00e2831dd716610ae5476a83ee3e53002a5d9caf49e377bb",
+  "written": "2026-11-03"
+}
+## run log
+{"time": "2026-11-03T10:48:55+00:00", "commit": "4e524c787812886a0e56f20a1757a96f98391f02", "data_sha256": "379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68", "settings_sha256": "a3243708a0459856969cf981f019c78dfdab02e2636b7a7c54821aab265ff81d", "metrics_by_series_sha256": "73dac21880b925fad275f24d31f2a32e97d9ada0202764b481511330de4820de"}

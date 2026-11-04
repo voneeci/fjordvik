@@ -1,0 +1,83 @@
+{
+  "data_sha256": "379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68",
+  "commit": "12a43b7f5bd5c842557ac1d9e61a8c07a4121815",
+  "model_version": "forecast-1.0.0",
+  "data_basis": "synthetic data with planted signals",
+  "period": "validation",
+  "statement": "Measured on synthetic data with planted signals: Fjordvik Manufacturing Oy is fictional; these are not results on real pumps or warehouses.",
+  "settings": {
+    "moving_average_window": 6,
+    "driver_model_season_term": false
+  },
+  "benchmarks": [
+    "naive",
+    "seasonal_naive",
+    "moving_average_w6"
+  ],
+  "driver_model": "driver_base",
+  "minimum_test_origins": 6,
+  "pass_marks": {
+    "set_by": "Reece, phase 2 prompt, 3 November 2026; never changed to pass (A9)",
+    "scope": "test origins; warehouses meeting the minimum; judged for both the 3-month and the 6-month forecast",
+    "mase": "driver model's overall MASE is below seasonal naive's and below the lowest overall MASE of naive, seasonal naive and moving average",
+    "coverage": {
+      "low": 0.7,
+      "high": 0.9,
+      "of": "driver model's 80% intervals, pooled over test origins, series and horizons"
+    }
+  },
+  "environment": {
+    "python": "3.14.7",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "scipy": "1.18.1",
+    "statsmodels": "0.14.6",
+    "patsy": "1.0.3"
+  },
+  "warehouses": {
+    "EE02": {
+      "3-month": {
+        "origins": 0
+      },
+      "6-month": {
+        "origins": 0
+      }
+    },
+    "FI03": {
+      "3-month": {
+        "origins": 6,
+        "mase": {
+          "naive": 1.6030520952065002,
+          "seasonal_naive": 1.6388896220024907,
+          "moving_average_w6": 1.1899024220988472,
+          "driver_base": 1.4773421013926333
+        },
+        "best_benchmark": "moving_average_w6",
+        "driver_coverage": 0.7083333333333334,
+        "driver_intervals": 72
+      },
+      "6-month": {
+        "origins": 3,
+        "mase": {
+          "naive": 1.7517335695802083,
+          "seasonal_naive": 1.943159591851339,
+          "moving_average_w6": 1.3712285961168447,
+          "driver_base": 1.7840753039443478
+        },
+        "best_benchmark": "moving_average_w6",
+        "driver_coverage": 0.5,
+        "driver_intervals": 8
+      }
+    }
+  },
+  "candidates_overall_mase_6_month": {
+    "driver_base": 1.7840753039443478,
+    "driver_season": 1.805277296630606,
+    "moving_average_w12": 1.4657847085207139,
+    "moving_average_w3": 1.422473846280275,
+    "moving_average_w6": 1.3712285961168447,
+    "naive": 1.7517335695802083,
+    "seasonal_naive": 1.943159591851339
+  },
+  "data_used_up_to": "2024-11"
+}

@@ -1,0 +1,65 @@
+{
+  "rule": "E1: dates fixed before building; settings chosen on validation only; written before the first test run",
+  "evaluation_sha256": "9841c411681d4dc8d240c15b71c867e0db5a1c7dabd88d272b9d05210cb614f1",
+  "periods": {
+    "training_only": {
+      "first_month": "2023-01",
+      "last_month": "2024-03"
+    },
+    "validation": {
+      "first_target_month": "2024-04",
+      "last_target_month": "2024-11"
+    },
+    "gap": {
+      "months": [
+        "2024-12"
+      ],
+      "rule": "E1: never a scored target month in either period"
+    },
+    "test": {
+      "first_target_month": "2025-01",
+      "last_target_month": "2025-12"
+    },
+    "forward": {
+      "origin": "2025-12",
+      "target_months": [
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-06"
+      ]
+    }
+  },
+  "settings": {
+    "moving_average_window": 6,
+    "driver_model_season_term": false
+  },
+  "settings_sha256": "a3243708a0459856969cf981f019c78dfdab02e2636b7a7c54821aab265ff81d",
+  "chosen_from": {
+    "period": "validation",
+    "origins": [
+      "2024-03",
+      "2024-04",
+      "2024-05",
+      "2024-06",
+      "2024-07",
+      "2024-08"
+    ]
+  },
+  "data_sha256": "379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68",
+  "commit": "12a43b7f5bd5c842557ac1d9e61a8c07a4121815",
+  "model_version": "forecast-1.0.0",
+  "data_basis": "synthetic data with planted signals",
+  "environment": {
+    "python": "3.14.7",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "scipy": "1.18.1",
+    "statsmodels": "0.14.6",
+    "patsy": "1.0.3"
+  },
+  "validation_manifest_sha256": "d615bead58c91af76186c41799e05ce7e0a21ecea649458f71da3485fbd61a3f",
+  "written": "2026-11-03"
+}
