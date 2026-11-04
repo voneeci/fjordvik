@@ -58,8 +58,8 @@ def test_checker_catches_each_planted_breach(tmp_path):
         "- `**`: an example before the Parts line, which must not count\n\n"
         "Parts: part\n\n- `*.md`: x\n- `*.py`: x\n- `*.txt`: x\n- `GUARDRAILS.sha256`: x\n"
         "- `.env.example`: x\n- `guardrails/*`: x\n- `guardrails/evidence/*`: x\n"
-        "- `<part>/evidence/*`: x\n- `docs/handover/*.md`: x\n- `guardrails/proposals/*.md`: x\n"
-        "- `<part>/src/**/*.py`: x\n", encoding="utf-8")
+        "- `<part>/evidence/*`: x\n- `docs/handover/*.md`: x\n- `docs/learning/*.md`: x\n"
+        "- `guardrails/proposals/*.md`: x\n- `<part>/src/**/*.py`: x\n", encoding="utf-8")
     (tmp_path / "guardrails" / "proposals").mkdir()
     (tmp_path / "guardrails" / "proposals" / "2026-11-02-x.md").write_text("x\n", encoding="utf-8")
     (tmp_path / "part" / "src" / "scratch").mkdir(parents=True)
@@ -69,6 +69,9 @@ def test_checker_catches_each_planted_breach(tmp_path):
     (tmp_path / "scratch-notes.md").write_text("notes\n", encoding="utf-8")
     (tmp_path / "docs" / "handover").mkdir(parents=True)
     (tmp_path / "docs" / "handover" / "notes.md").write_text("notes\n", encoding="utf-8")
+    (tmp_path / "docs" / "learning").mkdir()
+    (tmp_path / "docs" / "learning" / "phase3-x.md").write_text("notes\n", encoding="utf-8")
+    (tmp_path / "docs" / "learning" / "service-ai.md").write_text("notes\n", encoding="utf-8")
     (tmp_path / "guardrails" / "evidence").mkdir()
     (tmp_path / "guardrails" / "evidence" / "run.txt").write_text("1 passed\n", encoding="utf-8")
     (tmp_path / "guardrails" / "check.py").write_text("# x\n", encoding="utf-8")
@@ -96,6 +99,8 @@ def test_checker_catches_each_planted_breach(tmp_path):
     assert "pytest-x-2026-11-02.txt" not in found and "L1 (root)" not in found
     assert "L5 scratch-notes.md" in found
     assert "L3 docs/handover/notes.md" in found
+    assert "L3 docs/learning/phase3-x.md" in found
+    assert "L3 docs/learning/service-ai.md" not in found
     assert "L4 guardrails/evidence/run.txt" in found
     assert "L4 part/evidence/pytest-x-2026-13-45.txt" in found
     assert "guardrails/check.py: not fingerprinted" in found

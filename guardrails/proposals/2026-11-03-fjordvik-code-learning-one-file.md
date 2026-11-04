@@ -27,3 +27,11 @@ with a tab per phase for reading.
 updates the links in `README.md`, `service-ai/README.md` and `service-ai/CLAUDE.md` (which
 says each phase ends with `docs/learning/phase<N>-<topic>.md`). Handover notes already
 committed keep the old paths they cite, since git history still holds those files.
+
+## Outcome
+
+Adopted by Attena on 4 November 2026 (Reece approved, in the Attena chat), with the wording
+above in L3 and the layout map, and a planted-breach case in `shared_tests.py`. One addition:
+until a code chat merges the notes, `check.py` and the map also accept
+`phase1-service-data.md` and `phase2-forecast.md` by name, so they keep passing. A new
+`phase<N>` file now fails. Once the notes are merged, Attena removes those two names.

@@ -70,7 +70,8 @@ DATE = re.compile(r"(?<!\d)\d{4}-\d{2}-\d{2}(?!\d)")
 # L3: names in the folders that hold one kind of document each.
 DOCUMENT_NAMES = {
     "docs/handover": re.compile(r"^\d{4}-\d{2}-\d{2}-fjordvik-[a-z0-9-]+\.md$"),
-    "docs/learning": re.compile(r"^phase\d+-[a-z0-9-]+\.md$"),
+    # One file; the two older notes go from this pattern once they are merged into it.
+    "docs/learning": re.compile(r"^(service-ai|phase1-service-data|phase2-forecast)\.md$"),
     "guardrails/proposals": re.compile(r"^(\d{4}-\d{2}-\d{2}-[a-z0-9]+-[a-z0-9-]+|README)\.md$"),
 }
 # L5: names that look like scratch, temporary or backup files. Words a project needs

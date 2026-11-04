@@ -19,4 +19,5 @@ From Attena, 2 November 2026. For the service-ai chat. Attena does not edit that
 
 ## Outcome
 
-Open: waiting for the service-ai chat.
+Superseded on 4 November 2026 by `2026-11-03-fjordvik-code-learning-one-file.md`: the merge
+into `docs/learning/service-ai.md` rewrites that same line in `service-ai/CLAUDE.md`.
