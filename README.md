@@ -84,7 +84,7 @@ other capabilities follow in the order of the table.
 
 Every part also runs the project's guardrail checks. The master rules are in
 [GUARDRAILS.md](GUARDRAILS.md): synthetic data only, data changed only through the
-generator, no secrets, read-only connector tools, agents that draft and never act, and
+generator, no secrets, a read-only data server, agents that draft and never act, and
 evaluation sets fixed before building. Tests and a Claude Code hook enforce them
 ([guardrails/](guardrails)).
 
