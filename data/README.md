@@ -107,10 +107,11 @@ The full monthly process, step by step with owners and checks, is in the
 - **Parts orders add up to sales.** The order lines for spare parts and service kits are
   made by splitting each `fact_sales` row, so they match it in units and to the cent. No
   earlier table changed when the service data was added; a test pins all 22 checksums.
-- **Tested.** 96 automated tests check the schema, the data quality rules, the
+- **Tested.** 120 automated tests check the schema, the data quality rules, the
   value-chain, portfolio and service rules, that each planted extract problem is caught,
   that the business events below show in the data, the service manuals, the project's
-  guardrails, and that the files match their manifest.
+  guardrails, the failure prediction scenarios and planning costs, and that the files
+  match their manifest.
 
 ### What happened in the period
 
@@ -213,6 +214,24 @@ vibration and temperature. `parts_used` lists `part_id:quantity` pairs separated
 and the same parts appear as order lines with that `service_event_id`. Customer names are
 invented: any match with a real firm is chance, and such a name would be replaced.
 
+Each telemetry column has a schema entry (`TELEMETRY_SCHEMA` in
+`src/fjordvik_data/config.py`), and a test reads the table against it:
+
+| Column | Type | Unit | Allowed range | Allowed blanks |
+| --- | --- | --- | --- | --- |
+| `date_key` | Date as `YYYYMMDD` | Day, the local date in Europe/Helsinki | 1 January 2023 to 31 December 2025 | None |
+| `asset_id` | Text | None | An `asset_id` in `dim_asset` | None |
+| `running_hours` | Decimal | Hours in the day | 0 to 24 | None |
+| `vibration_mm_s` | Decimal | mm/s, RMS velocity | 0.3 to 25 | 2% of rows |
+| `bearing_temp_c` | Decimal | Degrees Celsius | -5 to 120 | 2% of rows |
+| `power_kw` | Decimal | kW, average while running | 0 to 1.5 times the model's rated kW | None |
+
+The day is the local date in Europe/Helsinki for every pump, so a Swedish pump's day
+starts an hour before its own midnight. `fjordvik_data.localdate.local_date` turns a
+timezone-aware timestamp into that date, and a test checks the 23-hour and 25-hour
+clock-change days of 2023 to 2025. A unit change needs a new column, never a silent
+change to one of these.
+
 `tco2e` is tonnes of carbon dioxide equivalent: `activity_amount × emission_factor / 1000`,
 with the factor in kilograms per unit, in every table that has it. New units:
 euros (`EUR`) for purchases and tonne-kilometres (`tonne-km`, tonnes moved times
@@ -257,7 +276,7 @@ quarantined for portfolio governance. All four planted issues appear in `fact_da
 | --- | --- |
 | dim_date | 36 |
 | dim_site | 6 |
-| dim_source | 13 |
+| dim_source | 14 |
 | fact_emissions | 1,422 |
 | fact_site_metrics | 198 |
 | dim_scope3_category | 15 |
@@ -284,8 +303,8 @@ quarantined for portfolio governance. All four planted issues appear in `fact_da
 | dim_technician | 12 |
 | fact_asset_telemetry | 582,996 (20 MB) |
 | fact_service_event | 2,554 |
-| fact_parts_order | 53,570 |
-| fact_portal_event | 39,600 |
+| fact_parts_order | 53,654 |
+| fact_portal_event | 39,725 |
 
 Total emissions (illustrative, location-based):
 
@@ -305,6 +324,63 @@ is the largest emitter overall (its large process pumps carry the most use-phase
 emissions), and Tallinn Plant has the largest scope 2, because Estonia's illustrative grid
 factor is the highest.
 
+### Scenarios and planning costs for failure prediction
+
+The service AI's failure prediction work needs to prove two things the tables alone
+can't show: that a model finds the planted warning signal and nothing else, and that a
+drift monitor notices a sensor that changes. It also needs the cost of acting on a
+wrong prediction. The generator builds all three, with the same seed as the tables.
+Everything here is synthetic.
+
+**Scenarios.** Each is a full copy of `fact_asset_telemetry` (582,996 rows, about
+20 MB), built on demand and never committed:
+
+| File | What changes |
+| --- | --- |
+| `control/fact_asset_telemetry.csv` | The warning rise is switched off for every failure, in every sensor. Every random draw is still made, so the readings differ from the tables only on the days a warning was building. Failures and service events are the same, so only the telemetry is written |
+| `drift_recalibration/fact_asset_telemetry.csv` | At 30 pumps, bearing temperature reads 3.0 C higher from each pump's own start day in August 2025, and stays higher |
+| `drift_unit_change/fact_asset_telemetry.csv` | At 40 pumps, vibration is reported in inches per second (mm/s divided by 25.4) from 6 October 2025, in the same column |
+| `drift_scenarios.csv` | Which pump changes, in which scenario, from which day: `asset_id`, `scenario`, `start_date`, `sensor`, `change` |
+
+The drift pumps have reported since 1 July 2024 or earlier, and each scenario picks them
+with its own random stream. Every scenario setting is Fjordvik's own input, in
+`src/fjordvik_data/config.py`. `scenarios/manifest.json` records each file's row count
+and SHA-256 checksum, the seed and the generator version, so a build can be checked
+before it is used.
+
+**Planning costs.** `scenarios/planning_inputs.json` holds two costs in euros per event,
+with their working and sources. Each is worked out from Fjordvik's own synthetic data
+times published rates:
+
+| Cost | Euros per event | How it is worked out |
+| --- | --- | --- |
+| A wasted visit: a technician inspects a pump that was not about to fail | 190.34 | Labour cost per hour × (round-trip travel hours + on-site hours) + van running cost per km × round-trip road km, for each pump, averaged over the 600 pumps |
+| A missed failure: the extra cost of a repair that was not planned | 892.44 (339.13 to 1,784.89) | (Ratio − 1) × planned repair cost, averaged over the 324 failure events. Planned repair cost is `labour_hours` × labour cost per hour + the list price of `parts_used` |
+
+| Input | Value | Kind |
+| --- | --- | --- |
+| Labour cost per hour worked, 2026, by the country the technician is based in | Finland 41.43, Sweden 45.74, Estonia 21.67, Latvia 16.18 euros | Published labour cost statistics for manufacturing (2025), moved to 2026 with the published labour cost index and scaled with the published earnings survey by occupation (2022). The figure is the midpoint of two occupation groups, worked out from the published figures and not itself published |
+| Van running cost | 0.225 euros per km | Published transport appraisal unit values, Finland, 2022 prices, moved to 2026 with the published consumer price index for transport running costs. Used for all four countries |
+| Unplanned to planned cost ratio | 2.0 (1.38 to 3.0) | Published federal maintenance guidance, programme cost per horsepower, 2010, and a published utility case study, 2007. A programme cost ratio, not a cost per event |
+| Travel speed | 60 km/h | Fjordvik's own planning input |
+| Road-distance factor | 1.3 road km per straight-line km | Fjordvik's own planning input |
+| On-site hours | 1.50 hours | The mean `labour_hours` of the 562 inspection events in `fact_service_event` |
+| Distance | 58.3 km one way on average | Straight-line km from the base of the nearest qualified technician to each pump, from the coordinates in `dim_technician` and `dim_asset` |
+
+All published rates were read on 11 November 2026. **The missed-failure cost covers
+Fjordvik's repair cost only.** The customer's downtime cost and expedited parts are left
+out, because no published figure was found for either. Labour is at 2026 cost and parts
+are at Fjordvik's 2023 list price.
+
+```bash
+python -m fjordvik_data.scenarios --out ../service-ai/build/ml-scenarios
+```
+
+This builds the four scenario files in a folder outside `data/` and checks them against
+`scenarios/manifest.json`. Adding `--record scenarios` also rewrites the manifest and the
+planning inputs; do that only after a change to the generator, and commit the two files
+with the code.
+
 ## How to run
 
 You need Python 3.10 or newer.
@@ -323,12 +399,12 @@ them against the SHA-256 checksums in `tables/manifest.json`.
 
 ```
 python -m pytest -q
-96 passed
+120 passed
 ```
 
-(2 November 2026; raw output in `evidence/pytest-service-data-2026-11-02.txt`. The 36 new
-tests cover the after-sales service tables, the service manuals and the project's
-guardrails.)
+(11 November 2026; raw output in `evidence/pytest-phase3-inputs-2026-11-11.txt`. The 24
+new tests cover the failure prediction scenarios, the two planning costs, the telemetry
+schema and the local date of a timestamp.)
 
 | Test file | What it proves |
 | --- | --- |
@@ -340,6 +416,9 @@ guardrails.)
 | `test_service.py` | Unique keys and joins in the service tables; customers and pumps sit in the service area at their GeoNames town; one telemetry row per pump and day; readings within physical ranges, blank only when the pump did not run; pumps installed in the period never exceed the units sold; every part fits the pump it serves; service parts appear as order lines; parts orders add up to `fact_sales` in units and to the cent; orders ship only from open warehouses; realised prices stay close to list; technicians have the skills and cover the country; five ranked parts per portal session |
 | `test_service_story.py` | The answer key matches the failure events; most failures warn and some never do; vibration or temperature rises before warned failures and not before the others; stopped pumps report no running; running hours follow the seasons; older pumps fail more often; bearing and impeller orders follow the fleet's running hours; bearing buyers also buy grease; portal clicks go to parts the customer then orders |
 | `test_corpus.py` | One manual per product group with equipment, plus the service terms and warranty policy; sections numbered in order; every part number exists and fits; alarm limits match the settings; every document says it is synthetic |
+| `test_scenarios.py` | Adding the scenarios moved nothing: the tables' manifest, the manuals and the answer key keep their checksums; the scenario files match `scenarios/manifest.json`, which rebuilds byte-identical with the planning inputs; the control differs from the tables only inside warning windows, and does differ before every warned failure; each drift scenario changes only its named pumps, from their start days; the two costs match an independent recomputation and name the source of every rate; every scenario file is under 50 MB |
+| `test_telemetry_schema.py` | Every telemetry column has a type, a unit, an allowed range and an allowed share of blanks; the table keeps to them; the unit-change scenario breaks the vibration range |
+| `test_local_date.py` | A timezone-aware timestamp lands on the right Europe/Helsinki date, on the 23-hour and 25-hour clock-change days of 2023 to 2025 and on every other day; a timestamp without a time zone is refused |
 | `test_guardrails.py` | The project's guardrail checks ([GUARDRAILS.md](../GUARDRAILS.md)), shared by every part |
 | `test_generator.py`, `test_reproducible.py` | The demonstration data is built as described below; tables, extract, manuals and answer key are byte-identical on regeneration; the files match their manifest's checksums and row counts; the four original tables kept their checksums when the value chain was added, and all 22 earlier tables kept theirs when the service data was added; town coordinates are cited from GeoNames; every file is under 50 MB |
 
@@ -359,6 +438,12 @@ guardrails.)
   age, running hours and wear, a warning rise of two to six weeks, and part orders split
   from `fact_sales`. Live telemetry has gaps, sensor faults, recalibrations and firmware
   changes; models trained here will look better than they would on live data.
+- **The two planning costs are narrow.** The missed-failure cost covers Fjordvik's repair
+  cost only: the customer's downtime and expedited parts are left out, because no
+  published figure was found. Its ratio comes from maintenance programme costs, not costs
+  per event. The labour figure is a midpoint of two occupation groups, and one Finnish
+  van cost stands for all four countries. Travel speed and the road-distance factor are
+  Fjordvik's own planning inputs.
 - **Warehouse totals have no seasonality**, because they come from finance revenue
   settings; the season and the drivers show in the mix between part families instead.
 - **Smooth synthetic patterns.** Seasonality, growth and noise follow simple patterns.
@@ -387,7 +472,9 @@ same pipeline a company would run. `src/fjordvik_data/service.py` simulates the 
 connected pumps one by one (duty, failures, readings), then splits the spare parts and
 service kit rows of `fact_sales` into order lines and portal sessions;
 `src/fjordvik_data/corpus.py` writes the service manuals in `corpus/` from the same
-settings; and the answer key of planted failures goes to `generator-truth/`. Town
+settings; and the answer key of planted failures goes to `generator-truth/`.
+`src/fjordvik_data/scenarios.py` rebuilds the fleet for the control and drift scenarios
+and works out the two planning costs (see "Scenarios and planning costs" above). Town
 coordinates come from `reference/geonames_towns.csv`, extracted from the GeoNames file by
 `python -m fjordvik_data.geonames <cities15000.zip> <date read>`. The generator uses the
 Python standard library (and DuckDB for the SQL), with a fixed seed and a separate random

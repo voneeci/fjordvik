@@ -1,0 +1,140 @@
+{
+  "dataset": "Fjordvik Manufacturing Oy (synthetic)",
+  "note": "Synthetic data. Two planning costs for the failure prediction work, worked out from Fjordvik's own synthetic tables times published rates. They are not real-world costs.",
+  "generator_version": "1.4.0",
+  "seed": 20230101,
+  "tables_manifest_sha256": "379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68",
+  "wasted_visit": {
+    "cost_eur_per_event": 190.34,
+    "formula": "labour cost per hour x (round-trip travel hours + on-site hours) + van running cost per km x round-trip road km, for each pump, averaged over the fleet",
+    "working": {
+      "pumps": 600,
+      "distance": "straight-line km from the base of the nearest qualified technician to the pump, from dim_technician and dim_asset; road km = straight-line km x the road-distance factor; travel hours = road km / travel speed",
+      "mean_straight_line_km_one_way": 58.27,
+      "mean_road_km_round_trip": 151.5,
+      "mean_travel_hours_round_trip": 2.525,
+      "on_site_hours": 1.5032,
+      "on_site_hours_from": "mean labour_hours of the Inspection events in fact_service_event",
+      "inspection_events": 562,
+      "by_technician_country": {
+        "EE": {
+          "pumps": 57,
+          "labour_cost_eur_per_hour": 21.67,
+          "mean_cost_eur": 149.79
+        },
+        "FI": {
+          "pumps": 369,
+          "labour_cost_eur_per_hour": 41.43,
+          "mean_cost_eur": 216.46
+        },
+        "LV": {
+          "pumps": 57,
+          "labour_cost_eur_per_hour": 16.18,
+          "mean_cost_eur": 37.96
+        },
+        "SE": {
+          "pumps": 117,
+          "labour_cost_eur_per_hour": 45.74,
+          "mean_cost_eur": 201.96
+        }
+      }
+    }
+  },
+  "missed_failure": {
+    "cost_eur_per_event": {
+      "low": 339.13,
+      "central": 892.44,
+      "high": 1784.89
+    },
+    "formula": "(ratio - 1) x planned repair cost, averaged over the Failure events; planned repair cost = labour_hours x labour cost per hour + the list price of parts_used",
+    "covers": "Fjordvik's repair cost only",
+    "working": {
+      "failure_events": 324,
+      "mean_planned_repair_cost_eur": 892.44,
+      "mean_labour_cost_eur": 230.06,
+      "mean_parts_list_price_eur": 662.38,
+      "ratio": {
+        "low": 1.38,
+        "central": 2.0,
+        "high": 3.0
+      }
+    }
+  },
+  "left_out": {
+    "items": [
+      "the customer's downtime cost",
+      "expedited parts"
+    ],
+    "reason": "no published figure was found for either"
+  },
+  "price_basis": "Labour at 2026 cost, the van at 2026 prices, parts at Fjordvik's 2023 list price.",
+  "fjordvik_planning_inputs": {
+    "travel_speed_km_per_hour": 60.0,
+    "road_distance_factor": 1.3,
+    "labour_rate_country": "home town",
+    "set_by": "Fjordvik's own planning inputs, not published figures"
+  },
+  "published_rates": {
+    "labour_cost_eur_per_hour": {
+      "value": {
+        "FI": 41.43,
+        "SE": 45.74,
+        "EE": 21.67,
+        "LV": 16.18
+      },
+      "unit": "euros per hour worked, cost to the employer, 2026",
+      "sources": [
+        {
+          "description": "Published labour cost statistics, manufacturing, 2025",
+          "published": "2026-04-23"
+        },
+        {
+          "description": "Published labour cost index, manufacturing, first half 2026",
+          "published": "2026-09-16"
+        },
+        {
+          "description": "Published earnings survey by occupation, 2022",
+          "published": "2026-02-09"
+        }
+      ],
+      "read": "2026-11-11",
+      "note": "Central figure. The 2025 labour cost per hour in manufacturing, moved to 2026 with the labour cost index and scaled by how an occupation group's hourly earnings compare with all occupations. The central figure is the midpoint of two occupation groups (craft and related trades workers; technicians and associate professionals). The midpoint is worked out from the published figures; it is not itself a published value."
+    },
+    "van_running_cost_eur_per_km": {
+      "value": 0.225,
+      "unit": "euros per km, 2026",
+      "sources": [
+        {
+          "description": "Published transport appraisal unit values, Finland, 2022 prices",
+          "published": "2024-12-20"
+        },
+        {
+          "description": "Published consumer price index, transport running costs",
+          "published": "2026-11-04"
+        }
+      ],
+      "read": "2026-11-11",
+      "note": "A van's running cost including taxes, without value added tax, insurance or capital cost, moved from 2022 prices to 2026 with the price index. A Finnish figure, used here for all four countries."
+    },
+    "unplanned_to_planned_cost_ratio": {
+      "value": {
+        "low": 1.38,
+        "central": 2.0,
+        "high": 3.0
+      },
+      "unit": "ratio of the cost of unplanned maintenance to planned maintenance",
+      "sources": [
+        {
+          "description": "Published federal maintenance guidance, programme cost per horsepower, 2010",
+          "published": "2010-08"
+        },
+        {
+          "description": "Published utility case study, wastewater lift pumps, 2007",
+          "published": "2007"
+        }
+      ],
+      "read": "2026-11-11",
+      "note": "The spread of the published ratios: reactive against preventive (low), against predictive (central) and against reliability centred maintenance (high). They are programme costs per horsepower a year, not costs per event, and they cover the repair only, not the owner's downtime."
+    }
+  }
+}

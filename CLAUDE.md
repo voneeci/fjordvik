@@ -35,7 +35,7 @@ own `CLAUDE.md` holds the rules for that part and applies to any file in it.
 ## Commands
 
 ```bash
-cd data && .venv\Scripts\python -m pytest -q             # 96 tests
+cd data && .venv\Scripts\python -m pytest -q             # 120 tests
 cd mcp && .venv\Scripts\python -m pytest -q              # 83 tests
 cd powerbi && .venv\Scripts\python -m pytest -q          # 733 tests (154 need Desktop open)
 cd power-automate && .venv\Scripts\python -m pytest -q   # 30 tests

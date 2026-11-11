@@ -232,8 +232,10 @@ def surroundings(group: str, d: date) -> float:
 
 
 def simulate_asset(asset: dict, contract: str, technicians: list[dict], days: list[date],
-                   rng_for) -> tuple[list[tuple], list[dict], list[dict]]:
-    """Telemetry rows, service events and answer-key rows for one pump."""
+                   rng_for, warning_rise: bool = True) -> tuple[list[tuple], list[dict], list[dict]]:
+    """Telemetry rows, service events and answer-key rows for one pump. With
+    warning_rise off (the control scenario) no sensor rises before any failure;
+    every random draw is still made, so the pump's stream stays in step."""
     rng = rng_for(asset["asset_id"], "fleet")
     product = asset["product_id"]
     group, kw = group_of()[product], rated_kw()[product]
@@ -344,7 +346,7 @@ def simulate_asset(asset: dict, contract: str, technicians: list[dict], days: li
         elif status[i] == "failed":
             hours *= next(f["ran_share"] for f in failures if f["i"] == i)
         hours = max(0.0, hours - visit_hours.get(i, 0.0))
-        p, signal, mult = rise[i] or (0.0, "none", 1.0)
+        p, signal, mult = (rise[i] if warning_rise else None) or (0.0, "none", 1.0)
         age = years_between(installed, d)
         vib_noise = c.VIBRATION_NOISE * (1 + 2 * p if signal == "vibration" else 1)
         vibration = (base_vibration * personal_vibration * (1 + c.VIBRATION_AGE_GROWTH * age)
@@ -444,12 +446,14 @@ def technician_note(kind: str, mode: str | None, parts: list, reading, rising, r
                        parts=", ".join(f"{q} x {p}" for p, q in parts) or "no parts")
 
 
-def build_fleet(assets: list[dict], customers: list[dict], technicians: list[dict], rng_for):
+def build_fleet(assets: list[dict], customers: list[dict], technicians: list[dict], rng_for,
+                warning_rise: bool = True):
     days = all_days()
     contract = {cu["customer_id"]: cu["service_contract"] for cu in customers}
     telemetry, events, truth = [], [], []
     for a in assets:
-        rows, service, key = simulate_asset(a, contract[a["customer_id"]], technicians, days, rng_for)
+        rows, service, key = simulate_asset(a, contract[a["customer_id"]], technicians, days,
+                                            rng_for, warning_rise)
         telemetry += rows
         events += service
         truth += key
