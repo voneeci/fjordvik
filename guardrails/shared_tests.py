@@ -187,6 +187,10 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         bash("cp new.csv data/corpus/"),
         powershell("Set-Content data\\tables\\dim_part.csv x"),
         bash("rm tables/dim_part.csv", cwd=ROOT / "data"),
+        # D3: the generated scenario manifest and planning inputs (11 November 2026)
+        tool("Write", "data", "scenarios", "manifest.json"),
+        bash("echo x > data/scenarios/visit-costs.json"),
+        bash("rm -r data/scenarios"),
         bash("cd data && echo x >> tables/dim_part.csv"),
         # D3: other spellings of the same folders (Windows ignores case; .. steps back)
         tool("Write", "Data", "tables", "x.csv"),
@@ -366,6 +370,10 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         bash("find . -path '*/__pycache__/*' -delete"),
         bash("git ls-files data/tables | wc -l"),
         bash("git checkout @ -- data/tables"),
+        # The scenario manifest is read, and the scenarios are built outside data/ (11 November 2026)
+        tool("Read", "data", "scenarios", "manifest.json"),
+        bash("cp data/scenarios/manifest.json service-ai/build/ml-scenarios/"),
+        tool("Write", "service-ai", "build", "ml-scenarios", "control.csv"),
     ]
     ask = [
         tool("Edit", "GUARDRAILS.md"),

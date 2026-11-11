@@ -35,7 +35,8 @@ import re
 import subprocess
 import sys
 
-GENERATED = ("data/tables/", "data/erp-extract/", "data/corpus/", "data/generator-truth/")
+GENERATED = ("data/tables/", "data/erp-extract/", "data/corpus/", "data/generator-truth/",
+             "data/scenarios/")
 GUARD_TESTS = tuple(f"{part}/tests/test_guardrails.py"
                     for part in ("data", "mcp", "powerbi", "power-automate", "service-ai"))
 PROTECTED = ("guardrails.md", "guardrails.sha256", ".claude/settings.json",

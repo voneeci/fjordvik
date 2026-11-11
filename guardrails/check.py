@@ -77,7 +77,8 @@ DOCUMENT_NAMES = {
 # (temp for temperature, copy, old, debug) are left out.
 SCRATCH_NAME = re.compile(r"(?i)(^|[-_. ])(scratch|tmp|untitled|backup|bak)([-_. ]|$)"
                           r"|\.(log|tmp|bak|orig|swp)$|~$|\s")
-GENERATED = ("data/tables/", "data/erp-extract/", "data/corpus/", "data/generator-truth/")
+GENERATED = ("data/tables/", "data/erp-extract/", "data/corpus/", "data/generator-truth/",
+             "data/scenarios/")
 # G9: the guardrail files GUARDRAILS.sha256 must fingerprint, so an edit the hook misses
 # still fails the tests.
 FINGERPRINTED = ("GUARDRAILS.md", "guardrails/claude_hook.py", "guardrails/check.py",

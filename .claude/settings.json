@@ -12,6 +12,7 @@
       "Edit(/data/erp-extract/**)",
       "Edit(/data/corpus/**)",
       "Edit(/data/generator-truth/**)",
+      "Edit(/data/scenarios/**)",
       "Edit(/.git/hooks/**)"
     ],
     "ask": [

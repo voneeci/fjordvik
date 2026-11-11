@@ -71,6 +71,7 @@ Parts: data, mcp, powerbi, power-automate, service-ai
 - `data/erp-extract/**`: the generated enterprise resource planning (ERP) extract (D3).
 - `data/corpus/**`: the generated manuals and policies (D3).
 - `data/generator-truth/**`: the answer key for evaluation only (D3, D10).
+- `data/scenarios/*`: the checksum manifest of the control and drift scenarios, and the planning inputs service-ai reads, written by the generator (D3).
 - `data/reference/*`: reference data fetched from its publisher, cited (D6).
 - `data/sql/*`: database scripts that load the tables.
 
