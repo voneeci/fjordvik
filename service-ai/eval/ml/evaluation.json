@@ -1,0 +1,328 @@
+{
+  "name": "phase 3 anomaly detection and failure prediction: evaluation set and pass marks",
+  "written": "2026-11-12",
+  "written_before_code": true,
+  "written_by": "a one-task evaluation chat that is not the builder (A9)",
+  "rules": ["A9", "D10", "D11", "D12", "E1", "E2", "M1", "M2", "M3", "M4", "M5", "D13", "D14", "D15", "G10", "W8"],
+  "phase_rules_read": ["Every phase", "Phase 3", "Telemetry, when its schema entries are added"],
+  "data_basis": "synthetic data with planted signals",
+  "decided_by": "Reece, question boxes on 4 November 2026; cost inputs 11 November 2026",
+  "decided_in_the_evaluation_chat": {
+    "by": "Reece, question boxes on 12 November 2026",
+    "why": "points where the approved plan and the tables disagreed, or where the plan gave no value",
+    "choices": [
+      "At-risk rows follow the plan's rule (open-ticket days dropped, then no-running days); both counts are recorded, and the plan's split table shows the count before the no-running filter.",
+      "Warm-up: a pump-day is complete once the 90 days ending 8 days before it hold at least 60 readings. No train failure count is recorded, because the plan's 173 was not reproduced.",
+      "Seed 20230101, the data generator's seed; the five label shuffles use seed+1 to seed+5.",
+      "The recheck recomputes every headline metric: counts exactly, the rest within 1e-9 relative, as in phase 2. It reads the answer key for the warned flag, as evaluation only.",
+      "The control limit (E2) applies to the three models that read telemetry: the classifier, the robust z-score alone and the isolation forest alone.",
+      "Ties in the model grid go to max_leaf_nodes 15 before 31, then max_iter 100 before 200, then learning_rate 0.05 before 0.1.",
+      "Visit every pump: one visit per whole 30 days of the alert window, for every pump with a telemetry row in the window.",
+      "Fixed now: threshold candidates, 1,000 pump resamples, isolation forest at library defaults, ten reliability groups of equal row count.",
+      "Control run: features rebuilt and models trained again on the control telemetry with the same settings, then scored there.",
+      "Drift false flags are measured on July to December 2025, the months after the flag level's tuning data ends."
+    ]
+  },
+  "rests_on": {
+    "commit": "517598f2581462f29f365718f49bbcf2748ec320",
+    "branch": "main",
+    "plan": "the approved phase 3 plan: sections Split dates, Labels and at-risk rows, Feature allowlist, Anomaly scores, Classifier, Alerts, catching a failure, and cost, Pass marks, Controls",
+    "sha256": {
+      "data/tables/manifest.json": "379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68",
+      "data/scenarios/manifest.json": "bfa3a3440ce1b60607f39e5e0456e11339b57831b8cc5340285182953443131d",
+      "data/scenarios/planning_inputs.json": "86e41beb66bb3d9a309d8c2bac0f97fead16a13dfd313c635e815e5042563aec",
+      "service-ai/eval/ml/feature_allowlist.json": "aa268ea6ed55f736ad4700888ade876c47fc626d2cf3483edf14324cc3d155c2"
+    },
+    "rule": "A result counts only while these checksums hold. Code checks them before it runs and stops when one differs."
+  },
+  "score": {
+    "meaning": "the model's estimate of the chance that this pump has a failure in the 30 days after this day, from readings up to the end of this day",
+    "ceiling": "some failures give no warning, so no model can catch them; every result shows that share (W8)"
+  },
+  "periods": {
+    "rule": "E1: fixed by date before building. Labels look 30 days ahead, so each period's last labelled day is 30 days before its cut-off, and no training row's label window ends after its cut-off.",
+    "label_window_days": 30,
+    "train": {
+      "first_scored_day": "each pump's first complete row, after its warm-up",
+      "last_scored_day": "2024-12-01",
+      "cut_off": "2024-12-31",
+      "alert_window": null
+    },
+    "validation": {
+      "first_scored_day": "2025-01-01",
+      "last_scored_day": "2025-06-01",
+      "cut_off": "2025-06-30",
+      "alert_window": {"first_day": "2025-01-01", "last_day": "2025-06-30", "days": 181}
+    },
+    "test": {
+      "first_scored_day": "2025-07-01",
+      "last_scored_day": "2025-12-01",
+      "cut_off": "2025-12-31",
+      "alert_window": {"first_day": "2025-07-01", "last_day": "2025-12-31", "days": 184}
+    },
+    "scored_days": "pump-days scored for average precision; a period's step reads no row after its cut-off",
+    "alert_window_days": "alerts can open on any day of the alert window, the last 30 days included",
+    "no_complete_label_window": {
+      "first_day": "2025-12-02",
+      "last_day": "2025-12-31",
+      "telemetry_rows": 17931,
+      "use": "no part in training, thresholds or average precision; scored for the forward risk list risk_2025-12-31.csv, labelled 'no complete label window'"
+    },
+    "no_refit": "The model trained to 1 December 2024 is the one tested. Refitting on validation rows would need a new threshold (M3), with nothing left to choose it on.",
+    "seasons": "Validation is winter and spring, test is summer and autumn. A threshold that travels badly shows in the test result, and it is reported as it falls.",
+    "test_scored": "once per frozen configuration; eval/ml/split_lock.json holds the dates and the hash of the chosen settings, committed before the first test run, and the test step refuses to run without it (E1)",
+    "dates_read_from": "this file; code never types a date, and tests stop at the end of validation and take the test end from this file"
+  },
+  "expected_counts": {
+    "source": "counted from data/tables on 12 November 2026 at the commit above, from fact_service_event and fact_asset_telemetry, never the answer key; each pipeline step asserts its own counts against these (D15)",
+    "telemetry_rows": 582996,
+    "pumps": 600,
+    "failures": {
+      "period_of_a_failure": "by reported_date: train to 2024-12-31, validation 2025-01-01 to 2025-06-30, test 2025-07-01 to 2025-12-31",
+      "train": 199,
+      "validation": 70,
+      "test": 55,
+      "total": 324
+    },
+    "failures_with_a_full_30_day_look_back": {
+      "definition": "failures reported on or after day 31 of the alert window (31 January 2025 for validation, 31 July 2025 for test), so the 30 days before them lie inside it",
+      "validation": 59,
+      "test": 50,
+      "train": "not recorded: the plan's figure of 173 after a 90-day warm-up was not reproduced from the tables (170 failures have 90 days of telemetry before them)"
+    },
+    "rows_dropped_over_all_dates": {
+      "open_failure_ticket": 2406,
+      "no_running_with_no_open_ticket": 70
+    },
+    "rows_per_period": {
+      "note": "train is counted from the first telemetry day, before the warm-up filter",
+      "telemetry_rows_in_scored_days": {"train": 356412, "validation": 85451, "test": 90138},
+      "after_open_ticket_filter": {"train": 354968, "validation": 85094, "test": 89887, "note": "the plan's split table shows these"},
+      "at_risk_rows": {"train": 354926, "validation": 85085, "test": 89878, "note": "after the no-running filter too; these are the rows scored"},
+      "positive_rows": {"train": 5590, "validation": 1722, "test": 1383},
+      "positive_share_percent": {"train": 1.58, "validation": 2.02, "test": 1.54, "note": "rounded to two decimals; code works out the exact share"}
+    },
+    "warned_failures": "left to evaluation code, which reads the answer key; this chat never opened it",
+    "customers_with_service_contract_none": 56
+  },
+  "labels": {
+    "label": "for pump p on day t: 1 when a Failure event for p has reported_date in (t, t+30], that is after day t and on or before day t+30; otherwise 0",
+    "source": "data/tables/fact_service_event.csv",
+    "columns_read": ["event_type", "asset_id", "reported_date", "completed_date"],
+    "event_type": "Failure",
+    "answer_key": "never read for labels, features or the threshold (D10)"
+  },
+  "at_risk_rows": {
+    "grain": "one row per pump per day in fact_asset_telemetry",
+    "dropped_in_this_order": [
+      "pump-days with an open failure ticket: reported_date <= day <= completed_date of a Failure event for the pump",
+      "days with no running, so no reading: running_hours is 0, and vibration and bearing temperature are blank",
+      "days before the pump has its baseline warm-up"
+    ],
+    "warm_up": "a pump-day is complete once the 90 days ending 8 days before it (days t-97 to t-8) hold at least 60 readings",
+    "reading": "a day on which the pump ran, so vibration and bearing temperature are recorded",
+    "counted_and_asserted": "each drop is counted and asserted (D15)",
+    "ticket_filter": "It chooses rows and never feeds a feature. A ticket is open and known on the day, so it passes D11."
+  },
+  "alerts": {
+    "scores": "one score per at-risk row; a dropped row has no score and opens no alert",
+    "alert": "One alert is one visit. An alert opens when the score reaches the threshold (score >= threshold) on a pump with no open alert. The pump then stays quiet for 30 days, so a daily alert can't be counted as many visits.",
+    "quiet_days": 30,
+    "caught": "an alert opened 7 to 30 days before the failure: reported_date minus the alert day is from 7 to 30. Phase 4 plans by the week, so a day's notice doesn't help. One alert catches at most one failure.",
+    "caught_days_before": {"min": 7, "max": 30},
+    "wasted": "an alert with no failure in the next 30 days. An alert in the last 30 days of a period with no failure yet counts as wasted, the cautious reading.",
+    "neither": "an alert opened 1 to 6 days before a failure is neither caught nor wasted: the failure is missed and the visit adds no cost. This follows from the two definitions above.",
+    "missed": "a failure reported in the alert window that no alert caught",
+    "unwarned_failures": "They can't be prevented under any plan: they always cost a miss, and an alert that happens to precede one counts as wasted. They are reported apart.",
+    "warned_failure": "a failure the answer key in data/generator-truth/ marks as having a warning; only evaluation code and the recheck read it (D10)",
+    "failures_counted": "Failure events with reported_date in the alert window"
+  },
+  "cost": {
+    "formula": "cost = missed failures x cost of a missed failure + wasted visits x cost of a wasted visit",
+    "useful_visit": "The missed-failure input is the extra cost over a repair planned in advance, so a useful visit adds nothing.",
+    "plans": {
+      "window": "all three plans are compared over the same alert window",
+      "visit_none": "no visits; every failure is missed",
+      "visit_every_pump": {
+        "rule": "one visit per pump every 30 days",
+        "visits": "for every pump with a telemetry row in the alert window, one visit per whole 30 days of the window: 6 per pump in each window (181 and 184 days)",
+        "plan_working_figure": "about 3,600 test-period visits",
+        "caught": "it is given every warned failure, which is generous to it",
+        "missed": "the unwarned failures",
+        "wasted_visits": "its visits minus the warned failures it is given"
+      },
+      "model": "the alerts defined above"
+    },
+    "inputs": {
+      "source_file": "data/scenarios/planning_inputs.json",
+      "source_sha256": "86e41beb66bb3d9a309d8c2bac0f97fead16a13dfd313c635e815e5042563aec",
+      "read_in_code": "code reads each value from the source file when it runs; no cost value is typed in this file or in code",
+      "unit": "euros per event",
+      "wasted_visit": {"key": "wasted_visit.cost_eur_per_event"},
+      "missed_failure": {
+        "central": {"key": "missed_failure.cost_eur_per_event.central", "use": "the threshold and the pass mark"},
+        "low": {"key": "missed_failure.cost_eur_per_event.low", "use": "the sensitivity table only"},
+        "high": {"key": "missed_failure.cost_eur_per_event.high", "use": "the sensitivity table only"}
+      },
+      "covers": "the missed-failure cost covers Fjordvik's repair cost only; the customer's downtime cost and expedited parts are left out, as the source file says",
+      "basis": "worked out from Fjordvik's synthetic tables times published rates; not real-world costs"
+    },
+    "sensitivity_table": "the three plans' costs at the low, central and high missed-failure cost, with the alerts unchanged (the threshold chosen at the central cost); reported beside the result, never a pass mark"
+  },
+  "threshold": {
+    "rule": "M3: chosen on validation only, from the costs, using failures from fact_service_event and no answer key, so it can run on live data",
+    "criterion": "lowest cost of the model plan over the validation alert window at the central missed-failure cost, counting every failure as preventable",
+    "candidates": "every distinct score on the validation at-risk rows in the alert window",
+    "ties": "ties go to fewer visits; if still tied, the higher threshold",
+    "stored": "with the model version, in eval/ml/split_lock.json and the model card; the test step refuses a threshold from another version; chosen again after every retrain"
+  },
+  "metrics": {
+    "average_precision": "the sum over score thresholds of (recall at n minus recall at n-1) times precision at n, as scikit-learn's average_precision_score defines it, on a period's at-risk rows in its scored days",
+    "dummy": "DummyClassifier(strategy=\"prior\"); its average precision equals the positive share of the rows scored",
+    "recall_of_warned_failures": "warned failures caught divided by warned failures reported in the alert window, at the chosen threshold",
+    "cost": "the formula above for each of the three plans, at the central missed-failure cost",
+    "headline": "M4: average precision, recall of warned failures, and cost against the visit-every and visit-none plans. Accuracy and the area under the ROC (receiver operating characteristic) curve are never shown alone. The report states the share of positive rows.",
+    "range": "a 90% range for each headline metric: 1,000 resamples of pumps with replacement, seeded, 5th to 95th percentile",
+    "reliability_table": "score group against observed failure rate, on validation and on test: ten groups of equal row count by score",
+    "one_failure": "the plan estimates about 34 warned failures in the test period, so one failure moves recall by about 0.03; the range shows it"
+  },
+  "pass_marks": {
+    "set_by": "Reece, the approved phase 3 plan; fixed, never changed to pass (A9)",
+    "scope": "the test period, scored once; the chosen threshold; the central missed-failure cost",
+    "wording": [
+      "Average precision at least 3 times the dummy's. The dummy's equals the positive share, so about 0.046 on test.",
+      "At the chosen threshold, recall of warned failures at least 0.6, and cost below both plans.",
+      "Unwarned failures reported apart, and the leakage test passing.",
+      "Set here before building: the shuffled-label control, E2 band and M5 limits."
+    ],
+    "average_precision": {"min_ratio_to_dummy": 3, "of": "the classifier, on the test at-risk rows scored 1 July to 1 December 2025"},
+    "recall_of_warned_failures": {"min": 0.6, "at": "the chosen threshold, over the test alert window"},
+    "cost": {"below": ["visit_none", "visit_every_pump"], "at": "the chosen threshold and the central missed-failure cost, over the test alert window"},
+    "unwarned_failures": "reported apart",
+    "leakage_test": "passes",
+    "controls": "the shuffled-label, E2 and M5 limits below are met"
+  },
+  "controls": {
+    "time_and_group": {
+      "rule": "M1",
+      "time": "the time split above; never shuffled rows",
+      "group": "5-fold GroupKFold by pump over train and validation rows, with the chosen settings, reported next to the validation score so the gap is visible; test rows take no part"
+    },
+    "leakage": {
+      "rule": "M2, D10, D11, D12",
+      "checks": [
+        "a rebuild with every row after day t deleted must not change the features at 20 random pump-days",
+        "a planted bad feature (a centred window) must fail the test, to prove it can",
+        "the model's feature list sits inside eval/ml/feature_allowlist.json",
+        "a recorder around file opens proves the feature path opens only its four tables",
+        "an import check proves only evaluate.py names generator-truth"
+      ]
+    },
+    "shuffled_labels": {
+      "rule": "D12",
+      "method": "the training labels are shuffled, the classifier is trained again with the chosen settings and scored on validation",
+      "shuffles": 5,
+      "seeds": "seed+1 to seed+5",
+      "statistic": "mean average precision over the 5 shuffles",
+      "max_ratio_to_dummy": 1.25,
+      "why_a_band": "a tolerance for sampling noise, fixed now",
+      "run_on": "validation"
+    },
+    "control_telemetry": {
+      "rule": "E2",
+      "data": "control/fact_asset_telemetry.csv, built by python -m fjordvik_data.scenarios into service-ai/build/ml-scenarios/ and checked against data/scenarios/manifest.json; the warning rise is switched off for every failure, with the same seed",
+      "models": ["the classifier", "the robust z-score alone (z_max as the score)", "the isolation forest alone (iforest_score as the score)"],
+      "method": "features are rebuilt and each model is trained again on the control telemetry with the same settings, then scored there; no setting or threshold is chosen again",
+      "max_ratio_to_dummy": 1.5,
+      "of": "each model's average precision against the dummy's on the same rows",
+      "run_on": "validation before the lock, and test in the single test run",
+      "reported_beside": "the dummy and the pump-facts-only model, which explains the control result because age and pump type move the failure rate even with warnings off"
+    },
+    "drift": {
+      "rule": "M5",
+      "monitor": "per pump and sensor, the 7-day median against the same pump's median for the same calendar month in earlier years; never the last few weeks",
+      "scenarios": {
+        "source": "drift_recalibration/ and drift_unit_change/ fact_asset_telemetry.csv and drift_scenarios.csv, built by the scenarios module and checked against data/scenarios/manifest.json",
+        "drift_recalibration": "a recalibration step in bearing temperature",
+        "drift_unit_change": "a unit change in vibration",
+        "changed_pumps": "the rows of drift_scenarios.csv: asset_id, scenario, start_date, sensor, change"
+      },
+      "detection": {
+        "min_share_flagged": 0.9,
+        "within_days": 14,
+        "of": "the changed pumps in each scenario, each judged apart: a pump counts when the monitor flags its changed sensor on a day from start_date to start_date plus 14"
+      },
+      "false_flags": {
+        "max_share": 0.01,
+        "no_failure_within_days": 42,
+        "of": "pump-months flagged on the base data with no failure in the following 42 days, as a share of the monitored pump-months",
+        "measured_on": "July to December 2025",
+        "late_flags": "a flag with fewer than 42 days of data after it counts as a false flag when no failure follows by 31 December 2025, the cautious reading"
+      },
+      "flag_level": "chosen on base data up to the end of validation (30 June 2025); never on the scenarios or on later months",
+      "not_monitored": "pumps with no earlier year for the month are reported as not monitored"
+    }
+  },
+  "model": {
+    "classifier": "scikit-learn HistGradientBoostingClassifier, no class weights; the threshold handles the imbalance, so the output stays a usable probability",
+    "grid": {
+      "max_iter": [100, 200],
+      "learning_rate": [0.05, 0.1],
+      "max_leaf_nodes": [15, 31]
+    },
+    "candidates": 8,
+    "outside_the_grid": "a setting that is not in the grid is not tuned: it stays at the library's default and is recorded in the model card",
+    "chosen_on_validation": {
+      "criterion": "highest average precision on the validation at-risk rows scored 1 January to 1 June 2025; ties go to the simpler",
+      "simpler_first": {"max_leaf_nodes": [15, 31], "max_iter": [100, 200], "learning_rate": [0.05, 0.1]},
+      "tie_order": ["max_leaf_nodes", "max_iter", "learning_rate"],
+      "recorded_in": "eval/ml/split_lock.json, committed before the first test run"
+    },
+    "baselines": {
+      "dummy": "DummyClassifier(strategy=\"prior\")",
+      "pump_facts_only": "report only: the classifier on age_years, product_group, application, rated_kw and service_contract; it shows what the telemetry adds"
+    },
+    "anomaly_scores": {
+      "robust_z_score": "(7-day median minus baseline median) divided by (1.4826 times the baseline median absolute deviation), on fleet-adjusted readings",
+      "isolation_forest": "fitted on training rows only, on the z-scores and changes; scikit-learn's default settings, the seed, n_jobs=1",
+      "judged": "both through the classifier and alone, by average precision"
+    },
+    "features": {
+      "allowlist": "eval/ml/feature_allowlist.json",
+      "allowlist_sha256": "aa268ea6ed55f736ad4700888ade876c47fc626d2cf3483edf14324cc3d155c2",
+      "windows_days": {"median": [7, 30], "slope": 14, "days_above_z_3": 14},
+      "baseline": {"length_days": 90, "ends_days_before_t": 8, "min_readings": 60},
+      "sources": ["fact_asset_telemetry", "dim_asset", "dim_product", "dim_customer"]
+    }
+  },
+  "seed": {
+    "value": 20230101,
+    "same_as": "the data generator's seed in data/scenarios/manifest.json",
+    "generator": "numpy RandomState(PCG64(seed)), an explicit bit generator (G10)",
+    "label_shuffles": "seed+1 to seed+5",
+    "resamples": "the seed",
+    "repeat": "training twice on the same data gives the same metrics (G10)"
+  },
+  "recheck": {
+    "script": "scripts/recheck_ml.py: standard library only; imports nothing from the fjordvik_service package",
+    "reads": "the saved score and alert files in results/ml/, the raw tables, data/scenarios/planning_inputs.json and, for the warned flag only, the answer key (evaluation only, D10)",
+    "periods": ["validation", "test"],
+    "recomputes": [
+      "average precision of the classifier",
+      "average precision of the dummy, and the ratio of the two",
+      "the number of alerts, and of alerts caught, wasted and neither",
+      "the number of failures missed, and of warned and unwarned failures",
+      "recall of warned failures",
+      "the cost of the visit-none, visit-every-pump and model plans at the central missed-failure cost"
+    ],
+    "tolerance": {
+      "counts": "exact",
+      "others": "relative 1e-9: |recomputed - saved| <= 1e-9 x max(1, |saved|), as in phase 2"
+    },
+    "fails": "any metric outside its tolerance fails the recheck; its output is saved in evidence/"
+  },
+  "reporting": {
+    "basis": "W8: every result says it was measured on synthetic data with planted signals, and never presents it as performance on real pumps",
+    "stamps": "G10: every saved result names the data checksum, the commit and the model version"
+  }
+}

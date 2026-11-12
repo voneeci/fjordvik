@@ -1,0 +1,138 @@
+{
+  "name": "phase 3 anomaly detection and failure prediction: feature allowlist",
+  "written": "2026-11-12",
+  "written_before_code": true,
+  "rules": ["D10", "D11", "D12", "M2"],
+  "data_basis": "synthetic data with planted signals",
+  "rule": "The models read only the columns listed under columns (D12). The model's feature list must sit inside this list; it may use fewer columns, never one that is not here.",
+  "point_in_time": "Every window ends on day t and includes it. A column for day t uses only rows recorded on or before day t (D11): rebuilding it with every row after day t deleted must not change it.",
+  "sources": {
+    "rule": "The feature path opens these four tables and no other file. Nothing comes from fact_service_event, so no column can be computed from repairs, downtime or notes.",
+    "fact_asset_telemetry": {
+      "path": "data/tables/fact_asset_telemetry.csv",
+      "keys": ["date_key", "asset_id"],
+      "columns_read": ["running_hours", "vibration_mm_s", "bearing_temp_c", "power_kw"]
+    },
+    "dim_asset": {
+      "path": "data/tables/dim_asset.csv",
+      "keys": ["asset_id", "product_id", "customer_id"],
+      "columns_read": ["application", "install_date"]
+    },
+    "dim_product": {
+      "path": "data/tables/dim_product.csv",
+      "keys": ["product_id"],
+      "columns_read": ["product_group", "rated_kw"]
+    },
+    "dim_customer": {
+      "path": "data/tables/dim_customer.csv",
+      "keys": ["customer_id"],
+      "columns_read": ["service_contract"],
+      "note": "read with keep_default_na=False, because pandas reads the service contract value None as missing (56 customers)"
+    },
+    "keys_are_not_features": "Keys join the tables and group the rows. No key is a model feature."
+  },
+  "definitions": {
+    "sensors": {
+      "vibration": "fact_asset_telemetry.vibration_mm_s",
+      "bearing_temp": "fact_asset_telemetry.bearing_temp_c",
+      "power_per_rated_kw": "fact_asset_telemetry.power_kw divided by dim_product.rated_kw",
+      "running_hours": "fact_asset_telemetry.running_hours"
+    },
+    "blanks": "Blank readings are skipped in every median and slope.",
+    "baseline": "The trailing 90 days ending 8 days before t (days t-97 to t-8), with at least 60 readings. A 90-day median is not pulled by a rise of up to 42 days.",
+    "fleet_adjusted": "A sensor's reading minus the same day's median of that sensor over pumps of the same application (dim_asset.application). It removes the season without a calendar feature."
+  },
+  "sensor_columns": {
+    "applies_to": ["vibration", "bearing_temp", "power_per_rated_kw", "running_hours"],
+    "naming": "<sensor>_<suffix>, for example vibration_med7",
+    "per_sensor": [
+      {
+        "suffix": "med7",
+        "group": "Readings",
+        "window": "7 days ending on t",
+        "definition": "median of the sensor over the window"
+      },
+      {
+        "suffix": "med30",
+        "group": "Readings",
+        "window": "30 days ending on t",
+        "definition": "median of the sensor over the window"
+      },
+      {
+        "suffix": "slope14",
+        "group": "Change",
+        "window": "14 days ending on t",
+        "definition": "slope of the sensor against the day, per day, over the window"
+      },
+      {
+        "suffix": "med7_vs_base",
+        "group": "Change",
+        "window": "7 days ending on t, against the baseline",
+        "definition": "the 7-day median minus the baseline median, on the pump's own readings"
+      },
+      {
+        "suffix": "fleet_adj_med7",
+        "group": "Fleet-adjusted",
+        "window": "7 days ending on t",
+        "definition": "median of the fleet-adjusted sensor over the window",
+        "also_reads": "dim_asset.application"
+      },
+      {
+        "suffix": "z",
+        "group": "Anomaly",
+        "window": "7 days ending on t, against the baseline",
+        "definition": "robust z-score: (7-day median minus baseline median) divided by (1.4826 times the baseline median absolute deviation), on fleet-adjusted readings",
+        "also_reads": "dim_asset.application"
+      }
+    ]
+  },
+  "columns": [
+    {"name": "vibration_med7", "group": "Readings", "source_tables": ["fact_asset_telemetry"], "source_columns": ["vibration_mm_s"], "window_days": 7},
+    {"name": "vibration_med30", "group": "Readings", "source_tables": ["fact_asset_telemetry"], "source_columns": ["vibration_mm_s"], "window_days": 30},
+    {"name": "vibration_slope14", "group": "Change", "source_tables": ["fact_asset_telemetry"], "source_columns": ["vibration_mm_s"], "window_days": 14},
+    {"name": "vibration_med7_vs_base", "group": "Change", "source_tables": ["fact_asset_telemetry"], "source_columns": ["vibration_mm_s"], "window_days": 7, "baseline": true},
+    {"name": "vibration_fleet_adj_med7", "group": "Fleet-adjusted", "source_tables": ["fact_asset_telemetry", "dim_asset"], "source_columns": ["vibration_mm_s", "application"], "window_days": 7},
+    {"name": "vibration_z", "group": "Anomaly", "source_tables": ["fact_asset_telemetry", "dim_asset"], "source_columns": ["vibration_mm_s", "application"], "window_days": 7, "baseline": true},
+    {"name": "bearing_temp_med7", "group": "Readings", "source_tables": ["fact_asset_telemetry"], "source_columns": ["bearing_temp_c"], "window_days": 7},
+    {"name": "bearing_temp_med30", "group": "Readings", "source_tables": ["fact_asset_telemetry"], "source_columns": ["bearing_temp_c"], "window_days": 30},
+    {"name": "bearing_temp_slope14", "group": "Change", "source_tables": ["fact_asset_telemetry"], "source_columns": ["bearing_temp_c"], "window_days": 14},
+    {"name": "bearing_temp_med7_vs_base", "group": "Change", "source_tables": ["fact_asset_telemetry"], "source_columns": ["bearing_temp_c"], "window_days": 7, "baseline": true},
+    {"name": "bearing_temp_fleet_adj_med7", "group": "Fleet-adjusted", "source_tables": ["fact_asset_telemetry", "dim_asset"], "source_columns": ["bearing_temp_c", "application"], "window_days": 7},
+    {"name": "bearing_temp_z", "group": "Anomaly", "source_tables": ["fact_asset_telemetry", "dim_asset"], "source_columns": ["bearing_temp_c", "application"], "window_days": 7, "baseline": true},
+    {"name": "power_per_rated_kw_med7", "group": "Readings", "source_tables": ["fact_asset_telemetry", "dim_asset", "dim_product"], "source_columns": ["power_kw", "rated_kw"], "window_days": 7},
+    {"name": "power_per_rated_kw_med30", "group": "Readings", "source_tables": ["fact_asset_telemetry", "dim_asset", "dim_product"], "source_columns": ["power_kw", "rated_kw"], "window_days": 30},
+    {"name": "power_per_rated_kw_slope14", "group": "Change", "source_tables": ["fact_asset_telemetry", "dim_asset", "dim_product"], "source_columns": ["power_kw", "rated_kw"], "window_days": 14},
+    {"name": "power_per_rated_kw_med7_vs_base", "group": "Change", "source_tables": ["fact_asset_telemetry", "dim_asset", "dim_product"], "source_columns": ["power_kw", "rated_kw"], "window_days": 7, "baseline": true},
+    {"name": "power_per_rated_kw_fleet_adj_med7", "group": "Fleet-adjusted", "source_tables": ["fact_asset_telemetry", "dim_asset", "dim_product"], "source_columns": ["power_kw", "rated_kw", "application"], "window_days": 7},
+    {"name": "power_per_rated_kw_z", "group": "Anomaly", "source_tables": ["fact_asset_telemetry", "dim_asset", "dim_product"], "source_columns": ["power_kw", "rated_kw", "application"], "window_days": 7, "baseline": true},
+    {"name": "running_hours_med7", "group": "Readings", "source_tables": ["fact_asset_telemetry"], "source_columns": ["running_hours"], "window_days": 7},
+    {"name": "running_hours_med30", "group": "Readings", "source_tables": ["fact_asset_telemetry"], "source_columns": ["running_hours"], "window_days": 30},
+    {"name": "running_hours_slope14", "group": "Change", "source_tables": ["fact_asset_telemetry"], "source_columns": ["running_hours"], "window_days": 14},
+    {"name": "running_hours_med7_vs_base", "group": "Change", "source_tables": ["fact_asset_telemetry"], "source_columns": ["running_hours"], "window_days": 7, "baseline": true},
+    {"name": "running_hours_fleet_adj_med7", "group": "Fleet-adjusted", "source_tables": ["fact_asset_telemetry", "dim_asset"], "source_columns": ["running_hours", "application"], "window_days": 7},
+    {"name": "running_hours_z", "group": "Anomaly", "source_tables": ["fact_asset_telemetry", "dim_asset"], "source_columns": ["running_hours", "application"], "window_days": 7, "baseline": true},
+    {"name": "z_max", "group": "Anomaly", "source_tables": ["fact_asset_telemetry", "dim_asset", "dim_product"], "source_columns": ["the four z columns"], "window_days": 7, "baseline": true, "definition": "the highest of the four robust z-scores on day t"},
+    {"name": "z_days_above_3_14d", "group": "Anomaly", "source_tables": ["fact_asset_telemetry", "dim_asset", "dim_product"], "source_columns": ["z_max"], "window_days": 14, "baseline": true, "definition": "the number of days in the 14 days ending on t on which z_max was above 3"},
+    {"name": "iforest_score", "group": "Anomaly", "source_tables": ["fact_asset_telemetry", "dim_asset", "dim_product"], "source_columns": ["the four z columns", "the four slope14 columns", "the four med7_vs_base columns"], "window_days": 14, "baseline": true, "definition": "isolation forest score on the z-scores and changes; the forest is fitted on training rows only"},
+    {"name": "age_years", "group": "Pump", "source_tables": ["dim_asset"], "source_columns": ["install_date"], "window_days": null, "definition": "the pump's age in years on day t, from its install date"},
+    {"name": "product_group", "group": "Pump", "source_tables": ["dim_asset", "dim_product"], "source_columns": ["product_group"], "window_days": null},
+    {"name": "application", "group": "Pump", "source_tables": ["dim_asset"], "source_columns": ["application"], "window_days": null},
+    {"name": "rated_kw", "group": "Pump", "source_tables": ["dim_asset", "dim_product"], "source_columns": ["rated_kw"], "window_days": null},
+    {"name": "service_contract", "group": "Pump", "source_tables": ["dim_asset", "dim_customer"], "source_columns": ["service_contract"], "window_days": null}
+  ],
+  "column_count": 32,
+  "pump_facts_only_model": {
+    "columns": ["age_years", "product_group", "application", "rated_kw", "service_contract"],
+    "use": "report only: it shows what the telemetry adds"
+  },
+  "left_out": [
+    {"what": "raw daily readings alone", "reason": "a one-day high reading after a start is a spike, not a rise; every reading enters through a median or a slope"},
+    {"what": "month or day of year", "reason": "a calendar feature would let the model learn the season instead of the pump; the fleet adjustment removes the season"},
+    {"what": "days since the pump last stopped", "reason": "a stand-in for downtime, which D12 keeps off the list"},
+    {"what": "preventive visit dates", "reason": "they sit in fact_service_event, which is not a source"},
+    {"what": "repair dates, downtime, failure mode, parts used and technician notes", "reason": "D12: never on the list, and no listed column is computed from them; they sit in fact_service_event"},
+    {"what": "the open failure ticket", "reason": "it chooses which rows are scored and never feeds a feature"},
+    {"what": "the answer key in data/generator-truth/", "reason": "D10: for evaluation only, never a model feature"},
+    {"what": "every other table and column", "reason": "D12: a column not listed here is not read by a model"}
+  ]
+}
