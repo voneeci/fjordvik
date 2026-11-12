@@ -136,6 +136,13 @@ def reference_share(ev):
     return b["min_readings"] / b["length_days"]
 
 
+def _params(estimator, seed):
+    """Settings as text, with the generator named by its seed rather than its memory address,
+    so the model card is the same on every run (G10)."""
+    return {k: (f"RandomState(PCG64({seed}))" if k == "random_state" else repr(v))
+            for k, v in estimator.get_params().items()}
+
+
 def lookback_days(ev):
     """How far back any feature reaches: the baseline plus the longest window."""
     f = ev["model"]["features"]
@@ -289,8 +296,8 @@ def validation_step(data_dir, ev, allow, *, scenario_dir=None, pumps=None, expec
                         "time_split_average_precision": aps["classifier"]},
         "drift_level": {"level": level, "pump_months": len(pm), "false_flag_share": drift.false_share(pm, level),
                         "chosen_on": f"base data to {cut.date()}"},
-        "model_detail": {"n_iter": int(fitted.n_iter_), "params": {k: repr(v) for k, v in fitted.get_params().items()},
-                         "iforest_params": {k: repr(v) for k, v in data["forest"].get_params().items()},
+        "model_detail": {"n_iter": int(fitted.n_iter_), "params": _params(fitted, seed),
+                         "iforest_params": _params(data["forest"], seed),
                          "blank_counts_train": {k: int(v) for k, v in train[columns].isna().sum().items() if v}},
     }
     if answer_key:
