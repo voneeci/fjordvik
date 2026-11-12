@@ -1,0 +1,397 @@
+{
+  "data_sha256": "379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68",
+  "commit": "424c16a0784a48f60aabbf234f29b5c0f2a923da",
+  "model_version": "ml-1.0.0",
+  "data_basis": "synthetic data with planted signals",
+  "statement": "Measured on synthetic data with planted signals: Fjordvik Manufacturing Oy is fictional, and these are not results on real pumps or a real service team.",
+  "pass_marks": {
+    "set_by": "Reece, the approved phase 3 plan; fixed, never changed to pass (A9)",
+    "scope": "the test period, scored once; the chosen threshold; the central missed-failure cost",
+    "wording": [
+      "Average precision at least 3 times the dummy's. The dummy's equals the positive share, so about 0.046 on test.",
+      "At the chosen threshold, recall of warned failures at least 0.6, and cost below both plans.",
+      "Unwarned failures reported apart, and the leakage test passing.",
+      "Set here before building: the shuffled-label control, E2 band and M5 limits."
+    ],
+    "average_precision": {
+      "min_ratio_to_dummy": 3,
+      "of": "the classifier, on the test at-risk rows scored 1 July to 1 December 2025"
+    },
+    "recall_of_warned_failures": {
+      "min": 0.6,
+      "at": "the chosen threshold, over the test alert window"
+    },
+    "cost": {
+      "below": [
+        "visit_none",
+        "visit_every_pump"
+      ],
+      "at": "the chosen threshold and the central missed-failure cost, over the test alert window"
+    },
+    "unwarned_failures": "reported apart",
+    "leakage_test": "passes",
+    "controls": "the shuffled-label, E2 and M5 limits below are met"
+  },
+  "environment": {
+    "python": "3.14.7",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.1",
+    "joblib": "1.6.0",
+    "threadpoolctl": "3.8.0"
+  },
+  "period": "test",
+  "pump_subset": null,
+  "counts": {
+    "overall": {
+      "telemetry_rows": 582996,
+      "open_failure_ticket": 2406,
+      "no_running_with_no_open_ticket": 70,
+      "warm_up": 39960,
+      "at_risk_rows": 540560
+    },
+    "by_period": {
+      "train": {
+        "telemetry_rows_in_scored_days": 356412,
+        "after_open_ticket_filter": 354968,
+        "at_risk_rows": 354926,
+        "positive_rows": 5590,
+        "dropped_by_warm_up": 36355,
+        "scored_rows": 318571,
+        "scored_positive_rows": 4999
+      },
+      "validation": {
+        "telemetry_rows_in_scored_days": 85451,
+        "after_open_ticket_filter": 85094,
+        "at_risk_rows": 85085,
+        "positive_rows": 1722,
+        "dropped_by_warm_up": 1220,
+        "scored_rows": 83865,
+        "scored_positive_rows": 1721
+      },
+      "test": {
+        "telemetry_rows_in_scored_days": 90138,
+        "after_open_ticket_filter": 89887,
+        "at_risk_rows": 89878,
+        "positive_rows": 1383,
+        "dropped_by_warm_up": 1604,
+        "scored_rows": 88274,
+        "scored_positive_rows": 1365
+      }
+    },
+    "failures": {
+      "train": 199,
+      "validation": 70,
+      "test": 55
+    }
+  },
+  "settings": {
+    "max_leaf_nodes": 15,
+    "max_iter": 100,
+    "learning_rate": 0.05
+  },
+  "threshold": 0.8911983188460465,
+  "average_precision": {
+    "rows": 88274,
+    "positive_rows": 1365,
+    "positive_share": 0.015463216802229422,
+    "classifier": 0.4037308874563429,
+    "dummy": 0.015463216802229422,
+    "pump_facts_only": 0.029955160773858756,
+    "robust_z_alone": 0.3233476059138868,
+    "isolation_forest_alone": 0.23646288118248715
+  },
+  "ap_ratio_to_dummy": 26.109113816352536,
+  "alerts": {
+    "threshold_view": {
+      "alerts": 38,
+      "caught": 28,
+      "wasted": 2,
+      "neither": 8,
+      "failures": 55,
+      "warned_failures": 55,
+      "unwarned_failures": 0,
+      "missed": 27,
+      "recall_of_warned_failures": 0.509090909090909,
+      "cost_eur": 24476.56
+    },
+    "evaluated": {
+      "alerts": 38,
+      "caught": 28,
+      "wasted": 2,
+      "neither": 8,
+      "failures": 55,
+      "warned_failures": 38,
+      "unwarned_failures": 17,
+      "missed": 27,
+      "recall_of_warned_failures": 0.7368421052631579,
+      "cost_eur": 24476.56
+    },
+    "plans": {
+      "visit_none": {
+        "visits": 0,
+        "caught": 0,
+        "missed": 55,
+        "wasted": 0,
+        "cost_eur": 49084.200000000004
+      },
+      "visit_every_pump": {
+        "visits": 3600,
+        "caught": 38,
+        "missed": 17,
+        "wasted": 3562,
+        "cost_eur": 693162.5599999999
+      }
+    }
+  },
+  "sensitivity": {
+    "low": {
+      "missed_failure_cost_eur": 339.13,
+      "model": 9537.19,
+      "visit_none": 18652.15,
+      "visit_every_pump": 683756.2899999999
+    },
+    "central": {
+      "missed_failure_cost_eur": 892.44,
+      "model": 24476.56,
+      "visit_none": 49084.200000000004,
+      "visit_every_pump": 693162.5599999999
+    },
+    "high": {
+      "missed_failure_cost_eur": 1784.89,
+      "model": 48572.71000000001,
+      "visit_none": 98168.95000000001,
+      "visit_every_pump": 708334.21
+    }
+  },
+  "ranges": {
+    "classifier_ap": {
+      "low": 0.32035395777976766,
+      "high": 0.47988740439030564,
+      "resamples": 1000
+    },
+    "dummy_ap": {
+      "low": 0.011918961512341458,
+      "high": 0.019149710298887228,
+      "resamples": 1000
+    },
+    "ap_ratio": {
+      "low": 19.5309354833725,
+      "high": 35.612166607987405,
+      "resamples": 1000
+    },
+    "recall": {
+      "low": 0.6060606060606061,
+      "high": 0.852977044476327,
+      "resamples": 1000
+    },
+    "model_cost": {
+      "low": 17337.04,
+      "high": 32508.520000000004,
+      "resamples": 1000
+    },
+    "visit_none_cost": {
+      "low": 38374.920000000006,
+      "high": 60685.920000000006,
+      "resamples": 1000
+    },
+    "visit_every_cost": {
+      "low": 687367.9800000001,
+      "high": 699745.955,
+      "resamples": 1000
+    }
+  },
+  "leakage": {
+    "pump_days_checked": 20,
+    "point_in_time_changes": [],
+    "answer_key_named_in": [
+      "src/fjordvik_service/ml/evaluate.py"
+    ],
+    "pass": true
+  },
+  "control": {
+    "period": "test",
+    "average_precision": {
+      "rows": 88274,
+      "positive_rows": 1365,
+      "positive_share": 0.015463216802229422,
+      "classifier": 0.02494845717435735,
+      "dummy": 0.015463216802229422,
+      "pump_facts_only": 0.029955160773858756,
+      "robust_z_alone": 0.014974202954093331,
+      "isolation_forest_alone": 0.01620171649184665
+    },
+    "ratio_to_dummy": {
+      "classifier": 1.613406672973788,
+      "robust_z_alone": 0.9683756714795859,
+      "isolation_forest_alone": 1.0477584773635686
+    },
+    "limit": 1.5,
+    "pass": false,
+    "pump_facts_only_ratio": 1.9371881774004454
+  },
+  "drift": {
+    "level": 5.80062053149869,
+    "detection_share": {
+      "drift_recalibration": 0.0,
+      "drift_unit_change": 1.0
+    },
+    "detection_limit": 0.9,
+    "within_days": 14,
+    "not_monitored_changed_pumps": 0,
+    "false_flag_share": 0.008997828110456097,
+    "false_flag_limit": 0.01,
+    "pump_months_monitored": 3223,
+    "false_flags_measured_on": "July to December 2025",
+    "pumps_not_monitored_in_window": 50
+  },
+  "risk_list": {
+    "date": "2025-12-31",
+    "pumps_scored": 590,
+    "at_or_above_threshold": 0,
+    "no_complete_label_window": "2025-12-02 to 2025-12-31"
+  },
+  "validation_summary": {
+    "settings": {
+      "max_leaf_nodes": 15,
+      "max_iter": 100,
+      "learning_rate": 0.05
+    },
+    "threshold": {
+      "threshold": 0.8911983188460465,
+      "cost_eur": 23072.36,
+      "alerts": 52,
+      "caught": 45,
+      "wasted": 4,
+      "candidates": 65419
+    },
+    "drift_level": {
+      "level": 5.80062053149869,
+      "pump_months": 8967,
+      "false_flag_share": 0.009925281588045055,
+      "chosen_on": "base data to 2025-06-30"
+    },
+    "shuffled_labels": {
+      "runs": [
+        {
+          "seed": 20230102,
+          "average_precision": 0.022173937496273992
+        },
+        {
+          "seed": 20230103,
+          "average_precision": 0.025389380591479792
+        },
+        {
+          "seed": 20230104,
+          "average_precision": 0.02141289037233394
+        },
+        {
+          "seed": 20230105,
+          "average_precision": 0.017549889535834213
+        },
+        {
+          "seed": 20230106,
+          "average_precision": 0.04596559573504992
+        }
+      ],
+      "mean_average_precision": 0.026498338746194373,
+      "ratio_to_dummy": 1.2912743631316626,
+      "limit": 1.25,
+      "pass": false
+    },
+    "control": {
+      "period": "validation",
+      "average_precision": {
+        "rows": 83865,
+        "positive_rows": 1721,
+        "positive_share": 0.020521075538067132,
+        "classifier": 0.021527511364631297,
+        "dummy": 0.020521075538067132,
+        "pump_facts_only": 0.0226980156927772,
+        "robust_z_alone": 0.020779732710055718,
+        "isolation_forest_alone": 0.020098503162261284
+      },
+      "ratio_to_dummy": {
+        "classifier": 1.0490440096425355,
+        "robust_z_alone": 1.0126044646884502,
+        "isolation_forest_alone": 0.9794078836159457
+      },
+      "limit": 1.5,
+      "pass": true,
+      "pump_facts_only_ratio": 1.1060831412404182
+    },
+    "group_check": {
+      "folds": [
+        {
+          "fold": 1,
+          "rows": 80495,
+          "pumps": 113,
+          "average_precision": 0.3957723630371347,
+          "positive_share": 0.018510466488601777
+        },
+        {
+          "fold": 2,
+          "rows": 80477,
+          "pumps": 113,
+          "average_precision": 0.4023970704538421,
+          "positive_share": 0.01642705369235931
+        },
+        {
+          "fold": 3,
+          "rows": 80496,
+          "pumps": 113,
+          "average_precision": 0.37139604518212505,
+          "positive_share": 0.014770920294176109
+        },
+        {
+          "fold": 4,
+          "rows": 80494,
+          "pumps": 113,
+          "average_precision": 0.3780116162848831,
+          "positive_share": 0.016361467935498298
+        },
+        {
+          "fold": 5,
+          "rows": 80474,
+          "pumps": 112,
+          "average_precision": 0.3899714878545644,
+          "positive_share": 0.017421775977334294
+        }
+      ],
+      "mean_average_precision": 0.3875097165625099,
+      "time_split_average_precision": 0.4208446628386783
+    },
+    "average_precision": {
+      "rows": 83865,
+      "positive_rows": 1721,
+      "positive_share": 0.020521075538067132,
+      "classifier": 0.4208446628386783,
+      "dummy": 0.020521075538067132,
+      "pump_facts_only": 0.0226980156927772,
+      "robust_z_alone": 0.3448325269082991,
+      "isolation_forest_alone": 0.2641380781514064
+    },
+    "ap_ratio_to_dummy": 20.5079242585507
+  },
+  "verdict": {
+    "average_precision": "pass",
+    "recall_of_warned_failures": "pass",
+    "cost_below_visit_none": "pass",
+    "cost_below_visit_every_pump": "pass",
+    "unwarned_failures_reported_apart": "pass",
+    "leakage_test": "pass",
+    "shuffled_labels": "miss",
+    "control_telemetry_validation": "pass",
+    "control_telemetry_test": "miss",
+    "drift_detection": "miss",
+    "drift_false_flags": "pass"
+  },
+  "all_pass_marks_met": false,
+  "missed_controls_accepted": {
+    "controls": [
+      "shuffled_labels"
+    ],
+    "decision": "Reece, 12 November 2026, question box: record the shuffled-label miss (1.291 times the dummy against 1.25; one shuffle of five at 2.24) and score the test period once with these settings. Diagnosis: evidence/diagnosis-shuffled-labels-2026-11-12.txt."
+  }
+}
