@@ -1,0 +1,28 @@
+{
+  "dataset": "Fjordvik Manufacturing Oy (synthetic)",
+  "generator_version": "1.4.0",
+  "seed": 20230101,
+  "base": {
+    "file": "tables/fact_asset_telemetry.csv",
+    "rows": 582996,
+    "sha256": "b5670417a18ac2eae09205a450de6a2faca68c6fcd1319c6f4b8f9d2e81744cd"
+  },
+  "files": {
+    "control/fact_asset_telemetry.csv": {
+      "rows": 582996,
+      "sha256": "3a56d52674d2c45fcbeb1650fe73fb1790bb70f8c86c35b0bf62bb10c77ba3d8"
+    },
+    "drift_recalibration/fact_asset_telemetry.csv": {
+      "rows": 582996,
+      "sha256": "cf7c3649fa7bd702ac38f88adc1e120b19e0d07f2a0553b5dba4eff0f7f889c1"
+    },
+    "drift_unit_change/fact_asset_telemetry.csv": {
+      "rows": 582996,
+      "sha256": "d59d6087548d29f38b643be6fab92c99d6c9d26f90ce288bafd1f14e3d34ec9f"
+    },
+    "drift_scenarios.csv": {
+      "rows": 70,
+      "sha256": "956870a2d30daefbebdadd371780b079e7a9d767724b91966281e2aa7f367c1b"
+    }
+  }
+}

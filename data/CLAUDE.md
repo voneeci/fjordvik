@@ -35,6 +35,13 @@ then this file.
   `tests/test_reproducible.py` fails if they drift. mcp, powerbi, power-automate and
   service-ai read `data/tables/` in place (no copies), so rerun their tests after any data
   change.
+- `scenarios/` holds two generated files (added 11 November 2026): `manifest.json`, the
+  checksums of the control and drift scenarios, and `planning_inputs.json`, the cost of a
+  wasted visit and of a missed failure. Change them only by running the scenarios module
+  with `--record scenarios`. The scenario CSV files are built outside `data/` and never
+  committed. The published rates and Fjordvik's own planning inputs are labelled in
+  `config.py`; never type a rate into a formula. `GENERATOR_VERSION` stays at 1.4.0 unless
+  a table changes, because service-ai results pin the tables' manifest.
 - A deliberate change to an expected value in a test says which change and why.
 - Writing: no em dashes, UK English spelling, spell out acronyms on first use.
 
@@ -42,5 +49,7 @@ then this file.
 
 ```bash
 python -m fjordvik_data --out tables   # regenerate (after pip install -e ".[dev]")
-python -m pytest -q                  # 96 tests
+python -m fjordvik_data.scenarios --out ..\service-ai\build\ml-scenarios   # build and check the scenarios
+python -m fjordvik_data.scenarios --out <folder outside data> --record scenarios   # also rewrite scenarios\
+python -m pytest -q                  # 120 tests
 ```

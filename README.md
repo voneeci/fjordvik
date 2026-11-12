@@ -76,7 +76,7 @@ other capabilities follow in the order of the table.
 
 | Folder | What it holds | Tests |
 | --- | --- | --- |
-| [`data`](data) | The governed dataset: 31 tables with fixed names, checksums and quality tests, the SQL that cleans the simulated ERP extract, and the after-sales service data (600 connected pumps, their daily readings, service events, parts orders, portal activity) with service manuals | 96 |
+| [`data`](data) | The governed dataset: 31 tables with fixed names, checksums and quality tests, the SQL that cleans the simulated ERP extract, and the after-sales service data (600 connected pumps, their daily readings, service events, parts orders, portal activity) with service manuals | 120 |
 | [`mcp`](mcp) | A Model Context Protocol (MCP) server that gives Claude read-only tools over the data (Python, DuckDB), in Claude Desktop or over HTTP with sign-in and per-role access | 83 |
 | [`powerbi`](powerbi) | A Power BI Project: one semantic model in Tabular Model Definition Language (TMDL), 134 Data Analysis Expressions (DAX) measures, seven row-level security roles, and two reports on it (emissions, 10 pages; portfolio, 7 pages) | 733 (154 need Power BI Desktop open) |
 | [`power-automate`](power-automate) | Power Automate intake and reminder flows with ten written rules, designed and tested offline | 30 |
@@ -224,7 +224,7 @@ python -m venv .venv
 .venv\Scripts\python -m pytest -q
 ```
 
-Each should end with a line such as `96 passed`: 96 for data, 83 for mcp, 30 for
+Each should end with a line such as `120 passed`: 120 for data, 83 for mcp, 30 for
 power-automate, 27 for service-ai, and 579 for powerbi (with 154 skipped until
 Power BI Desktop is open).
 On macOS or Linux, use `.venv/bin/python` in place of `.venv\Scripts\python`.

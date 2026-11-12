@@ -61,3 +61,14 @@ class Telemetry:
 @pytest.fixture(scope="session")
 def telemetry() -> Telemetry:
     return Telemetry(DATA / f"{TELEMETRY}.csv")
+
+
+@pytest.fixture(scope="session")
+def scenario_files(tmp_path_factory) -> tuple[Path, Path]:
+    """The phase 3 scenario files, built once outside data/: the folder of CSV
+    files, and the folder with the manifest and planning inputs written beside them."""
+    from fjordvik_data import scenarios
+    root = tmp_path_factory.mktemp("scenarios")
+    manifest = scenarios.write_scenarios(root / "out")
+    scenarios.record(root / "record", manifest)
+    return root / "out", root / "record"

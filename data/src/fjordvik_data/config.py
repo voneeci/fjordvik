@@ -768,3 +768,119 @@ PORTAL_CLICK_OTHERWISE = 0.04
 PORTAL_BROWSE_SESSIONS_PER_ORDER = 0.6
 # The cell price factor (realised price over list) must stay believable.
 PRICE_FACTOR_RANGE = (0.85, 1.25)
+
+# ===========================================================================
+# Phase 3 inputs (added 11 November 2026): two planning costs, the control and
+# drift scenarios, and the telemetry schema. Written by scenarios.py; no table
+# in tables/ reads anything below.
+# ===========================================================================
+
+# ---------------------------------------------------------------------------
+# Published rates. These are the only figures in this block that are not
+# Fjordvik's own: each carries a neutral description of its source, the date
+# the source was published or last updated, and the date it was read. Reece
+# chose them on 11 November 2026 from a research note of that date.
+# ---------------------------------------------------------------------------
+PUBLISHED_RATES = {
+    "labour_cost_eur_per_hour": {
+        "value": {"FI": 41.43, "SE": 45.74, "EE": 21.67, "LV": 16.18},
+        "unit": "euros per hour worked, cost to the employer, 2026",
+        "sources": [
+            {"description": "Published labour cost statistics, manufacturing, 2025",
+             "published": "2026-04-23"},
+            {"description": "Published labour cost index, manufacturing, first half 2026",
+             "published": "2026-09-16"},
+            {"description": "Published earnings survey by occupation, 2022",
+             "published": "2026-02-09"},
+        ],
+        "read": "2026-11-11",
+        "note": ("Central figure. The 2025 labour cost per hour in manufacturing, moved to "
+                 "2026 with the labour cost index and scaled by how an occupation group's "
+                 "hourly earnings compare with all occupations. The central figure is the "
+                 "midpoint of two occupation groups (craft and related trades workers; "
+                 "technicians and associate professionals). The midpoint is worked out from "
+                 "the published figures; it is not itself a published value."),
+    },
+    "van_running_cost_eur_per_km": {
+        "value": 0.225,
+        "unit": "euros per km, 2026",
+        "sources": [
+            {"description": "Published transport appraisal unit values, Finland, 2022 prices",
+             "published": "2024-12-20"},
+            {"description": "Published consumer price index, transport running costs",
+             "published": "2026-11-04"},
+        ],
+        "read": "2026-11-11",
+        "note": ("A van's running cost including taxes, without value added tax, insurance "
+                 "or capital cost, moved from 2022 prices to 2026 with the price index. A "
+                 "Finnish figure, used here for all four countries."),
+    },
+    "unplanned_to_planned_cost_ratio": {
+        "value": {"low": 1.38, "central": 2.0, "high": 3.0},
+        "unit": "ratio of the cost of unplanned maintenance to planned maintenance",
+        "sources": [
+            {"description": ("Published federal maintenance guidance, programme cost per "
+                             "horsepower, 2010"), "published": "2010-08"},
+            {"description": "Published utility case study, wastewater lift pumps, 2007",
+             "published": "2007"},
+        ],
+        "read": "2026-11-11",
+        "note": ("The spread of the published ratios: reactive against preventive (low), "
+                 "against predictive (central) and against reliability centred maintenance "
+                 "(high). They are programme costs per horsepower a year, not costs per "
+                 "event, and they cover the repair only, not the owner's downtime."),
+    },
+}
+LABOUR_COST_EUR_PER_HOUR = PUBLISHED_RATES["labour_cost_eur_per_hour"]["value"]
+VAN_RUNNING_COST_EUR_PER_KM = PUBLISHED_RATES["van_running_cost_eur_per_km"]["value"]
+UNPLANNED_TO_PLANNED_COST_RATIO = PUBLISHED_RATES["unplanned_to_planned_cost_ratio"]["value"]
+MM_PER_INCH = 25.4   # exact, by the definition of the inch
+
+# ---------------------------------------------------------------------------
+# Fjordvik's own planning inputs (client input, Reece, 11 November 2026). No
+# published figure exists for either, so they are never presented as one.
+# ---------------------------------------------------------------------------
+TRAVEL_SPEED_KM_PER_HOUR = 60.0   # a service van's average speed, door to door
+ROAD_DISTANCE_FACTOR = 1.3        # road km for each straight-line km
+# A technician's labour rate is the rate of the country they are based in (their
+# home town), so each of the four countries has its own rate.
+LABOUR_RATE_COUNTRY = "home town"
+# The skill every visit needs; pumps in WASTEWATER_GROUPS also need "wastewater".
+VISIT_SKILL = "mechanical"
+# What the two costs leave out, because no published figure was found.
+COSTS_LEFT_OUT = ["the customer's downtime cost", "expedited parts"]
+
+# ---------------------------------------------------------------------------
+# Scenario settings, Fjordvik's own (client input). The control switches the
+# warning rise off for every failure. The drift scenarios change one sensor at
+# some pumps that have reported since SCENARIO_TELEMETRY_FROM or earlier.
+# ---------------------------------------------------------------------------
+SCENARIO_TELEMETRY_FROM = date(2024, 7, 1)
+# A recalibration: the sensor reads this much higher from the pump's own start
+# day, drawn between the first and last start, and stays higher.
+DRIFT_RECALIBRATION = {"pumps": 30, "sensor": "bearing_temp_c", "step": 3.0,
+                       "first_start": date(2025, 8, 1), "last_start": date(2025, 8, 31)}
+# A unit change: the sensor reports in inches per second from the start day on.
+DRIFT_UNIT_CHANGE = {"pumps": 40, "sensor": "vibration_mm_s", "start": date(2025, 10, 6)}
+
+# ---------------------------------------------------------------------------
+# The telemetry schema, Fjordvik's own data contract (client input): type, unit,
+# allowed range and allowed share of blanks for each column. A range is
+# inclusive. The power range is in multiples of the pump model's rated kW. A
+# unit change needs a new column, never a silent change to one of these.
+# ---------------------------------------------------------------------------
+TELEMETRY_TIME_ZONE = "Europe/Helsinki"   # date_key is the local date here
+TELEMETRY_SCHEMA = {
+    "date_key": {"type": "date as YYYYMMDD", "unit": "day, local date in Europe/Helsinki",
+                 "range": (SERVICE_FIRST_DAY, SERVICE_LAST_DAY), "max_missing_share": 0.0},
+    "asset_id": {"type": "text", "unit": "none", "range": "an asset_id in dim_asset",
+                 "max_missing_share": 0.0},
+    "running_hours": {"type": "decimal", "unit": "hours in the day",
+                      "range": (0.0, 24.0), "max_missing_share": 0.0},
+    "vibration_mm_s": {"type": "decimal", "unit": "mm/s, root mean square velocity",
+                       "range": (0.3, 25.0), "max_missing_share": 0.02},
+    "bearing_temp_c": {"type": "decimal", "unit": "degrees Celsius",
+                       "range": (-5.0, 120.0), "max_missing_share": 0.02},
+    "power_kw": {"type": "decimal", "unit": "kW, average while running",
+                 "range": (0.0, 1.5), "range_times": "rated_kw", "max_missing_share": 0.0},
+}
