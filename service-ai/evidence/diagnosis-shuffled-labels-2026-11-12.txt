@@ -1,0 +1,92 @@
+Diagnosis of the shuffled-label control miss on validation (phase 3), 12 November 2026.
+Synthetic data with planted signals: Fjordvik Manufacturing Oy is fictional. Validation-period data only (to 30 June 2025); nothing changed.
+Commit 568e463. Scripts as run:
+
+===== shuffle_diag.py
+import sys
+sys.path.insert(0, "src")
+import numpy as np, pandas as pd
+from scipy.stats import spearmanr
+from fjordvik_service.ml import pipeline, splits, model, anomaly
+ev, allow = splits.load_evaluation(), splits.load_allowlist()
+cut = splits.period(ev, "validation")["cut_off"]
+data = pipeline.load(splits.TABLES_DIR, ev, allow, cut_off=cut); data["allow"] = allow
+pipeline.add_iforest(data, ev)
+rows, m = data["rows"], data["masks"]
+train, val = rows[m["train"]], rows[m["validation_scored"]]
+cols = pipeline.feature_columns(allow)
+settings = {"max_leaf_nodes": 15, "max_iter": 100, "learning_rate": 0.05}
+dummy = val["label"].mean()
+# 1. random scores: the noise floor of AP for this many rows
+rnd = [model.ap(val["label"], anomaly.rng(100 + k).uniform(size=len(val))) / dummy for k in range(20)]
+print("random scores ratio: mean %.3f, min %.3f, max %.3f" % (np.mean(rnd), min(rnd), max(rnd)))
+# 2. shuffled model: does its score track how unusual a row is?
+out = []
+for k in range(1, 6):
+    y = anomaly.rng(ev["seed"]["value"] + k).permutation(train["label"].to_numpy())
+    f = model.fit(train, cols, settings, ev["seed"]["value"], labels=y)
+    sc = model.score(f, val, cols)
+    rho = spearmanr(sc, val["iforest_score"]).statistic
+    out.append((round(model.ap(val["label"], sc) / dummy, 3), int(f.n_iter_), round(float(np.std(sc)), 5), round(rho, 3)))
+print("shuffled: (ratio, iterations, score sd, rank corr with forest score)", out)
+# 3. same shuffles, pump facts only (no telemetry)
+facts = allow["pump_facts_only_model"]["columns"]
+fo = []
+for k in range(1, 6):
+    y = anomaly.rng(ev["seed"]["value"] + k).permutation(train["label"].to_numpy())
+    f = model.fit(train, facts, settings, ev["seed"]["value"], labels=y)
+    fo.append(round(model.ap(val["label"], model.score(f, val, facts)) / dummy, 3))
+print("shuffled, pump facts only:", fo)
+
+===== output
+random scores ratio: mean 1.003, min 0.965, max 1.047
+shuffled: (ratio, iterations, score sd, rank corr with forest score) [(np.float64(1.081), 11, 0.00125, np.float64(-0.012)), (np.float64(1.237), 14, 0.00159, np.float64(-0.117)), (np.float64(1.043), 13, 0.00164, np.float64(-0.02)), (np.float64(0.855), 10, 0.00121, np.float64(-0.036)), (np.float64(2.24), 19, 0.00134, np.float64(0.02))]
+shuffled, pump facts only: [np.float64(0.986), np.float64(1.144), np.float64(0.927), np.float64(0.997), np.float64(1.023)]
+
+===== shuffle_seed6.py
+import sys
+sys.path.insert(0, "src")
+import numpy as np, pandas as pd
+from fjordvik_service.ml import pipeline, splits, model, anomaly
+ev, allow = splits.load_evaluation(), splits.load_allowlist()
+cut = splits.period(ev, "validation")["cut_off"]
+data = pipeline.load(splits.TABLES_DIR, ev, allow, cut_off=cut); data["allow"] = allow
+pipeline.add_iforest(data, ev)
+rows, m = data["rows"], data["masks"]
+train, val = rows[m["train"]].copy(), rows[m["validation_scored"]].copy()
+cols = pipeline.feature_columns(allow)
+settings = {"max_leaf_nodes": 15, "max_iter": 100, "learning_rate": 0.05}
+y = anomaly.rng(ev["seed"]["value"] + 5).permutation(train["label"].to_numpy())
+f = model.fit(train, cols, settings, ev["seed"]["value"], labels=y)
+val["s"] = model.score(f, val, cols)
+print("distinct scores", val["s"].nunique(), "of", len(val))
+top = val.sort_values("s", ascending=False)
+for n in [50, 200, 1000, 5000]:
+    t = top.head(n)
+    print(n, "positive share %.3f" % t["label"].mean(), "pumps", t["asset_id"].nunique(), "median z_max %.2f" % t["z_max"].median(),
+          "median age %.1f" % t["age_years"].median())
+print("all: positive share %.3f, median z_max %.2f, median age %.1f" % (val["label"].mean(), val["z_max"].median(), val["age_years"].median()))
+print(top.head(200).groupby("asset_id").agg(rows=("s", "size"), pos=("label", "sum")).sort_values("rows", ascending=False).head(8))
+# train: shuffled positives in the region the model ranks highest
+train["s"] = model.score(f, train, cols)
+tt = train.sort_values("s", ascending=False).head(2000)
+print("train top 2000: shuffled-label share %.3f vs %.3f overall" % (y[train.index.get_indexer(tt.index)].mean() if False else pd.Series(y, index=train.index).loc[tt.index].mean(), y.mean()))
+
+===== output
+distinct scores 7366 of 83865
+50 positive share 0.400 pumps 27 median z_max 3.43 median age 5.3
+200 positive share 0.175 pumps 94 median z_max 0.92 median age 5.3
+1000 positive share 0.110 pumps 269 median z_max 0.67 median age 5.3
+5000 positive share 0.058 pumps 510 median z_max 0.67 median age 5.1
+all: positive share 0.021, median z_max 0.54, median age 5.6
+          rows  pos
+asset_id           
+A0209        9    0
+A0295        7    4
+A0582        6    3
+A0511        6    5
+A0148        5    5
+A0103        5    0
+A0383        5    0
+A0293        5    0
+train top 2000: shuffled-label share 0.153 vs 0.016 overall

@@ -1,0 +1,21 @@
+Measured on synthetic data with planted signals: Fjordvik Manufacturing Oy is fictional, and these are not results on real pumps or a real service team.
+rows scored 83865, positive share 2.0521%
+average precision: classifier 0.4208, dummy 0.0205, ratio 20.51; pump facts 0.0227, z alone 0.3448, forest alone 0.2641
+alerts 52: caught 45, wasted 4, neither 3; failures 70 (warned 48, unwarned 22); recall of warned 0.9375
+cost EUR: model 23072.36, visit none 62470.80, visit every pump 664886.28
+grid: [({'max_leaf_nodes': 15, 'max_iter': 100, 'learning_rate': 0.05}, 0.4208), ({'max_leaf_nodes': 15, 'max_iter': 100, 'learning_rate': 0.1}, 0.3867), ({'max_leaf_nodes': 15, 'max_iter': 200, 'learning_rate': 0.05}, 0.4172), ({'max_leaf_nodes': 15, 'max_iter': 200, 'learning_rate': 0.1}, 0.3823), ({'max_leaf_nodes': 31, 'max_iter': 100, 'learning_rate': 0.05}, 0.4172), ({'max_leaf_nodes': 31, 'max_iter': 100, 'learning_rate': 0.1}, 0.3202), ({'max_leaf_nodes': 31, 'max_iter': 200, 'learning_rate': 0.05}, 0.415), ({'max_leaf_nodes': 31, 'max_iter': 200, 'learning_rate': 0.1}, 0.3314)]
+chosen: {'model_version': 'ml-1.0.0', 'classifier': {'max_leaf_nodes': 15, 'max_iter': 100, 'learning_rate': 0.05}, 'threshold': 0.8911983188460465, 'drift_flag_level': 5.80062053149869}
+threshold sweep: {'threshold': 0.8911983188460465, 'cost_eur': 23072.36, 'alerts': 52, 'caught': 45, 'wasted': 4, 'candidates': 65419}
+shuffled labels: 1.291 x dummy (limit 1.25)
+control (E2): {'classifier': 1.0490440096425355, 'robust_z_alone': 1.0126044646884502, 'isolation_forest_alone': 0.9794078836159457} (limit 1.5); pump facts only 1.106
+group check: 0.3875 against 0.4208
+drift level {'level': 5.80062053149869, 'pump_months': 8967, 'false_flag_share': 0.009925281588045055, 'chosen_on': 'base data to 2025-06-30'}
+leakage: True [] ['src/fjordvik_service/ml/evaluate.py']
+wrote 8 files to C:\Users\reece\Projects\fjordvik\service-ai\results\ml\validation
+missed controls recorded in the lock: ['shuffled_labels']
+split lock written: C:\Users\reece\Projects\fjordvik\service-ai\eval\ml\split_lock.json, settings_sha256 6b9459a8503febd4765ae58c49ae66d1bf0b77b0668bc6de4cbc02d3a036801a
+
+real	2m52.283s
+user	0m0.000s
+sys	0m0.031s
+exit 0

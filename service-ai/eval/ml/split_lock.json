@@ -1,0 +1,83 @@
+{
+  "rule": "E1: dates fixed before building; settings chosen on validation only; written before the first test run",
+  "evaluation_sha256": "65cc1890f226ac0c7f74bf0bcad6be23b91aed01a3b9773fac3a89846071ae6b",
+  "periods": {
+    "rule": "E1: fixed by date before building. Labels look 30 days ahead, so each period's last labelled day is 30 days before its cut-off, and no training row's label window ends after its cut-off.",
+    "label_window_days": 30,
+    "train": {
+      "first_scored_day": "each pump's first complete row, after its warm-up",
+      "last_scored_day": "2024-12-01",
+      "cut_off": "2024-12-31",
+      "alert_window": null
+    },
+    "validation": {
+      "first_scored_day": "2025-01-01",
+      "last_scored_day": "2025-06-01",
+      "cut_off": "2025-06-30",
+      "alert_window": {
+        "first_day": "2025-01-01",
+        "last_day": "2025-06-30",
+        "days": 181
+      }
+    },
+    "test": {
+      "first_scored_day": "2025-07-01",
+      "last_scored_day": "2025-12-01",
+      "cut_off": "2025-12-31",
+      "alert_window": {
+        "first_day": "2025-07-01",
+        "last_day": "2025-12-31",
+        "days": 184
+      }
+    },
+    "scored_days": "pump-days scored for average precision; a period's step reads no row after its cut-off",
+    "alert_window_days": "alerts can open on any day of the alert window, the last 30 days included",
+    "no_complete_label_window": {
+      "first_day": "2025-12-02",
+      "last_day": "2025-12-31",
+      "telemetry_rows": 17931,
+      "use": "no part in training, thresholds or average precision; scored for the forward risk list risk_2025-12-31.csv, labelled 'no complete label window'"
+    },
+    "no_refit": "The model trained to 1 December 2024 is the one tested. Refitting on validation rows would need a new threshold (M3), with nothing left to choose it on.",
+    "seasons": "Validation is winter and spring, test is summer and autumn. A threshold that travels badly shows in the test result, and it is reported as it falls.",
+    "test_scored": "once per frozen configuration; eval/ml/split_lock.json holds the dates and the hash of the chosen settings, committed before the first test run, and the test step refuses to run without it (E1)",
+    "dates_read_from": "this file; code never types a date, and tests stop at the end of validation and take the test end from this file"
+  },
+  "settings": {
+    "model_version": "ml-1.0.0",
+    "classifier": {
+      "max_leaf_nodes": 15,
+      "max_iter": 100,
+      "learning_rate": 0.05
+    },
+    "threshold": 0.8911983188460465,
+    "drift_flag_level": 5.80062053149869
+  },
+  "settings_sha256": "6b9459a8503febd4765ae58c49ae66d1bf0b77b0668bc6de4cbc02d3a036801a",
+  "chosen_from": {
+    "period": "validation",
+    "data_used_up_to": "2025-06-30"
+  },
+  "data_sha256": "379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68",
+  "commit": "42d73397fd66fd99763c38b977fe27214052a930",
+  "model_version": "ml-1.0.0",
+  "data_basis": "synthetic data with planted signals",
+  "environment": {
+    "python": "3.14.7",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.1",
+    "joblib": "1.6.0",
+    "threadpoolctl": "3.8.0"
+  },
+  "allowlist_sha256": "aa268ea6ed55f736ad4700888ade876c47fc626d2cf3483edf14324cc3d155c2",
+  "validation_manifest_sha256": "a40a31a654e7049290970d17ae535578a69dc2c2f1952649c17877ec5d20ed79",
+  "written": "2026-11-12",
+  "missed_controls_accepted": {
+    "controls": [
+      "shuffled_labels"
+    ],
+    "decision": "Reece, 12 November 2026, question box: record the shuffled-label miss (1.291 times the dummy against 1.25; one shuffle of five at 2.24) and score the test period once with these settings. Diagnosis: evidence/diagnosis-shuffled-labels-2026-11-12.txt."
+  }
+}
