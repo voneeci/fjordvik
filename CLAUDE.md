@@ -39,6 +39,6 @@ cd data && .venv\Scripts\python -m pytest -q             # 120 tests
 cd mcp && .venv\Scripts\python -m pytest -q              # 83 tests
 cd powerbi && .venv\Scripts\python -m pytest -q          # 733 tests (154 need Desktop open)
 cd power-automate && .venv\Scripts\python -m pytest -q   # 30 tests
-cd service-ai && .venv\Scripts\python -m pytest -q       # 27 tests
+cd service-ai && .venv\Scripts\python -m pytest -q       # 61 tests
 python guardrails/check.py                               # the guardrail checks on their own
 ```

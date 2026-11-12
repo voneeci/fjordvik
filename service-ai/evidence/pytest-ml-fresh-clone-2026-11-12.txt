@@ -1,0 +1,5 @@
+Fresh clone of service-ai/phase3-ml at 6e326a2, new .venv, pip install -e .[dev]; build/ml-scenarios not present
+
+.............................................................            [100%]
+61 passed in 278.45s (0:04:38)
+exit 0

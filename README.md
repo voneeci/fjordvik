@@ -67,9 +67,15 @@ forecast, part recommendations and manual search. Each capability comes with a
 plain-English note on its method, how the code applies it, its result against the pass
 mark, and what would change with live data.
 
-**Status, 3 November 2026:** the service data is generated and tested (phase 1), and the
+**Status, 12 November 2026:** the service data is generated and tested (phase 1), and the
 demand forecast (capability 1, phase 2) meets its pass marks at Oulu on synthetic data
-([learning notes](docs/learning/service-ai.md#phase-2-forecasting-spare-parts-demand)). The
+([learning notes](docs/learning/service-ai.md#phase-2-forecasting-spare-parts-demand)).
+Anomaly detection and failure prediction (capabilities 2 and 3, phase 3) meet their three
+main pass marks on the test period, measured on synthetic data with planted signals:
+average precision 26 times a dummy model's, 74% of warned failures caught 7 to 30 days
+ahead, and a lower cost than visiting every pump or none. Three control checks missed
+their limits and are reported as they fell
+([learning notes](docs/learning/service-ai.md#phase-3-predicting-pump-failures)). The
 other capabilities follow in the order of the table.
 
 ## The parts
@@ -80,7 +86,7 @@ other capabilities follow in the order of the table.
 | [`mcp`](mcp) | A Model Context Protocol (MCP) server that gives Claude read-only tools over the data (Python, DuckDB), in Claude Desktop or over HTTP with sign-in and per-role access | 83 |
 | [`powerbi`](powerbi) | A Power BI Project: one semantic model in Tabular Model Definition Language (TMDL), 134 Data Analysis Expressions (DAX) measures, seven row-level security roles, and two reports on it (emissions, 10 pages; portfolio, 7 pages) | 733 (154 need Power BI Desktop open) |
 | [`power-automate`](power-automate) | Power Automate intake and reminder flows with ten written rules, designed and tested offline | 30 |
-| [`service-ai`](service-ai) | The seven AI capabilities above, each with its test set, results and pass mark (Python); being built, phase by phase | 27 |
+| [`service-ai`](service-ai) | The seven AI capabilities above, each with its test set, results and pass mark (Python); being built, phase by phase | 61 |
 
 Every part also runs the project's guardrail checks. The master rules are in
 [GUARDRAILS.md](GUARDRAILS.md): synthetic data only, data changed only through the
@@ -225,7 +231,7 @@ python -m venv .venv
 ```
 
 Each should end with a line such as `120 passed`: 120 for data, 83 for mcp, 30 for
-power-automate, 27 for service-ai, and 579 for powerbi (with 154 skipped until
+power-automate, 61 for service-ai, and 579 for powerbi (with 154 skipped until
 Power BI Desktop is open).
 On macOS or Linux, use `.venv/bin/python` in place of `.venv\Scripts\python`.
 

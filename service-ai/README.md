@@ -42,7 +42,7 @@ how the code does it, the result, and what would change with live data.
 | Phase | Capability | Pass mark | Status |
 | --- | --- | --- | --- |
 | 2 | Spare parts demand forecast | Beats seasonal naive and the best simple forecast on mean absolute scaled error (MASE); 80% ranges hold 70 to 90% of actuals | Met at Oulu, 3 November 2026 (below); Tartu too new to test |
-| 3 | Anomaly detection and failure prediction | At least 3 times a dummy model's average precision; catches at least 60% of warned failures; cheaper than visiting all pumps or none | Not started |
+| 3 | Anomaly detection and failure prediction | At least 3 times a dummy model's average precision; catches at least 60% of warned failures; cheaper than visiting all pumps or none | Met, 12 November 2026 (below); three control limits missed |
 | 4 | Technician scheduling | Breaks no constraint; cheaper than the simple rule in at least 9 of 10 weeks | Not started |
 | 5 | Parts recommendations | Beats most-popular on hit rate at 5; never suggests a part that does not fit | Not started |
 | 6 | Service assistant (retrieval-augmented generation) | Right section in the top 5 for 90% of answerable questions; "not found" for every unanswerable one | Not started |
@@ -80,6 +80,45 @@ To rerun it (the test step refuses to run without the committed split lock):
 .venv\Scripts\python scripts\recheck_forecast.py
 ```
 
+## Phase 3: failure risk
+
+Every pump gets a daily score: the chance it fails in the next 30 days, from readings up to
+that day. A score at or above the alert level sends a technician, set from the cost of a
+missed failure (EUR 892.44) against a wasted visit (EUR 190.34), both worked out by the
+`data` part from synthetic tables and published rates. The model is a gradient-boosted
+classifier on robust z-scores, changes and medians of each pump's readings, adjusted for
+its fleet, plus an isolation forest and the pump's facts. The evaluation set, written by a
+different chat before any code, is in [`eval/ml/`](eval/ml). The method and its limits are
+in the [learning notes](../docs/learning/service-ai.md#phase-3-predicting-pump-failures).
+
+Result on the test period (July to December 2025), scored once, measured on synthetic data
+with planted signals:
+
+| Pass mark | Result |
+| --- | --- |
+| Average precision at least 3 times the dummy's | 0.404, 26.1 times the dummy's 0.0155: met |
+| At least 0.6 of warned failures caught 7 to 30 days ahead | 28 of 38, 0.74: met |
+| Cost below visiting no pump and every pump | EUR 24,477 against EUR 49,084 and EUR 693,163: met |
+| Unwarned failures reported apart; leakage test | 17 of 55 gave no warning; leakage test passed: met |
+| Shuffled labels at most 1.25 times the dummy (validation) | 1.29: missed |
+| Warnings switched off: each model at most 1.5 times the dummy | z-score 0.97, forest 1.05, classifier 1.61: missed |
+| Drift: 90% of changed pumps flagged within 14 days; at most 1% false flags | unit change 40 of 40, recalibration 0 of 30: missed; false flags 0.90% |
+
+The misses are reported as they fell; the evaluation set and its limits are unchanged.
+Reece chose to score the test period once after the shuffled-label miss on validation.
+Full results are in [`results/ml/`](results/ml), each file stamped with the data checksum,
+the commit and the model version. Phase 4 will plan visits from the daily scores and
+`risk_2025-12-31.csv`.
+
+To rerun it (build the scenarios first from `..\data`, then the test step refuses to run
+without the committed split lock or after a run with other settings):
+
+```powershell
+cd ..\data; .venv\Scripts\python -m fjordvik_data.scenarios --out ..\service-ai\build\ml-scenarios; cd ..\service-ai
+.venv\Scripts\python scripts\run_ml.py --period test
+.venv\Scripts\python scripts\recheck_ml.py
+```
+
 ## How to run the tests
 
 You need Python 3.11 or newer. From this folder:
@@ -90,10 +129,13 @@ python -m venv .venv
 .venv\Scripts\python -m pytest -q
 ```
 
-27 tests check that the shared data matches its manifest, run the project's guardrail
-checks ([GUARDRAILS.md](../GUARDRAILS.md)), and test the forecast: point-in-time drivers,
+61 tests check that the shared data matches its manifest, run the project's guardrail
+checks ([GUARDRAILS.md](../GUARDRAILS.md)), and test the forecast (point-in-time drivers,
 rolling origins and the split lock, the scores, the stamped results and the independent
-recheck. No key or network is needed.
+recheck) and the failure risk model (labels and at-risk rows, point-in-time features, the
+feature allowlist and answer-key isolation, anomaly scores on planted waves, spikes and
+rises, alerts and the threshold, the controls, drift monitors, and the results written by
+the run's own code, checked by the recheck). No key or network is needed.
 
 ## Guardrails
 
