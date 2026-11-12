@@ -20,6 +20,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+import pandas as pd
+
 SERVICE_AI = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SERVICE_AI / "src"))
 
@@ -75,7 +77,6 @@ def metrics_table(s):
     for r in rows:
         rng = s.get("ranges", {}).get(names.get(r["metric"], ""), {})
         out.append({**r, "range_low": rng.get("low"), "range_high": rng.get("high")})
-    import pandas as pd
     return pd.DataFrame(out)
 
 
@@ -99,7 +100,7 @@ def print_summary(s):
         print(f"all pass marks met: {s['all_pass_marks_met']}")
 
 
-def validation():
+def validation(accept_missed_control=None):
     commit = require_committed(CODE_PATHS)
     ev, allow = load_evaluation(), load_allowlist()
     check_scenarios(SCENARIO_DIR)
@@ -129,12 +130,22 @@ def validation():
     print(f"drift level {result['drift_level']}")
     print(f"leakage: {result['leakage']['pass']} {result['leakage']['point_in_time_changes']} {result['leakage']['answer_key_named_in']}")
     print(f"wrote {len(manifest['files'])} files to {VALIDATION_OUT}")
-    if not (result["shuffled_labels"]["pass"] and result["control"]["pass"] and result["leakage"]["pass"]):
-        raise SystemExit("A control is outside its limit on validation: no split lock written. Stop and ask Reece.")
+    if not result["leakage"]["pass"]:
+        raise SystemExit("The leakage check failed: no split lock written. A leak is never accepted.")
+    missed = [name for name, ok in [("shuffled_labels", result["shuffled_labels"]["pass"]),
+                                    ("control_telemetry", result["control"]["pass"])] if not ok]
+    if missed and not accept_missed_control:
+        raise SystemExit(f"Outside its limit on validation: {missed}. No split lock written. Stop and ask Reece.")
+    extra = {**stamps, "environment": env, "allowlist_sha256": sha256_file(ALLOWLIST_PATH),
+             "validation_manifest_sha256": sha256_file(VALIDATION_OUT / "manifest.json"),
+             "written": datetime.now(timezone.utc).strftime("%Y-%m-%d")}
+    if missed:
+        # The miss stands and is reported as it falls (A9, G5); the lock records who chose to
+        # go on to the single test run, and why.
+        extra["missed_controls_accepted"] = {"controls": missed, "decision": accept_missed_control}
+        print(f"missed controls recorded in the lock: {missed}")
     lock = write_lock(LOCK_PATH, EVALUATION_PATH, settings, {"period": "validation", "data_used_up_to": result["data_used_up_to"]},
-                      {**stamps, "environment": env, "allowlist_sha256": sha256_file(ALLOWLIST_PATH),
-                       "validation_manifest_sha256": sha256_file(VALIDATION_OUT / "manifest.json"),
-                       "written": datetime.now(timezone.utc).strftime("%Y-%m-%d")})
+                      extra)
     print(f"split lock written: {LOCK_PATH}, settings_sha256 {lock['settings_sha256']}")
 
 
@@ -173,6 +184,9 @@ def test():
 
     validation_summary = json.loads((VALIDATION_OUT / "summary.json").read_text(encoding="utf-8"))
     summary = report.summary(result, stamps, env, ev, validation=validation_summary)
+    accepted = json.loads(LOCK_PATH.read_text(encoding="utf-8")).get("missed_controls_accepted")
+    if accepted:
+        summary["missed_controls_accepted"] = accepted
     card = json.loads((VALIDATION_OUT / "model_card.json").read_text(encoding="utf-8"))
     risk_name = f"risk_{result['risk_list']['date']}"
     manifest = write_results(
@@ -195,8 +209,14 @@ def test():
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--period", choices=["validation", "test"], required=True)
+    parser.add_argument("--accept-missed-control", metavar="DECISION",
+                        help="validation only: write the lock although the shuffled-label or E2 control missed its "
+                             "limit, recording this decision (who, when, why). The miss is still reported.")
     args = parser.parse_args()
-    (validation if args.period == "validation" else test)()
+    if args.period == "validation":
+        validation(args.accept_missed_control)
+    else:
+        test()
 
 
 if __name__ == "__main__":

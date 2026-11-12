@@ -160,6 +160,10 @@ def results_note(s, ev):
         for k, val in s["verdict"].items():
             lines.append(f"| {k.replace('_', ' ')} | {val} |")
         lines += ["", f"All pass marks met: {'yes' if s['all_pass_marks_met'] else 'no'}."]
+        if s.get("missed_controls_accepted"):
+            acc = s["missed_controls_accepted"]
+            lines += ["", f"Missed on validation and carried to this single test run by decision: "
+                      f"{', '.join(acc['controls'])}. {acc['decision']}"]
     else:
         sh = s["shuffled_labels"]
         lines.append(f"- Shuffled labels: {_f(sh['ratio_to_dummy'], 2)} times the dummy, limit {sh['limit']}.")
