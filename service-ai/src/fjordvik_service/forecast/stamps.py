@@ -1,69 +1,19 @@
-"""What every saved result names (G10, W8): the data checksum, the commit, the model version
-and that it was measured on synthetic data with planted signals."""
+"""What every phase 2 result names (G10, W8). The code moved to fjordvik_service.common.stamps
+in phase 3; these names stay, with phase 2's model version and libraries, so its imports,
+tests and results don't change."""
 
-import csv
-import hashlib
-import io
-import json
-import platform
-import subprocess
-from importlib.metadata import version
-from pathlib import Path
-
+from ..common import stamps as _common
+from ..common.stamps import (  # noqa: F401  (re-exported for phase 2)
+    STAMP_FIELDS, data_checksum, git_commit, scores_sha256, sha256_file, sha256_json, uncommitted)
 from . import DATA_BASIS, MODEL_VERSION
 
-STAMP_FIELDS = ["data_sha256", "commit", "model_version", "data_basis"]
 LIBRARIES = ["numpy", "pandas", "scipy", "statsmodels", "patsy"]
 
 
 def environment():
-    """The exact Python and library versions behind a result (the pins allow a minor range)."""
-    return {"python": platform.python_version(), **{name: version(name) for name in LIBRARIES}}
-
-
-def scores_sha256(csv_text):
-    """SHA-256 of a results table without its stamp columns, so reruns at a new commit compare."""
-    rows = list(csv.reader(io.StringIO(csv_text)))
-    keep = [i for i, name in enumerate(rows[0]) if name not in STAMP_FIELDS]
-    out = io.StringIO()
-    writer = csv.writer(out, lineterminator="\n")
-    for row in rows:
-        writer.writerow([row[i] for i in keep])
-    return hashlib.sha256(out.getvalue().encode("utf-8")).hexdigest()
-
-
-def sha256_file(path):
-    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
-
-
-def sha256_json(value):
-    return hashlib.sha256(json.dumps(value, sort_keys=True).encode("utf-8")).hexdigest()
-
-
-def data_checksum(data_dir):
-    """The SHA-256 of the data manifest, which pins every table's checksum."""
-    return sha256_file(Path(data_dir) / "manifest.json")
-
-
-def git_commit(repo_dir):
-    return subprocess.run(
-        ["git", "rev-parse", "HEAD"], cwd=repo_dir, capture_output=True, text=True, check=True
-    ).stdout.strip()
-
-
-def uncommitted(repo_dir, paths):
-    """Paths among `paths` with changes git has not committed (tracked or new)."""
-    out = subprocess.run(
-        ["git", "status", "--porcelain", "--", *[str(p) for p in paths]],
-        cwd=repo_dir, capture_output=True, text=True, check=True,
-    ).stdout
-    return [line[3:] for line in out.splitlines() if line.strip()]
+    """The exact Python and phase 2 library versions behind a result."""
+    return _common.environment(LIBRARIES)
 
 
 def stamp(data_dir, commit):
-    return {
-        "data_sha256": data_checksum(data_dir),
-        "commit": commit,
-        "model_version": MODEL_VERSION,
-        "data_basis": DATA_BASIS,
-    }
+    return _common.stamp(data_dir, commit, MODEL_VERSION, DATA_BASIS)
