@@ -16,59 +16,77 @@ Why the platform exists is in the [business case](business-case.md); what it mus
 > portfolio project. No real company, client or person is described; roles are job titles,
 > not people. The emission factors are **illustrative**, not cited.
 
-**How to read the diagrams.** Solid boxes are built and tested in this repository. Dashed
-boxes are designed (a written design, tests offline) but not running anywhere. Grey dotted
-boxes are planned service AI phases with a pass mark but no code.
+**How to read the diagrams.** Each diagram has a title naming its type and scope, and its
+own key. Every box gives its name, its type in square brackets with its technology, what
+it does, and whether it is built, designed or planned; the status is written in the box,
+so the diagrams read in black and white too. Every arrow says what it does in the
+direction it points, with the format or protocol in square brackets. Solid lines run
+today; dashed lines are designed or planned. Each diagram was last checked against the
+code at the commit named under it.
 
 ## Level 1: system context
 
 Who uses the platform, and which systems it depends on.
 
 ```mermaid
+---
+title: "System context (C4 level 1): the Fjordvik data and AI platform"
+---
 flowchart TB
     classDef person fill:#08427b,color:#ffffff,stroke:#052e56
     classDef system fill:#1168bd,color:#ffffff,stroke:#0b4884
-    classDef external fill:#999999,color:#ffffff,stroke:#6b6b6b
+    classDef external fill:#6b6b6b,color:#ffffff,stroke:#333333,stroke-dasharray:6 4
+    classDef note fill:#ffffff,color:#333333,stroke:#999999
+
+    subgraph KEY["Key"]
+        direction LR
+        K1["Person"]:::person
+        K2["Software system in scope"]:::system
+        K3["External system<br/>(dashed border)"]:::external
+        K4["ERP: enterprise resource planning<br/>CRM: customer relationship management<br/>MCP: Model Context Protocol<br/>ECB: European Central Bank"]:::note
+    end
 
     SEC["Site Energy Coordinators<br/>[Person]<br/>upload the monthly site workbook"]:::person
-    OFFICE["Sustainability, finance and<br/>portfolio staff [Person]<br/>read and sign off the figures"]:::person
-    MGR["Country and sales region<br/>managers [Person]<br/>see their own sites or region"]:::person
+    OFFICE["Sustainability, finance and portfolio staff<br/>[Person]<br/>read and sign off the figures"]:::person
+    MGR["Country and sales region managers<br/>[Person]<br/>see their own sites or region"]:::person
     SVC["Service Manager and service desk<br/>[Person]<br/>plan visits, approve drafts"]:::person
-    TECH["Technicians [Person]<br/>visit pumps, ask the manuals"]:::person
-    CUST["Customers [Person]<br/>order parts on the portal"]:::person
+    TECH["Technicians<br/>[Person]<br/>visit pumps, ask the manuals"]:::person
+    CUST["Customers<br/>[Person]<br/>order spare parts"]:::person
 
     P["Fjordvik data and AI platform<br/>[Software system]<br/>checks, holds and serves one set of figures;<br/>forecasts, risk scores, plans and drafts"]:::system
 
-    M365["Microsoft 365<br/>[External]<br/>SharePoint, Excel Online, Outlook"]:::external
+    M365["Microsoft 365<br/>[External: SharePoint, Excel Online, Outlook]"]:::external
     ERP["Oracle Fusion Cloud ERP<br/>[External]<br/>sales, purchases, parts orders"]:::external
     FINHR["Finance, HR and transport systems<br/>[External]<br/>revenue, headcount, freight"]:::external
     MON["Pump monitoring service<br/>[External]<br/>daily readings from each drive"]:::external
     CRM["CRM and installed base register<br/>[External]<br/>customers, pumps, contracts"]:::external
-    PBI["Power BI Service<br/>[External]<br/>publishes the reports"]:::external
-    CLAUDE["Claude<br/>[External]<br/>Claude Desktop; the Claude API<br/>for phases 6 and 7"]:::external
-    PUB["Publishers<br/>[External]<br/>ECB exchange rates, GeoNames towns"]:::external
+    PUB["Publishers<br/>[External: ECB, GeoNames]<br/>exchange rates, town coordinates"]:::external
+    PBI["Power BI Service<br/>[External]<br/>hosts the reports"]:::external
+    CLAUDE["Claude<br/>[External: Claude Desktop, Claude API]<br/>answers questions, drafts text"]:::external
     PORTAL["Parts portal<br/>[External]<br/>shows suggestions, logs clicks"]:::external
 
-    SEC -->|"uploads workbook"| M365
-    M365 -->|"site rows, factors"| P
-    ERP -->|"monthly extract files"| P
-    FINHR -->|"monthly exports"| P
-    MON -->|"daily readings"| P
-    CRM -->|"master data"| P
-    PUB -->|"cited reference files"| P
-    P -->|"semantic model"| PBI
-    PBI -->|"reports"| OFFICE
-    PBI -->|"row-level security"| MGR
-    P <-->|"read-only tools"| CLAUDE
-    P -->|"risk list, plans, forecasts, drafts"| SVC
-    P -->|"schedule, cited answers"| TECH
-    P -->|"suggestions"| PORTAL
-    PORTAL --> CUST
-    P -->|"rejection email"| SEC
+    SEC -->|"uploads the monthly workbook to<br/>[Excel file]"| M365
+    M365 -->|"passes checked site rows to<br/>[Power Automate, SharePoint lists]"| P
+    P -->|"emails what to fix to<br/>[Outlook]"| SEC
+    ERP -->|"sends the monthly sales extract to<br/>[ZIP of CSV with SHA-256 manifest]"| P
+    FINHR -->|"sends monthly exports to<br/>[files, not yet designed]"| P
+    MON -->|"sends daily readings to<br/>[one record per pump per day]"| P
+    CRM -->|"sends customer and pump master data to<br/>[export]"| P
+    PUB -->|"provides cited reference files to<br/>[CSV, fetched]"| P
+    P -->|"publishes the semantic model to<br/>[Power BI Project]"| PBI
+    PBI -->|"shows the reports to"| OFFICE
+    PBI -->|"shows only their sites or region to<br/>[row-level security]"| MGR
+    OFFICE -->|"asks plain-language questions in"| CLAUDE
+    CLAUDE -->|"calls read-only tools on<br/>[MCP over stdio or HTTP]"| P
+    P -->|"sends risk lists, forecasts, plans and drafts to"| SVC
+    P -->|"sends the visit schedule and cited answers to"| TECH
+    P -->|"supplies fitting part suggestions to<br/>[CSV]"| PORTAL
+    PORTAL -->|"shows suggestions to<br/>[web]"| CUST
 ```
 
-In this repository every external system is simulated: the data generator in `data`
-writes what each one would send, in its shape.
+Last checked against the code: commit `f036850`, 19 November 2026. In this repository
+every external system is simulated: the data generator in `data` writes what each one
+would send, in its shape.
 
 ## Level 2: containers
 
@@ -76,51 +94,68 @@ The applications and data stores inside the platform, the technology of each, an
 they connect.
 
 ```mermaid
+---
+title: "Containers (C4 level 2): inside the Fjordvik data and AI platform"
+---
 flowchart LR
     classDef built fill:#1168bd,color:#ffffff,stroke:#0b4884
-    classDef designed fill:#ffffff,color:#1168bd,stroke:#1168bd,stroke-dasharray:6 4
-    classDef planned fill:#eeeeee,color:#555555,stroke:#999999,stroke-dasharray:2 3
-    classDef external fill:#999999,color:#ffffff,stroke:#6b6b6b
+    classDef designed fill:#ffffff,color:#0b4884,stroke:#1168bd,stroke-dasharray:6 4
+    classDef planned fill:#eeeeee,color:#333333,stroke:#777777,stroke-dasharray:2 3
+    classDef external fill:#6b6b6b,color:#ffffff,stroke:#333333
+    classDef note fill:#ffffff,color:#333333,stroke:#999999
 
-    subgraph SRC["Sources (simulated here)"]
-        WB["Site workbooks"]:::external
-        X["ERP extract<br/>ZIP of CSV + SHA-256 manifest"]:::external
-        EXP["Finance, HR, transport,<br/>CRM, monitoring exports"]:::external
+    subgraph KEY["Key"]
+        direction TB
+        KB["Built: runs and is tested here"]:::built
+        KD["Designed: written design, not running"]:::designed
+        KP["Planned or gap: no design or code yet"]:::planned
+        KE["External system"]:::external
+        KA["A"] -->|"runs today"| KB2["B"]
+        KC["A"] -.->|"designed or planned"| KD2["B"]
+        KN["Cylinder: data store<br/>RLS: row-level security<br/>TMDL, PBIR: Power BI model and report formats<br/>MCP: Model Context Protocol"]:::note
     end
 
-    subgraph INTAKE["Intake"]
-        FLOW["Intake and reminder flows<br/>[Power Automate]<br/>rules R1 to R10"]:::designed
-        LISTS[("SharePoint lists<br/>[Sites, Sources, EmissionFactors,<br/>Emissions, IntakeLog]")]:::designed
-        SQL["SQL pipeline<br/>[DuckDB SQL, data/sql]<br/>check, clean, map, reconcile"]:::built
-        STG[("Staging database<br/>[production design]")]:::designed
-        LOAD["Load to the governed dataset<br/>[not designed]"]:::planned
+    subgraph SRC["Sources, simulated here"]
+        WB["Site workbooks<br/>[External: Excel]"]:::external
+        X["ERP extract<br/>[External: ZIP of CSV + SHA-256 manifest]"]:::external
+        EXP["Finance, HR, transport, CRM<br/>and monitoring exports<br/>[External: files]"]:::external
     end
 
-    GEN["Data generator<br/>[Python, demo only]<br/>writes every source's shape"]:::built
-    DS[("Governed dataset<br/>[31 CSV files + manifest.json,<br/>data/tables]")]:::built
+    FLOW["Intake and reminder flows<br/>[Container: Power Automate]<br/>check rules R1 to R10<br/>Designed"]:::designed
+    LISTS[("SharePoint lists<br/>[Container: SharePoint Online]<br/>sites, sources, factors, emissions, intake log<br/>Designed")]:::designed
+    SQL["SQL pipeline<br/>[Container: DuckDB SQL]<br/>checks, cleans, maps, reconciles<br/>Built"]:::built
+    STG[("Staging database<br/>[Container: engine not chosen]<br/>holds the cleaned extract<br/>Designed")]:::designed
+    LOAD["Production load<br/>[Container: not designed]<br/>fills the governed dataset<br/>Gap"]:::planned
+    GEN["Data generator<br/>[Container: Python]<br/>stands in for every source, demo only<br/>Built"]:::built
+    DS[("Governed dataset<br/>[Container: 31 CSV files + manifest.json]<br/>the one copy every reader uses<br/>Built")]:::built
+    SM["Semantic model<br/>[Container: Power BI, TMDL]<br/>134 measures, 7 RLS roles<br/>Built, not published"]:::built
+    REP["Emissions and portfolio reports<br/>[Container: Power BI, PBIR]<br/>17 pages<br/>Built, not published"]:::built
+    MCP["Claude connector<br/>[Container: Python, MCP SDK, DuckDB]<br/>7 read-only tools<br/>Built, local only"]:::built
+    SAI["Service AI jobs<br/>[Container: Python, scikit-learn, statsmodels]<br/>parts forecast, failure risk<br/>Built"]:::built
+    RES[("Service AI results<br/>[Container: CSV and JSON + manifest]<br/>scores, forecasts, model card<br/>Built")]:::built
+    LATER["Scheduler, recommender, assistant, agent<br/>[Container: Python, OR-Tools, Claude API]<br/>phases 4 to 7<br/>Planned"]:::planned
+    GRD["Guardrails and tests<br/>[Container: Python, pytest, Claude Code hook]<br/>check names, checksums and rules<br/>Built"]:::built
 
-    subgraph READ["Readers"]
-        SM["Semantic model<br/>[Power BI, TMDL]<br/>134 measures, 7 RLS roles"]:::built
-        REP["Emissions and portfolio reports<br/>[Power BI, PBIR]<br/>17 pages"]:::built
-        MCP["Claude connector<br/>[MCP server, Python,<br/>DuckDB in memory]<br/>7 read-only tools"]:::built
-        SAI["Service AI jobs<br/>[Python]<br/>forecast, failure risk"]:::built
-        RES[("Service AI results<br/>[CSV and JSON + manifest]")]:::built
-        LATER["Scheduler, recommender,<br/>assistant, agent<br/>[phases 4 to 7]"]:::planned
-    end
-
-    WB --> FLOW --> LISTS
-    X --> SQL --> STG
-    LISTS -.-> LOAD
-    STG -.-> LOAD
-    EXP -.-> LOAD
-    LOAD -.-> DS
-    GEN -->|"demo: writes tables,<br/>extract, corpus"| DS
-    DS -->|"DataFolder parameter"| SM --> REP
-    DS -->|"read in place,<br/>checksums checked"| MCP
-    DS -->|"read in place"| SAI --> RES
-    RES -.->|"planned read-only tools"| MCP
-    RES -.-> LATER
+    WB -->|"triggers on upload<br/>[Excel file in SharePoint]"| FLOW
+    FLOW -->|"writes accepted rows to<br/>[SharePoint connector]"| LISTS
+    X -->|"is checked and loaded by<br/>[files]"| SQL
+    SQL -->|"writes clean sales to<br/>[SQL]"| STG
+    LISTS -.->|"would feed<br/>[not designed]"| LOAD
+    STG -.->|"would feed<br/>[not designed]"| LOAD
+    EXP -.->|"would feed<br/>[not designed]"| LOAD
+    LOAD -.->|"would write<br/>[not designed]"| DS
+    GEN -->|"writes tables, extract and corpus to<br/>[CSV, demo only]"| DS
+    DS -->|"provides tables to<br/>[CSV via the DataFolder parameter]"| SM
+    SM -->|"provides measures and roles to<br/>[same model]"| REP
+    DS -->|"is loaded into memory by<br/>[CSV, checksums checked first]"| MCP
+    DS -->|"is read in place by<br/>[CSV]"| SAI
+    SAI -->|"writes stamped results to<br/>[CSV, JSON]"| RES
+    RES -.->|"will feed four planned read-only tools in<br/>[CSV]"| MCP
+    RES -.->|"will feed<br/>[CSV]"| LATER
+    GRD -->|"checks names and checksums of<br/>[pytest, before each commit]"| DS
 ```
+
+Last checked against the code: commit `f036850`, 19 November 2026.
 
 | Container | Technology | Status | Part | Notes |
 | --- | --- | --- | --- | --- |
@@ -128,75 +163,155 @@ flowchart LR
 | SharePoint lists | SharePoint Online | Designed; seed workbooks built | power-automate | [Lists](../power-automate/docs/sharepoint-lists.md) |
 | SQL pipeline | DuckDB SQL | Built | data | Stops the load on any failed check |
 | Staging database | Not chosen | Designed | data, powerbi | [Refresh design](../powerbi/docs/refresh-design.md#the-route) |
-| Load to the governed dataset | Not designed | **Gap** | none | No route yet from the SharePoint list, the staging database and the monthly exports into the dataset in production |
+| Production load | Not designed | **Gap** | none | No route yet from the SharePoint list, the staging database and the monthly exports into the dataset in production; a central data lake is being researched |
 | Data generator | Python | Built | data | Demo only: it stands in for every source |
 | Governed dataset | CSV files with a SHA-256 manifest | Built | data | The contract every reader depends on |
 | Semantic model and reports | Power BI Project (TMDL and PBIR) | Built; not published | powerbi | Desktop reads the CSV files |
 | Claude connector | Python, MCP SDK 2.x, DuckDB | Built; local only | mcp | Stdio, or Streamable HTTP on 127.0.0.1 with OAuth 2.1 sign-in |
 | Service AI jobs and results | Python (pandas, statsmodels, scikit-learn) | Phases 2 and 3 built | service-ai | Each result stamped with data checksum, commit and model version |
 | Scheduler, recommender, assistant, agent | Google OR-Tools; Python; retrieval-augmented generation (RAG) with Claude; an agent with an outbox | Planned | service-ai | Phases 4 to 7 |
+| Guardrails and tests | Python, pytest, a Claude Code hook, a pre-commit check | Built | guardrails, every part | [GUARDRAILS.md](../GUARDRAILS.md) |
 
-## Level 3: service AI components
+## Level 3: the service AI pipeline
 
-The service AI is where most of the remaining build sits, so it gets its own view. Each
-capability reads the governed dataset in place and never writes under `data/` (rule A5).
+The service AI is where most of the remaining build sits, so it gets its own view: from
+the governed dataset through each phase's model to the decisions people take, with the
+locks set before any test run and the places where a person approves. Each capability
+reads the dataset in place and never writes under `data/` (rule A5).
 
 ```mermaid
-flowchart LR
+---
+title: "Service AI pipeline, part 1 (C4 level 3): phases 2 and 3 as built"
+---
+flowchart TB
     classDef built fill:#1168bd,color:#ffffff,stroke:#0b4884
-    classDef planned fill:#eeeeee,color:#555555,stroke:#999999,stroke-dasharray:2 3
-    classDef store fill:#ffffff,color:#1168bd,stroke:#1168bd
+    classDef planned fill:#eeeeee,color:#333333,stroke:#777777,stroke-dasharray:2 3
+    classDef store fill:#ffffff,color:#0b4884,stroke:#1168bd
+    classDef lock fill:#fff4d6,color:#5c4400,stroke:#8a6d00
     classDef person fill:#08427b,color:#ffffff,stroke:#052e56
+    classDef note fill:#ffffff,color:#333333,stroke:#999999
 
-    subgraph IN["Governed dataset (read only)"]
-        TEL[("fact_asset_telemetry")]:::store
-        EVT[("fact_service_event")]:::store
-        ORD[("fact_parts_order")]:::store
-        POR[("fact_portal_event")]:::store
-        MAS[("dim_asset, dim_part,<br/>dim_technician, dim_customer")]:::store
-        COR[("data/corpus<br/>manuals, terms, warranty")]:::store
+    subgraph KEY["Key"]
+        direction LR
+        KB["Built component"]:::built
+        KS[("Data store")]:::store
+        KL[("Lock: fixed before any test run")]:::lock
+        KH["Person"]:::person
     end
 
-    DEM["Demand and drivers<br/>forecast/demand.py, drivers.py"]:::built
-    FC["Parts forecast<br/>Poisson driver model + 80% ranges<br/>(phase 2)"]:::built
-    FEAT["Features<br/>ml/features.py, 31 allowlisted columns"]:::built
-    ANO["Anomaly score<br/>isolation forest (phase 3)"]:::built
-    CLF["Failure risk<br/>gradient-boosted trees (phase 3)"]:::built
-    ALR["Alerts and drift<br/>cost-based alert level,<br/>seasonal drift monitor"]:::built
-    SCH["Technician schedule<br/>OR-Tools + independent<br/>constraint checker (phase 4)"]:::planned
-    REC["Parts recommendations<br/>fit checked in code (phase 5)"]:::planned
-    IDX["Manual search index<br/>version and date per chunk"]:::planned
-    AST["Service assistant<br/>RAG with Claude, cites sections (phase 6)"]:::planned
-    AGT["Service desk agent<br/>read tools + create draft only (phase 7)"]:::planned
-    OUT[("outbox/<br/>drafts with a UUID request ID")]:::store
-    APP["Approve command<br/>human only, applies once"]:::planned
-    REV["Service Manager"]:::person
+    subgraph DATA["Governed dataset, read only"]
+        direction LR
+        ORD[("fact_parts_order<br/>[CSV]")]:::store
+        TEL[("fact_asset_telemetry<br/>[CSV, one row per pump per day]")]:::store
+        MAS[("dim_asset, dim_product,<br/>dim_customer [CSV]")]:::store
+        EVT[("fact_service_event<br/>[CSV]")]:::store
+    end
 
-    ORD --> DEM
-    TEL --> DEM
-    MAS --> DEM
-    DEM --> FC
-    TEL --> FEAT
-    MAS --> FEAT
-    EVT -->|"labels only"| CLF
-    FEAT --> ANO --> CLF --> ALR
-    ALR --> SCH
-    MAS --> SCH
-    ORD --> REC
-    POR --> REC
-    COR --> IDX --> AST
-    ALR --> AGT
-    FC --> AGT
-    REC --> AGT
-    IDX --> AGT
-    SCH --> AGT
-    AGT --> OUT --> REV --> APP
+    DEM["Demand and drivers<br/>[Python: forecast/demand.py, drivers.py]<br/>Built"]:::built
+    FC["Parts forecast, phase 2<br/>[statsmodels Poisson regression]<br/>Built"]:::built
+    FEAT["Features<br/>[Python: ml/features.py, 31 allowlisted columns]<br/>Built"]:::built
+    ANO["Anomaly score, phase 3<br/>[scikit-learn isolation forest]<br/>Built"]:::built
+    CLF["Failure risk, phase 3<br/>[scikit-learn gradient-boosted trees]<br/>Built"]:::built
+    ALR["Alerts and drift<br/>[Python: ml/alerts.py, drift.py]<br/>Built"]:::built
+
+    subgraph LOCKS["Fixed before code, per phase"]
+        direction LR
+        EVAL[("Evaluation set and pass mark<br/>[JSON in eval/, written by another chat]")]:::lock
+        SPLIT[("Split lock<br/>[JSON: period dates + settings hash]")]:::lock
+    end
+    TRUTH[("data/generator-truth<br/>[answer key, evaluation only]")]:::store
+    SPEC["Data and AI Specialist<br/>[Person]<br/>runs each locked test once"]:::person
+    EV["Evaluation and independent recheck<br/>[Python: evaluate.py, recheck scripts]<br/>Built"]:::built
+    RES[("Results and model card<br/>[CSV and JSON + manifest]")]:::store
+
+    ORD -->|"order lines"| DEM
+    TEL -->|"running hours"| DEM
+    MAS -->|"pump ages and regions"| DEM
+    DEM -->|"monthly demand, drivers as known"| FC
+    TEL -->|"readings up to the day scored"| FEAT
+    MAS -->|"pump and customer facts"| FEAT
+    FEAT -->|"feature rows"| ANO
+    ANO -->|"anomaly score as a feature"| CLF
+    FEAT -->|"feature rows"| CLF
+    EVT -->|"failure labels only"| CLF
+    CLF -->|"30-day failure chance"| ALR
+    FC -->|"forecasts and ranges"| EV
+    ALR -->|"alerts, costs, drift flags"| EV
+    EVAL -->|"pass marks"| EV
+    SPLIT -->|"must exist before the test step runs"| EV
+    TRUTH -->|"which failures gave warning, after the model is fixed"| EV
+    SPEC -->|"starts the locked test run"| EV
+    EV -->|"writes stamped results"| RES
 ```
 
-The answer key in `data/generator-truth/` is read only by the evaluation step, after the
-model is fixed, and never by a model, the connector or an agent (rule D10). The planned
-connector tools (asset health, parts forecast, part recommendations, manual search) read
-the committed results and stay read-only (rule A1).
+The second part shows what phases 4 to 7 and the failure risk API will build on those
+results. Nothing in it exists yet.
+
+```mermaid
+---
+title: "Service AI pipeline, part 2 (C4 level 3): phases 4 to 7 and the API, as planned"
+---
+flowchart LR
+    classDef built fill:#1168bd,color:#ffffff,stroke:#0b4884
+    classDef planned fill:#eeeeee,color:#333333,stroke:#777777,stroke-dasharray:2 3
+    classDef store fill:#ffffff,color:#0b4884,stroke:#1168bd
+    classDef lock fill:#fff4d6,color:#5c4400,stroke:#8a6d00
+    classDef person fill:#08427b,color:#ffffff,stroke:#052e56
+    classDef note fill:#ffffff,color:#333333,stroke:#999999
+
+    subgraph KEY["Key"]
+        direction TB
+        KP["Planned component"]:::planned
+        KS[("Data store")]:::store
+        KH["Person"]:::person
+        KN["RAG: retrieval-augmented generation<br/>API: application programming interface<br/>dashed line: planned"]:::note
+    end
+
+    RES[("Results and model card<br/>[CSV and JSON + manifest], built")]:::store
+    ORD[("fact_parts_order<br/>[CSV]")]:::store
+    POR[("fact_portal_event<br/>[CSV]")]:::store
+    COR[("data/corpus<br/>[Markdown manuals and terms]")]:::store
+    API["Failure risk API<br/>[Python container on Azure]<br/>Planned"]:::planned
+    SCH["Technician schedule, phase 4<br/>[Google OR-Tools + independent checker]<br/>Planned"]:::planned
+    REC["Parts recommendations, phase 5<br/>[Python]<br/>Planned"]:::planned
+    AST["Service assistant, phase 6<br/>[RAG with the Claude API]<br/>Planned"]:::planned
+    AGT["Service desk agent, phase 7<br/>[Claude API: read tools + create draft]<br/>Planned"]:::planned
+    REV["Service Manager<br/>[Person]<br/>approves each draft once"]:::person
+
+    RES -.->|"scores and model card"| API
+    RES -.->|"daily risk list"| SCH
+    ORD -.->|"order history"| REC
+    POR -.->|"what was shown and clicked"| REC
+    COR -.->|"manual sections with version and date"| AST
+    RES -.->|"risk and forecast"| AGT
+    SCH -.->|"free technician slots"| AGT
+    REC -.->|"fitting parts"| AGT
+    AST -.->|"cited guidance"| AGT
+    AGT -.->|"puts drafts in outbox/ for"| REV
+```
+
+Last checked against the code: commit `f036850`, 19 November 2026. The answer key in
+`data/generator-truth/` is read only by the evaluation step, after the model is fixed,
+and never by a model, the connector or an agent (rule D10). The planned connector tools
+(asset health, parts forecast, part recommendations, manual search) read the committed
+results and stay read-only (rule A1).
+
+### Machine learning operations parts
+
+Kreuzberger, Kühl and Hirschl (2023, IEEE Access) name nine technical parts a machine
+learning system needs. Each is shown or ruled out here:
+
+| Part | In Fjordvik today | Status |
+| --- | --- | --- |
+| Source code repository | One git repository; every result names the commit it ran on | Present |
+| Continuous integration and delivery | None: tests run by hand | Missing; [ADR-028](decision-log.md#adr-028-continuous-integration-on-every-push) proposed |
+| Workflow orchestration | Scripts run by hand (`scripts/run_forecast.py`, `scripts/run_ml.py`) | Not needed for one-off phase runs; needed once a deployed model retrains on a schedule |
+| Feature store | Features rebuilt from the governed dataset on each run, point-in-time tested (rule D11) | Not needed: one model family, small data |
+| Model training infrastructure | The laptop, Python with pinned libraries and seeded generators (rule G10) | Present |
+| Model registry | Results stamped with model version, commit and data checksum, with a checksum manifest; `results/ml/model_card.json` | Partial: files, not a registry |
+| Machine learning metadata store | `eval/*/split_lock.json`, `eval/*/test_runs.jsonl`, `eval/*/evaluation.json` and the result manifests | Present, as files |
+| Model serving | None | Planned: the failure risk API on Azure |
+| Monitoring | The phase 3 drift monitor, run offline on the test period | Partial: live monitoring comes with the API |
 
 ## Interfaces and contracts
 

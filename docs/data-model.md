@@ -20,7 +20,13 @@ in the [decision log](decision-log.md).
 The business things, and how they relate, in Fjordvik's own words.
 
 ```mermaid
+---
+title: "Conceptual model: the business things Fjordvik's data describes"
+---
 flowchart LR
+    subgraph KEY["Key"]
+        KN["Each box is a business thing; each arrow<br/>reads as a sentence from box to box"]
+    end
     SITE["Site"] -- "uses energy from" --> SRC["Emission source"]
     SITE -- "buys from" --> SUP["Supplier"]
     SITE -- "holds" --> CON["Energy contract"]
@@ -43,6 +49,8 @@ flowchart LR
     CUST -- "is shown, clicks" --> PART
 ```
 
+Last checked: commit `f036850`, 19 November 2026.
+
 ## Logical and physical model
 
 | Layer | Today | In production (designed) |
@@ -62,6 +70,9 @@ follow-up.
 ### Emissions
 
 ```mermaid
+---
+title: "Data model, emissions (logical): sites' and value-chain emissions"
+---
 erDiagram
     dim_site ||--o{ dim_contract : "site_id"
     dim_source ||--o{ dim_contract : "source_id"
@@ -194,9 +205,14 @@ erDiagram
     }
 ```
 
+Key: `dim_` tables are dimensions (things to filter and group by) and `fact_` tables are facts (events to add up) at the grain in [Grain](#grain); `bridge_` links two dimensions many to many. PK primary key, FK foreign key; each line runs one to many, from the table with the key to the table that refers to it. Generated from the CSV headers; last checked at commit `f036850`, 19 November 2026.
+
 ### Portfolio
 
 ```mermaid
+---
+title: "Data model, portfolio (logical): sales, use-phase emissions, budget and scorecard"
+---
 erDiagram
     dim_site ||--o{ dim_product : "made_at_site_id"
     dim_product_group ||--o{ dim_product : "product_group"
@@ -324,9 +340,14 @@ erDiagram
     }
 ```
 
+Key: `dim_` tables are dimensions (things to filter and group by) and `fact_` tables are facts (events to add up) at the grain in [Grain](#grain); `bridge_` links two dimensions many to many. PK primary key, FK foreign key; each line runs one to many, from the table with the key to the table that refers to it. Generated from the CSV headers; last checked at commit `f036850`, 19 November 2026.
+
 ### After-sales service
 
 ```mermaid
+---
+title: "Data model, after-sales service (logical): pumps, readings, service and parts"
+---
 erDiagram
     dim_part ||--o{ bridge_part_compatibility : "part_id"
     dim_customer ||--o{ dim_asset : "customer_id"
@@ -476,6 +497,8 @@ erDiagram
     }
 ```
 
+Key: `dim_` tables are dimensions (things to filter and group by) and `fact_` tables are facts (events to add up) at the grain in [Grain](#grain); `bridge_` links two dimensions many to many. PK primary key, FK foreign key; each line runs one to many, from the table with the key to the table that refers to it. Generated from the CSV headers; last checked at commit `f036850`, 19 November 2026.
+
 ## Bus matrix
 
 Which dimensions each fact shares. A shared column means two subjects can be read side by
@@ -622,7 +645,8 @@ many are found in the target table, and blanks.
 3. **Contract end dates sit past the calendar.** Both contracts end on 1 December 2027
    (`end_date_key` 20271201), after the last month in `dim_date`. That is right for a
    contract; the keys are dates, not joins, and the diagram draws no line for them.
-4. **Parts fit 8 of the 10 product groups.** The two left out, Spare parts and Service
+4. **Each table is a fact or a dimension, never both.** The prefix says which; `bridge_part_compatibility` is the one bridge, linking parts to the product groups they fit.
+5. **Parts fit 8 of the 10 product groups.** The two left out, Spare parts and Service
    kits, are themselves parts, so nothing fits them. No gap.
 
 ## History handling

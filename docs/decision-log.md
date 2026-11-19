@@ -6,7 +6,7 @@ reviewer, or a new chat, can see why the platform is shaped as it is without rea
 handover. These are the architecture decision records (ADRs) of station 02 of the delivery
 map.
 
-Records 001 to 025 were taken during the build and are written up here from the
+Records 001 to 025, 030 and 031 were taken during the build and are written up here from the
 [project guide](learning-guide.md), the [learning notes](learning/service-ai.md), the
 handovers and the repository's `CLAUDE.md` files. Records 026 to 029 are proposals from
 the architecture pause and wait for Reece's decision. A decision is never edited after it
@@ -43,6 +43,8 @@ is accepted: a later record supersedes it and says so.
 | 023 | Parts forecast: a driver model that must beat simple rules | Accepted | 3 November 2026 |
 | 024 | Failure risk: fleet-adjusted z-scores, boosted trees, cost-based alerts | Accepted | 12 November 2026 |
 | 025 | Agents draft, never act | Accepted | 2 November 2026 |
+| 030 | The guardrail hook is frozen | Accepted | 3 November 2026 |
+| 031 | Power Automate flows designed and tested offline, not built in a tenant | Accepted | By 16 October 2026 |
 | 026 | Four environments with separate credentials | Proposed | 19 November 2026 |
 | 027 | History handling for dimensions | Proposed | 19 November 2026 |
 | 028 | Continuous integration on every push | Proposed | 19 November 2026 |
@@ -91,6 +93,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 ### ADR-004: A zero is a row; no backfilling
 
 - **Status:** Accepted, by 16 October 2026.
+- **Context:** A missing row in a monthly report can mean nothing was used or that no report was sent, and sites open part way through the period.
 - **Decision:** Every open site reports every source every month, with 0 where nothing was
   used; a site's series starts in its first month.
 - **Over:** No row for nothing used; estimates for months before a site opened.
@@ -112,6 +115,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 
 - **Status:** Accepted, 31 October 2026 (Reece), superseding the per-folder copies of
   30 October.
+- **Context:** On 30 October 2026 each part kept its own copy of the data, and copies drift.
 - **Decision:** mcp, powerbi, power-automate and service-ai read `data/tables/` directly.
 - **Over:** A copy per part.
 - **Consequences:** One place to change; a data change means rerunning every part's tests.
@@ -120,6 +124,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 ### ADR-007: Checksums prove the data unedited
 
 - **Status:** Accepted, 31 October 2026.
+- **Context:** Every part relies on the dataset, and nobody could prove a file had not been edited by hand.
 - **Decision:** `data/tables/manifest.json` holds each file's row count and SHA-256
   checksum; every part's tests check the files before relying on them; the tables change
   only through the generator.
@@ -130,6 +135,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 ### ADR-008: Planted errors only in intake files
 
 - **Status:** Accepted, 31 October 2026 (Reece, approving the phase 2 plan).
+- **Context:** The intake rules and the SQL need problems to catch, but every reader needs a clean dataset.
 - **Decision:** The clean dataset has no planted errors. They live in the power-automate
   intake files and the simulated ERP extract, where the rules and SQL must catch them.
 - **Consequences:** Every reader can trust the dataset; every check has a planted problem
@@ -139,6 +145,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 ### ADR-009: Market-based scope 2 in its own table
 
 - **Status:** Accepted, 31 October 2026.
+- **Context:** Customers ask for market-based scope 2 beside location-based; both cover the same kWh, so adding them would double count.
 - **Decision:** `fact_scope2_market` holds the same kWh with contract or residual-mix
   factors, reported beside the location-based total, never added to it.
 - **Over:** A method column with two rows per source.
@@ -149,6 +156,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 ### ADR-010: One table per scope 3 data source
 
 - **Status:** Accepted, 31 October 2026.
+- **Context:** Scope 3 data comes from different systems with different owners: the purchase ledger, the transport system and the sites' own fuel and kWh.
 - **Decision:** Purchases, freight and upstream energy each get a fact table; all 15
   scope 3 categories are listed with a status and reason.
 - **Over:** One wide value-chain table.
@@ -171,6 +179,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 ### ADR-012: Quarantine unmapped item numbers
 
 - **Status:** Accepted, 31 October 2026.
+- **Context:** Regions still use local and legacy item numbers, and some extracts arrive in kronor.
 - **Decision:** Sales lines with an unmapped local item number are held back and listed in
   `fact_data_issue` for portfolio governance; kronor are converted at the ECB's published
   monthly rate.
@@ -182,6 +191,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 ### ADR-013: Connector on DuckDB in memory
 
 - **Status:** Accepted, by 16 October 2026.
+- **Context:** The connector needs fast analytics over CSV files and a sandbox for free SQL.
 - **Decision:** The connector loads the CSV files into DuckDB in memory, then locks off file
   and network access.
 - **Over:** SQLite, pandas, a server database.
@@ -191,6 +201,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 ### ADR-014: Purpose-built tools plus one guarded SQL tool
 
 - **Status:** Accepted, by 16 October 2026.
+- **Context:** Claude can write SQL, but free SQL lets it get the grain wrong, for example by summing FTE over months.
 - **Decision:** Six tools with tested logic answer the common questions; `run_sql` handles
   the rest as one read-only `SELECT`, capped at 1,000 rows, with bound parameters.
 - **Over:** SQL only.
@@ -201,6 +212,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 ### ADR-015: Stdio, plus HTTP with OAuth sign-in on 127.0.0.1
 
 - **Status:** Accepted, 31 October 2026.
+- **Context:** One person uses Claude Desktop on one computer; a company would share one connector, with sign-in and a role per person.
 - **Decision:** Stdio for one person in Claude Desktop; Streamable HTTP with OAuth 2.1 and a
   role per tool check to show how a company would share it, bound to 127.0.0.1 only.
 - **Consequences:** The sign-in page is a demo with no password; opening the server further
@@ -210,6 +222,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 ### ADR-016: Power BI Project text files, generated pages
 
 - **Status:** Accepted, by 16 October 2026.
+- **Context:** A binary `.pbix` file shows no readable change in git, and hand-edited report JSON drifts.
 - **Decision:** The model in TMDL and the report in PBIR as text in git; report pages
   generated by a Python script; the data dictionary generated from the model.
 - **Over:** A binary `.pbix`; hand-edited JSON.
@@ -219,6 +232,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 ### ADR-017: Two reports on one model
 
 - **Status:** Accepted, 31 October 2026 (Reece).
+- **Context:** Emissions and portfolio reporting share dimensions, measures and security roles.
 - **Decision:** `FjordvikEmissions.pbip` and `FjordvikPortfolio.pbip` both read one
   semantic model.
 - **Consequences:** One set of measures and security roles; open one report at a time.
@@ -227,6 +241,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 ### ADR-018: Static row-level security roles
 
 - **Status:** Accepted, by 16 October 2026; region roles added 31 October 2026.
+- **Context:** Country and region managers may see only their own sites or region, and with the model unpublished there are no users in the Power BI Service to assign.
 - **Decision:** Three country roles and four sales region roles; region roles also deny
   site figures.
 - **Over:** Dynamic roles by email address.
@@ -247,6 +262,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 ### ADR-020: Intake rules in Python, mirrored in Power Automate
 
 - **Status:** Accepted, by 16 October 2026.
+- **Context:** A Power Automate flow can't be tested offline, and every site file needs a known expected result.
 - **Decision:** Ten rules written once in Python as the testable reference, then built as
   Power Automate actions; storage in SharePoint lists; whole file or nothing.
 - **Over:** Rules only in the flow; an Office Script; Dataverse.
@@ -257,6 +273,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 ### ADR-021: Master guardrails with a hook and tests
 
 - **Status:** Accepted, 2 November 2026 (Reece); slimmed 3 November 2026.
+- **Context:** Rules spread across many `CLAUDE.md` files drifted as more chats worked in the repository.
 - **Decision:** One master rule set, `GUARDRAILS.md`, maintained only by Attena, enforced
   by `check.py`, every part's guardrail tests, a Claude Code hook and a pre-commit check.
 - **Consequences:** Rules stay the same across chats; a new folder or kind of file needs a
@@ -266,6 +283,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 ### ADR-022: Pass marks and time splits fixed before code
 
 - **Status:** Accepted, 2 November 2026.
+- **Context:** A model tuned on the data it is judged on looks better than it is.
 - **Decision:** Each service AI phase commits its evaluation set and pass mark before any
   code, written by a different chat; train, validation and test periods are fixed by date
   with a 30-day gap; settings are chosen on validation only; the test period is scored
@@ -277,6 +295,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 ### ADR-023: Parts forecast: a driver model that must beat simple rules
 
 - **Status:** Accepted, 3 November 2026.
+- **Context:** Parts are ordered after a failure, monthly demand is noisy, and simple forecasts are hard to beat.
 - **Decision:** A Poisson regression per warehouse and part family on fleet running hours
   and age, each driver used only as known at the forecast date, with 80% ranges from past
   errors; judged against naive, seasonal naive and moving average forecasts on rolling
@@ -288,6 +307,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 ### ADR-024: Failure risk: fleet-adjusted z-scores, boosted trees, cost-based alerts
 
 - **Status:** Accepted, 12 November 2026.
+- **Context:** Failures are rare (1.5% of test pump-days are followed by one within 30 days), and readings follow the seasons.
 - **Decision:** Readings compared with the same application's fleet and then with the
   pump's own normal (robust z-scores); an isolation forest score; gradient-boosted trees
   for the 30-day failure chance; the alert level set from the cost of a wasted visit
@@ -301,11 +321,40 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 ### ADR-025: Agents draft, never act
 
 - **Status:** Accepted, 2 November 2026.
+- **Context:** From phase 7 an agent reads emails and notes that anyone can write.
 - **Decision:** Agents have read-only tools plus "create draft"; drafts go to
   `service-ai/outbox/` with a unique request ID; only a human-run approve command applies
   one, once; every tool call is logged.
 - **Consequences:** A planted instruction can at worst produce a draft a person rejects.
 - **Source:** [GUARDRAILS.md](../GUARDRAILS.md) A3, A4, A11, A12.
+
+### ADR-030: The guardrail hook is frozen
+
+- **Status:** Accepted, 3 November 2026 (Reece, in the Attena chat).
+- **Context:** Four test rounds on 2 and 3 November 2026 kept finding rarer ways round the
+  Claude Code hook, each fix costing time, while the other backstops already caught what
+  matters.
+- **Decision:** The hook changes only after a recorded incident (a chat hits a gap or a
+  false block in normal work) or a rule change, each fix with its own hook case and no new
+  test round. A chat that hits a gap writes a proposal and carries on.
+- **Over:** More test rounds until no gap is found.
+- **Consequences:** Some unusual forms are not caught and are listed in GUARDRAILS.md; the
+  data tests, fingerprints, permission rules and pre-commit check remain the backstops.
+- **Source:** [GUARDRAILS.md](../GUARDRAILS.md#what-the-hook-doesnt-catch).
+
+### ADR-031: Power Automate flows designed and tested offline, not built in a tenant
+
+- **Status:** Accepted, by 16 October 2026.
+- **Context:** Building cloud flows needs a Microsoft 365 tenant and accounts, and the rules
+  had to be right before any flow existed.
+- **Decision:** Design both flows, write the ten rules in Python with an expected result
+  for every test file, and write a step-by-step guide for building the flows later in a
+  trial tenant.
+- **Over:** Building the flows first and testing them by hand.
+- **Consequences:** Intake shows as "Designed" on the container diagram; building the flows
+  belongs to the test environment proposed in ADR-026.
+- **Source:** [Project guide](learning-guide.md#4-the-power-automate-flows-power-automate),
+  [tenant setup](../power-automate/docs/tenant-setup.md).
 
 ## Proposed
 
@@ -366,3 +415,6 @@ follow-up task in [architecture.md](architecture.md#follow-up-tasks-for-stations
 
 - 19 November 2026: first edition: 25 records from the build, 4 proposals (Reece asked,
   during the architecture pause).
+- 19 November 2026: a context line on every record (Nygard's format); ADR-030 and ADR-031
+  added from Jasila's research of the same day. The records were still in their first,
+  unreviewed edition; from here on an accepted record is only ever superseded.

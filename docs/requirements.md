@@ -18,34 +18,47 @@ says so.
 ## Stakeholder map
 
 ```mermaid
+---
+title: "Stakeholder map: who supplies the data and who uses the results"
+---
 flowchart LR
+    classDef person fill:#08427b,color:#ffffff,stroke:#052e56
+    classDef system fill:#1168bd,color:#ffffff,stroke:#0b4884
+    subgraph KEY["Key"]
+        direction TB
+        KR["Role [Person]"]:::person
+        KS(["The platform [Software system]"]):::system
+    end
     subgraph SUPPLY["Supply the data"]
         direction TB
-        SEC["Site Energy Coordinators<br/>monthly site workbook"]
-        GFC["Group Financial Controller<br/>revenue after close"]
-        HR["HR Manager<br/>headcount"]
-        PROC["Procurement Manager<br/>purchase ledger"]
-        LOG["Logistics Manager<br/>freight"]
-        RC["Regional controllers<br/>ERP sales"]
-        SM["Service Manager<br/>customers, pumps, service records"]
-        TECHS["Technicians<br/>job notes and parts"]
-        DOCS["Technical documentation team<br/>manuals"]
+        SEC["Site Energy Coordinators<br/>monthly site workbook"]:::person
+        GFC["Group Financial Controller<br/>revenue after close"]:::person
+        HR["HR Manager<br/>headcount"]:::person
+        PROC["Procurement Manager<br/>purchase ledger"]:::person
+        LOG["Logistics Manager<br/>freight"]:::person
+        RC["Regional controllers<br/>ERP sales"]:::person
+        SM["Service Manager<br/>customers, pumps, service records"]:::person
+        TECHS["Technicians<br/>job notes and parts"]:::person
+        DOCS["Technical documentation team<br/>manuals"]:::person
     end
-    P(["Fjordvik data<br/>and AI platform"])
+    P(["Fjordvik data<br/>and AI platform<br/>[Software system]"]):::system
     subgraph USE["Use the results"]
         direction TB
-        GSM["Group Sustainability Manager<br/>emissions figures"]
-        CM["Country managers<br/>own sites only"]
-        HOP["Head of Portfolio and<br/>Product Managers"]
-        SRM["Sales region managers<br/>own region only"]
-        SMU["Service Manager<br/>risk list, plans, forecasts"]
-        TU["Technicians<br/>alerts, schedule, assistant"]
-        CU["Customers<br/>parts portal suggestions"]
+        GSM["Group Sustainability Manager<br/>emissions figures"]:::person
+        CM["Country managers<br/>own sites only"]:::person
+        HOP["Head of Portfolio and<br/>Product Managers"]:::person
+        SRM["Sales region managers<br/>own region only"]:::person
+        SMU["Service Manager<br/>risk list, plans, forecasts"]:::person
+        TU["Technicians<br/>alerts, schedule, assistant"]:::person
+        CU["Customers<br/>parts portal suggestions"]:::person
     end
-    IT["IT (ERP team)<br/>extract, staging, gateway"]
-    SUPPLY --> P --> USE
-    IT -.-> P
+    IT["IT (ERP team)<br/>extract, staging, gateway"]:::person
+    SUPPLY -->|"supply their data to"| P
+    P -->|"serves figures, scores, plans and answers to"| USE
+    IT -->|"runs the extract and hosts staging for"| P
 ```
+
+Last checked: commit `f036850`, 19 November 2026. ERP: enterprise resource planning.
 
 | Role | Interest | Influence | What they need | How they take part |
 | --- | --- | --- | --- | --- |
@@ -185,6 +198,68 @@ figures. No record of one was found in the repository.
 | Forecast skill | Mean absolute scaled error (MASE) against seasonal naive, per warehouse and horizon | Ratio |
 | Failure ranking | Average precision of the 30-day failure score, as a multiple of the dummy model's | Ratio |
 
+## Metric catalogue: plants and business
+
+Fjordvik needs dashboards that track how its plants and the business run, not only
+emissions and reporting (Reece, 19 November 2026). Before any dashboard is built, each
+candidate metric is listed here with its definition, whether it is actual (a figure
+Fjordvik records) or derived (worked out from actual figures), the data it needs, its
+owner and its status. Under the permanent rules a metric is **active** only when every
+input it needs is recorded; otherwise it is **dormant** and stays off the dashboards. No
+estimate, default or typed-in rate fills a gap. Checked against the column names and
+units in `data/tables` at commit `f036850`, 19 November 2026.
+
+Where each metric is shown (Power BI, an HTML dashboard or both) waits for Jasila's
+research on dashboard tools.
+
+### Plant metrics (per site, per month)
+
+| Metric | Definition | Type | Data | Owner | Status |
+| --- | --- | --- | --- | --- | --- |
+| Electricity use | Purchased electricity, kWh | Actual | `fact_emissions`, source S05 | Site Energy Coordinator | Active |
+| Heat and gas use | District heating and natural gas, kWh | Actual | `fact_emissions`, S06 and S01 | Site Energy Coordinator | Active |
+| Liquid fuel use | Diesel and liquefied petroleum gas (LPG), litres | Actual | `fact_emissions`, S02 and S03 | Site Energy Coordinator | Active |
+| Total energy use | All energy in kWh, fuels included | Derived | Litres of diesel and LPG need a cited net calorific value per fuel; none is in the dataset | Group Sustainability Manager | **Dormant** until a cited value is added |
+| Refrigerant leakage | Refrigerant topped up, kg | Actual | `fact_emissions`, S04 | Site Energy Coordinator | Active |
+| Waste to landfill | Tonnes | Actual | `fact_emissions`, S08 | Site Energy Coordinator | Active |
+| Scope 1 and 2 emissions | Activity times emission factor, tCO2e | Derived | `fact_emissions`, `fact_scope2_market`; factors are illustrative | Group Sustainability Manager | Active (illustrative) |
+| Revenue | Revenue after the monthly close, EUR | Actual | `fact_site_metrics.revenue_eur` | Group Financial Controller | Active; the head office books none |
+| Headcount | Full-time equivalent employees (FTE) | Actual | `fact_site_metrics.fte` | HR Manager | Active |
+| Revenue per FTE | Revenue divided by FTE, EUR per FTE (FTE averaged over months, not summed) | Derived | `fact_site_metrics` | Group Financial Controller | Active |
+| Emissions intensity | tCO2e per million EUR revenue and per FTE | Derived | Existing measures | Group Sustainability Manager | Active (illustrative) |
+| Net sales and margin by shipping site | EUR and margin % | Actual | `fact_sales` (five shipping sites; not the head office) | Regional controllers | Active |
+| Sales against budget | Net sales and margin against the sales plan | Actual | `fact_sales`, `fact_budget` | Group Financial Controller | Active |
+| Electricity per unit shipped | kWh divided by units shipped from the site | Derived | `fact_emissions` S05, `fact_sales.units` | Site Energy Coordinator | Active, with a caveat: units mix a 1 kW booster set with a large process pump, so compare a site only with itself over time |
+| Units produced | Units made at each plant | Actual | Not recorded: the dataset holds units shipped, not produced | Plant managers | **Dormant** |
+| Overall equipment effectiveness (OEE) | Availability times performance times quality | Derived | Needs machine run time, planned time, rate and good-part counts; none recorded | Plant managers | **Dormant** |
+| Scrap or first-pass yield | Good units against units started | Actual | Not recorded | Plant managers | **Dormant** |
+| Safety: lost-time injury frequency rate | Lost-time injuries per million hours worked | Derived | Not recorded | HR Manager | **Dormant** |
+| On-time delivery | Orders shipped by the promised date | Derived | Not recorded: no promised dates | Regional controllers | **Dormant** |
+| Stock levels and turns | Stock on hand and cost of sales over average stock | Derived | Not recorded: no stock table | Logistics Manager | **Dormant** |
+
+### Business and service metrics
+
+| Metric | Definition | Type | Data | Owner | Status |
+| --- | --- | --- | --- | --- | --- |
+| Net sales, margin, price, volume and mix | As in the portfolio report | Actual and derived | `fact_sales`, `fact_budget` | Head of Portfolio | Active |
+| Portfolio scorecard | Weighted 1 to 10 ratings per product group | Actual | `fact_product_rating`, `dim_score_criterion` | Portfolio governance | Active |
+| Failure share | Failure events over all service events | Derived | `fact_service_event` | Service Manager | Active |
+| Median downtime per failure | Hours | Actual | `fact_service_event.downtime_hours` | Service Manager | Active |
+| Failures by mode | Count of failures per `failure_mode` | Actual | `fact_service_event` | Service Manager | Active |
+| Mean time between failures | Pump operating days divided by failures, per product group | Derived | `fact_service_event`, `dim_asset.telemetry_from_date` | Service Manager | Active |
+| Technician utilisation | Labour hours on jobs over contracted hours, per week | Derived | `fact_service_event.labour_hours`, `dim_technician.weekly_hours` | Service Manager | Active, with a caveat: travel time is not recorded, so it understates the working day |
+| First-time fix rate | Failures not followed by a repeat visit for the same fault | Derived | Needs Fjordvik's own definition of a repeat (the window and what counts as the same fault) | Service Manager | **Dormant** until Fjordvik defines it |
+| Service contract mix | Customers by contract (none, Basic, Premium) | Actual | `dim_customer.service_contract` | Service Manager | Active |
+| Parts revenue by channel | EUR by EDI, email, phone, portal, technician | Actual | `fact_parts_order` | E-commerce owner | Active |
+| Portal suggestion click rate | Suggestions clicked over suggestions shown | Derived | `fact_portal_event` | E-commerce owner | Active |
+| Forecast skill | Mean absolute scaled error (MASE) per warehouse | Derived | `service-ai/results/forecast` | Service Manager | Active |
+| Failure model ranking and cost | Average precision against the dummy model; alert cost against visiting all or none | Derived | `service-ai/results/ml` | Service Manager | Active |
+
+Eight of the 33 metrics are dormant. Each needs Fjordvik to start recording something
+(production counts, machine states, injuries, promised dates, stock), a cited value
+(calorific values), or a definition only Fjordvik can set (a repeat visit). Adding them to
+the synthetic data is a generator change in `data`, decided one by one, never a default.
+
 ## Change readiness
 
 Not assessed. The delivery map's change and training workstream starts at discovery. Open
@@ -203,3 +278,4 @@ how a technician reports a false alert. These belong in the cutover plan (statio
 ## Change history
 
 - 19 November 2026: first edition, during the architecture pause (Reece asked).
+- 19 November 2026: metric catalogue for plants and the business added (Reece asked).

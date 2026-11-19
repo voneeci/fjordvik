@@ -20,18 +20,42 @@ behind it, and what is still open. Rule identifiers are from [GUARDRAILS.md](../
 and the service AI [phase rules](../service-ai/docs/phase-rules.md).
 
 ```mermaid
+---
+title: "Trust boundaries (threat model): where data or control changes hands"
+---
 flowchart LR
-    classDef zone fill:#ffffff,stroke:#b91c1c,stroke-dasharray:6 4,color:#b91c1c
-    S["Sites and<br/>source systems"] -->|B1, B2| IN["Intake and<br/>SQL pipeline"]
-    IN -->|B3| DS[("Governed<br/>dataset")]
-    DS -->|B4| PBI["Power BI<br/>and its users"]
-    DS -->|B5| MCP["Claude connector"]
-    MCP -->|B5| CL["Claude and<br/>its users"]
-    DS --> SAI["Service AI"]
-    TXT["Emails, notes,<br/>manuals, portal text"] -->|B6| SAI
-    SAI -->|B7| OUT["Drafts and<br/>approval"]
-    DEV["Chats and people<br/>working in git"] -->|B8| REPO["Public<br/>repository"]
+    classDef internal fill:#1168bd,color:#ffffff,stroke:#0b4884
+    classDef untrusted fill:#ffffff,color:#8a1c1c,stroke:#8a1c1c,stroke-dasharray:6 4
+    classDef note fill:#ffffff,color:#333333,stroke:#999999
+    subgraph KEY["Key"]
+        direction TB
+        KI["Inside the platform"]:::internal
+        KU["Untrusted input or outside party<br/>(dashed border)"]:::untrusted
+        KN["B1 to B8: trust boundaries,<br/>one section each below"]:::note
+    end
+    S["Sites and source systems<br/>[files, extracts, readings]"]:::untrusted
+    IN["Intake flows and SQL pipeline<br/>[Power Automate, DuckDB SQL]"]:::internal
+    DS[("Governed dataset<br/>[CSV + manifest]")]:::internal
+    PBI["Power BI and its users<br/>[row-level security]"]:::untrusted
+    MCP["Claude connector<br/>[MCP server]"]:::internal
+    CL["Claude and its users<br/>[MCP client]"]:::untrusted
+    SAI["Service AI<br/>[Python, Claude API]"]:::internal
+    TXT["Emails, technician notes,<br/>manuals, portal text"]:::untrusted
+    OUT["Drafts and human approval<br/>[outbox/, approve command]"]:::internal
+    DEV["Chats and people working in git"]:::untrusted
+    REPO["Public repository<br/>[GitHub]"]:::internal
+    S -->|"B1, B2: send files and extracts into"| IN
+    IN -->|"B3: loads checked rows into"| DS
+    DS -->|"B4: serves figures, filtered by role, to"| PBI
+    CL -->|"B5: calls read-only tools on"| MCP
+    MCP -->|"reads"| DS
+    DS -->|"is read in place by"| SAI
+    TXT -->|"B6: reaches the model as labelled data in"| SAI
+    SAI -->|"B7: writes drafts for approval to"| OUT
+    DEV -->|"B8: commit changes to"| REPO
 ```
+
+Last checked: commit `f036850`, 19 November 2026. MCP: Model Context Protocol.
 
 ## Threats by boundary
 
