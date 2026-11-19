@@ -94,6 +94,12 @@ generator, no secrets, a read-only data server, agents that draft and never act,
 evaluation sets fixed before building. Tests and a Claude Code hook enforce them
 ([guardrails/](guardrails)).
 
+The architecture of the whole platform is set out in six documents: the
+[business case](docs/business-case.md), [requirements](docs/requirements.md), the
+[solution architecture](docs/architecture.md) with its C4 diagrams, the
+[threat model](docs/threat-model.md), the [decision log](docs/decision-log.md) and the
+[data model](docs/data-model.md).
+
 Each folder has its own README with the problem, approach, architecture, test evidence
 and limitations. The [project guide](docs/learning-guide.md) sets out the business need
 and the data, then explains how each part was built and why each main decision was made.
