@@ -101,7 +101,7 @@ are recorded and nothing is claimed.
 | Running: model monitoring and retraining | Not estimated |
 
 Costs are the weakest part of this case. A price for each licence, read at its publisher,
-is the first follow-up before the sponsor signs.
+is needed before the sponsor signs.
 
 ## Risks
 

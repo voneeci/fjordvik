@@ -21,41 +21,74 @@ and the service AI [phase rules](../service-ai/docs/phase-rules.md).
 
 ```mermaid
 ---
-title: "Trust boundaries (threat model): where data or control changes hands"
+config:
+  flowchart:
+    nodeSpacing: 20
+    rankSpacing: 35
+title: "Trust boundaries (threat model): zones of trust and the crossings B1 to B8"
 ---
 flowchart LR
-    classDef internal fill:#1168bd,color:#ffffff,stroke:#0b4884
-    classDef untrusted fill:#ffffff,color:#8a1c1c,stroke:#8a1c1c,stroke-dasharray:6 4
-    classDef note fill:#ffffff,color:#333333,stroke:#999999
-    subgraph KEY["Key"]
+    accTitle: Trust boundaries of the Fjordvik platform
+    accDescr: Four zones, each enclosed by a dashed red trust boundary: outside sources of untrusted input, the Fjordvik platform, signed-in readers limited by role, and the people and chats who change the public repository. Lines crossing a zone edge are the boundaries B1 to B8: files and extracts into intake, checked rows into the dataset, figures out to Power BI users, Claude's tool calls into the connector, untrusted text into the service AI, the human approval of drafts, and commits to the repository.
+    classDef inside fill:#1168bd,color:#ffffff,stroke:#0b4884
+    classDef store fill:#e3eef9,color:#0b2a4a,stroke:#1168bd
+    classDef party fill:#6b6b6b,color:#ffffff,stroke:#333333
+
+    subgraph OUTSIDE["Outside: untrusted input"]
         direction TB
-        KI["Inside the platform"]:::internal
-        KU["Untrusted input or outside party<br/>(dashed border)"]:::untrusted
-        KN["B1 to B8: trust boundaries,<br/>one section each below"]:::note
+        S["Sites and source systems<br/>[files, extracts, readings]"]:::party
+        TXT["Emails, technician notes,<br/>manuals, portal text"]:::party
     end
-    S["Sites and source systems<br/>[files, extracts, readings]"]:::untrusted
-    IN["Intake flows and SQL pipeline<br/>[Power Automate, DuckDB SQL]"]:::internal
-    DS[("Governed dataset<br/>[CSV + manifest]")]:::internal
-    PBI["Power BI and its users<br/>[row-level security]"]:::untrusted
-    MCP["Claude connector<br/>[MCP server]"]:::internal
-    CL["Claude and its users<br/>[MCP client]"]:::untrusted
-    SAI["Service AI<br/>[Python, Claude API]"]:::internal
-    TXT["Emails, technician notes,<br/>manuals, portal text"]:::untrusted
-    OUT["Drafts and human approval<br/>[outbox/, approve command]"]:::internal
-    DEV["Chats and people working in git"]:::untrusted
-    REPO["Public repository<br/>[GitHub]"]:::internal
-    S -->|"B1, B2: send files and extracts into"| IN
-    IN -->|"B3: loads checked rows into"| DS
-    DS -->|"B4: serves figures, filtered by role, to"| PBI
-    CL -->|"B5: calls read-only tools on"| MCP
+    subgraph PLATFORM["Fjordvik platform"]
+        direction TB
+        IN["Intake flows and SQL pipeline<br/>[Power Automate, DuckDB SQL]"]:::inside
+        DS[("Governed dataset<br/>[CSV + manifest]")]:::store
+        MCP["Claude connector<br/>[MCP server]"]:::inside
+        SAI["Service AI<br/>[Python, Claude API]"]:::inside
+        DRAFT[("Drafts awaiting approval<br/>[outbox/]")]:::store
+    end
+    subgraph READERS["Readers: signed in, limited by role"]
+        direction TB
+        PBI["Power BI users<br/>[row-level security]"]:::party
+        CL["Claude and its users<br/>[MCP client]"]:::party
+        APPR["Service Manager<br/>[approve command]"]:::party
+    end
+    subgraph CONTRIB["Contributors to the public repository"]
+        direction TB
+        PPL["Chats and people working in git"]:::party
+        REPO["Public repository<br/>[GitHub]"]:::inside
+    end
+
+    S -->|"B1, B2: files, extracts"| IN
+    IN -->|"B3: checked rows"| DS
+    DS -->|"B4: figures by role"| PBI
+    CL -->|"B5: read-only tool calls"| MCP
     MCP -->|"reads"| DS
-    DS -->|"is read in place by"| SAI
-    TXT -->|"B6: reaches the model as labelled data in"| SAI
-    SAI -->|"B7: writes drafts for approval to"| OUT
-    DEV -->|"B8: commit changes to"| REPO
+    DS -->|"read in place"| SAI
+    TXT -->|"B6: labelled data, never instructions"| SAI
+    SAI -->|"drafts only"| DRAFT
+    APPR -->|"B7: approves each draft once"| DRAFT
+    PPL -->|"B8: commits"| REPO
+
+    style OUTSIDE fill:#ffffff,stroke:#b42318,stroke-width:2px,stroke-dasharray:8 4,color:#8a1c1c
+    style PLATFORM fill:#f7f9fb,stroke:#b42318,stroke-width:2px,stroke-dasharray:8 4,color:#8a1c1c
+    style READERS fill:#ffffff,stroke:#b42318,stroke-width:2px,stroke-dasharray:8 4,color:#8a1c1c
+    style CONTRIB fill:#ffffff,stroke:#b42318,stroke-width:2px,stroke-dasharray:8 4,color:#8a1c1c
 ```
 
-Last checked: commit `f036850`, 19 November 2026. MCP: Model Context Protocol.
+| Key | Meaning |
+| --- | --- |
+| Dashed red outline | A trust boundary around a zone of the same trust |
+| B1 to B8 on a line | A line that crosses a trust boundary; each has its own section below |
+| Blue box | Part of the Fjordvik platform or repository |
+| Pale blue cylinder | Data store |
+| Grey box | A person, party or source outside the platform's trust |
+| Abbreviations | MCP: Model Context Protocol |
+
+Last updated: 25 November 2026, commit `f5b1aef`.
+
+B3 sits inside the platform zone: it is the step from checked intake to the governed
+dataset, which only the generator or the checked load may cross (rule D3).
 
 ## Threats by boundary
 
@@ -124,7 +157,7 @@ Last checked: commit `f036850`, 19 November 2026. MCP: Model Context Protocol.
 | --- | --- | --- | --- |
 | Information disclosure | A key, password or `.env` file committed | Keys from environment variables only; `check.py` scans for secret patterns; the hook and permission rules deny reading `.env` (rule D8) | |
 | Information disclosure | A real company, client or person named | Rule D2, with a private list of names checked by `check.py` | |
-| Tampering | A guardrail weakened by a chat | Only Attena edits guardrail files; fingerprints in `GUARDRAILS.sha256`; the hook asks Reece (rule G9); pre-commit check | |
+| Tampering | A guardrail weakened by an AI coding agent | Only the guardrails maintainer edits guardrail files; fingerprints in `GUARDRAILS.sha256`; the hook asks Reece (rule G9); pre-commit check | |
 | Tampering | A hook bypassed | Never `--no-verify`; only Reece changes hook settings (rule G2) | |
 
 ## Open items, in priority order
@@ -140,3 +173,5 @@ Last checked: commit `f036850`, 19 November 2026. MCP: Model Context Protocol.
 ## Change history
 
 - 19 November 2026: first edition, during the architecture pause (Reece asked).
+- 25 November 2026: trust boundaries drawn as dashed zones, with a key table and a text
+  description (Jasila's readability review; Reece asked).

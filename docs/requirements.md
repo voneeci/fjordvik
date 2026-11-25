@@ -21,44 +21,32 @@ says so.
 ---
 title: "Stakeholder map: who supplies the data and who uses the results"
 ---
-flowchart LR
+flowchart TB
+    accTitle: Stakeholder map of the Fjordvik data and AI platform
+    accDescr: Nine roles supply data to the platform, from the site energy coordinators' monthly workbooks to the technical documentation team's manuals. The ERP team at IT runs the extract and hosts staging. Seven roles use the results, each limited to what their role may see, from the Group Sustainability Manager to customers on the parts portal.
     classDef person fill:#08427b,color:#ffffff,stroke:#052e56
     classDef system fill:#1168bd,color:#ffffff,stroke:#0b4884
-    subgraph KEY["Key"]
-        direction TB
-        KR["Role [Person]"]:::person
-        KS(["The platform [Software system]"]):::system
-    end
-    subgraph SUPPLY["Supply the data"]
-        direction TB
-        SEC["Site Energy Coordinators<br/>monthly site workbook"]:::person
-        GFC["Group Financial Controller<br/>revenue after close"]:::person
-        HR["HR Manager<br/>headcount"]:::person
-        PROC["Procurement Manager<br/>purchase ledger"]:::person
-        LOG["Logistics Manager<br/>freight"]:::person
-        RC["Regional controllers<br/>ERP sales"]:::person
-        SM["Service Manager<br/>customers, pumps, service records"]:::person
-        TECHS["Technicians<br/>job notes and parts"]:::person
-        DOCS["Technical documentation team<br/>manuals"]:::person
-    end
-    P(["Fjordvik data<br/>and AI platform<br/>[Software system]"]):::system
-    subgraph USE["Use the results"]
-        direction TB
-        GSM["Group Sustainability Manager<br/>emissions figures"]:::person
-        CM["Country managers<br/>own sites only"]:::person
-        HOP["Head of Portfolio and<br/>Product Managers"]:::person
-        SRM["Sales region managers<br/>own region only"]:::person
-        SMU["Service Manager<br/>risk list, plans, forecasts"]:::person
-        TU["Technicians<br/>alerts, schedule, assistant"]:::person
-        CU["Customers<br/>parts portal suggestions"]:::person
-    end
-    IT["IT (ERP team)<br/>extract, staging, gateway"]:::person
-    SUPPLY -->|"supply their data to"| P
+
+    SUP["Supply the data [People, by job title]<br/>Site Energy Coordinators: monthly workbook<br/>Group Financial Controller: revenue after the close<br/>HR Manager: headcount<br/>Procurement Manager: purchase ledger<br/>Logistics Manager: freight<br/>Regional controllers: ERP sales<br/>Service Manager: customers, pumps, service records<br/>Technicians: job notes and parts used<br/>Technical documentation team: manuals"]:::person
+    IT["IT, ERP team [People]<br/>runs the extract, hosts staging"]:::person
+    P(["Fjordvik data and AI platform<br/>[Software system]"]):::system
+    USE["Use the results [People, by job title]<br/>Group Sustainability Manager: emissions figures<br/>Head of Portfolio, Product Managers: portfolio, scorecard<br/>Country managers: their own sites only<br/>Sales region managers: their own region only<br/>Service Manager: risk list, plans, forecasts<br/>Technicians: alerts, schedule, assistant<br/>Customers: parts suggestions on the portal"]:::person
+
+    SUP -->|"supply their data to"| P
+    IT -->|"runs the extract, hosts staging for"| P
     P -->|"serves figures, scores, plans and answers to"| USE
-    IT -->|"runs the extract and hosts staging for"| P
 ```
 
-Last checked: commit `f036850`, 19 November 2026. ERP: enterprise resource planning.
+| Key | Meaning |
+| --- | --- |
+| Dark blue box | People, by job title |
+| Blue rounded box | The platform |
+| Solid line | Part of the design |
+| Abbreviations | ERP: enterprise resource planning |
+
+Last updated: 25 November 2026, commit `f5b1aef`.
+
+The table below gives each role's interest, influence and needs.
 
 | Role | Interest | Influence | What they need | How they take part |
 | --- | --- | --- | --- | --- |
@@ -209,8 +197,8 @@ input it needs is recorded; otherwise it is **dormant** and stays off the dashbo
 estimate, default or typed-in rate fills a gap. Checked against the column names and
 units in `data/tables` at commit `f036850`, 19 November 2026.
 
-Where each metric is shown (Power BI, an HTML dashboard or both) waits for Jasila's
-research on dashboard tools.
+Where each metric is shown (Power BI, an HTML dashboard or both) is decided
+per metric once the dashboard approach is agreed.
 
 ### Plant metrics (per site, per month)
 

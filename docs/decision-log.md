@@ -8,8 +8,8 @@ map.
 
 Records 001 to 025, 030 and 031 were taken during the build and are written up here from the
 [project guide](learning-guide.md), the [learning notes](learning/service-ai.md), the
-handovers and the repository's `CLAUDE.md` files. Records 026 to 029 are proposals from
-the architecture pause and wait for Reece's decision. A decision is never edited after it
+handovers and the repository's `CLAUDE.md` files. Records 026 to 029 are proposals
+and wait for Reece's decision. A decision is never edited after it
 is accepted: a later record supersedes it and says so.
 
 > **Synthetic data only.** Fjordvik Manufacturing Oy is a fictional company, and this is a
@@ -274,7 +274,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 
 - **Status:** Accepted, 2 November 2026 (Reece); slimmed 3 November 2026.
 - **Context:** Rules spread across many `CLAUDE.md` files drifted as more chats worked in the repository.
-- **Decision:** One master rule set, `GUARDRAILS.md`, maintained only by Attena, enforced
+- **Decision:** One master rule set, `GUARDRAILS.md`, maintained only by the guardrails maintainer, enforced
   by `check.py`, every part's guardrail tests, a Claude Code hook and a pre-commit check.
 - **Consequences:** Rules stay the same across chats; a new folder or kind of file needs a
   layout map entry first (rule L1).
@@ -285,7 +285,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 - **Status:** Accepted, 2 November 2026.
 - **Context:** A model tuned on the data it is judged on looks better than it is.
 - **Decision:** Each service AI phase commits its evaluation set and pass mark before any
-  code, written by a different chat; train, validation and test periods are fixed by date
+  code, written by a separate AI agent; train, validation and test periods are fixed by date
   with a 30-day gap; settings are chosen on validation only; the test period is scored
   once, behind a split lock.
 - **Consequences:** Results cannot be tuned to the test; a missed control is reported as
@@ -330,13 +330,13 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 
 ### ADR-030: The guardrail hook is frozen
 
-- **Status:** Accepted, 3 November 2026 (Reece, in the Attena chat).
+- **Status:** Accepted, 3 November 2026 (Reece).
 - **Context:** Four test rounds on 2 and 3 November 2026 kept finding rarer ways round the
   Claude Code hook, each fix costing time, while the other backstops already caught what
   matters.
-- **Decision:** The hook changes only after a recorded incident (a chat hits a gap or a
+- **Decision:** The hook changes only after a recorded incident (an AI agent hits a gap or a
   false block in normal work) or a rule change, each fix with its own hook case and no new
-  test round. A chat that hits a gap writes a proposal and carries on.
+  test round. An agent that hits a gap writes a proposal and carries on.
 - **Over:** More test rounds until no gap is found.
 - **Consequences:** Some unusual forms are not caught and are listed in GUARDRAILS.md; the
   data tests, fingerprints, permission rules and pre-commit check remain the backstops.
@@ -359,7 +359,7 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 ## Proposed
 
 Each waits for Reece's decision. Accepting one changes its status here and starts its
-follow-up task in [architecture.md](architecture.md#follow-up-tasks-for-stations-04-and-05).
+follow-up task in [architecture.md](architecture.md#next-steps-for-stations-04-and-05).
 
 ### ADR-026: Four environments with separate credentials
 
@@ -397,7 +397,7 @@ follow-up task in [architecture.md](architecture.md#follow-up-tasks-for-stations
 - **Proposal:** A GitHub Actions workflow running every part's tests and the guardrail
   checks on every push and pull request, without keys or network; the live Power BI tests
   stay manual.
-- **Consequences:** Needs a layout map entry for `.github/` from Attena (rule L1).
+- **Consequences:** Needs an entry for `.github/` in the layout map (rule L1).
 
 ### ADR-029: A daily date table for the service data
 
