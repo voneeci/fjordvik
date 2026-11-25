@@ -27,6 +27,39 @@ Claude connector and, being built now, seven AI capabilities for after-sales ser
   service is reactive: a pump fails, the customer calls, parts are ordered after the
   failure, and technicians are planned in a spreadsheet.
 
+## Architecture drawings
+
+All 25 architecture drawings are on one page, which opens in any browser with no sign-in:
+**[open the architecture drawings](https://voneeci.github.io/fjordvik/docs/architecture-drawings.html)**.
+They run from the people and systems around the platform down to each data table:
+
+- **Solution architecture:** the C4 model (context, containers, components and code)
+  levels 1 to 3: who uses the platform, its applications and data stores, and the service
+  AI pipeline.
+- **Data model:** the business things the data describes, how data flows from each plant,
+  what kind of data it is and who owns it, and one star schema per fact table.
+- **Requirements:** who supplies the data and who uses the results.
+- **Threat model:** the trust boundaries, where data or control changes hands.
+
+How to view them:
+
+- If C4, data flow diagrams or star schemas are new to you, start with **Concepts and
+  methods** at the top of the page. It explains each kind of drawing, the box and line
+  styles and the status words (built, designed, planned, gap).
+- Pick a drawing from the contents list, or choose one under **Open a drawing
+  full screen**.
+- **Expand** opens a drawing full screen. Zoom with the buttons, the + and - keys, or Ctrl
+  and the mouse wheel; drag to move around; the arrow keys go to the next or previous
+  drawing; Escape closes it.
+- Under each drawing, **Key** explains its boxes, lines and abbreviations, and the source
+  link opens the line in the document it comes from.
+
+GitHub also draws the same diagrams inside each document:
+[solution architecture](docs/architecture.md), [data model](docs/data-model.md),
+[requirements](docs/requirements.md) and [threat model](docs/threat-model.md). The page is
+generated from these documents by `docs/site/drawings/build.py`, and a test fails if it
+falls out of step with them.
+
 ## What the project does
 
 ### Reporting and automation (in place)
@@ -98,10 +131,8 @@ The architecture of the whole platform is set out in six documents: the
 [business case](docs/business-case.md), [requirements](docs/requirements.md), the
 [solution architecture](docs/architecture.md) with its C4 diagrams, the
 [threat model](docs/threat-model.md), the [decision log](docs/decision-log.md) and the
-[data model](docs/data-model.md). All 25 drawings from those documents, with a contents
-list and a full-screen viewer, are on one page:
-[architecture drawings](https://voneeci.github.io/fjordvik/docs/architecture-drawings.html)
-(generated from the docs by `docs/site/drawings/build.py`).
+[data model](docs/data-model.md). Their drawings are all on one page: see
+[Architecture drawings](#architecture-drawings).
 
 Each folder has its own README with the problem, approach, architecture, test evidence
 and limitations. The [project guide](docs/learning-guide.md) sets out the business need
