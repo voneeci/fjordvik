@@ -20,6 +20,9 @@ says so.
 ```mermaid
 ---
 title: "Stakeholder map: who supplies the data and who uses the results"
+config:
+  flowchart:
+    wrappingWidth: 440
 ---
 flowchart TB
     accTitle: Stakeholder map of the Fjordvik data and AI platform
@@ -44,7 +47,7 @@ flowchart TB
 | Solid line | Part of the design |
 | Abbreviations | ERP: enterprise resource planning |
 
-Last updated: 25 November 2026, commit `f5b1aef`.
+Last updated: 25 November 2026, commit `a997951`.
 
 The table below gives each role's interest, influence and needs.
 
