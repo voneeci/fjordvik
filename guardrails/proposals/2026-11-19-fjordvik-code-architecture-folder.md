@@ -60,3 +60,12 @@ failure risk API would also use.
 ## Until Attena decides
 
 The six documents stay flat in `docs/`; this chat moves nothing.
+
+## Outcome
+
+Accepted by Reece on 19 November 2026 and recorded by Attena the same day, with the rule
+changes from Attena's guardrail check of that day. The layout map now has
+`docs/architecture/*.md`, `docs/architecture/adr/*.md` and `docs/site/**`, and L3's names
+in `check.py` include `docs/architecture/adr/` (`NNNN-<title>.md`). The decision record
+index lives in `docs/architecture/decisions.md`, so `adr/` holds records only. The move of
+the six documents and the split of `decision-log.md` stay with the docs chat.

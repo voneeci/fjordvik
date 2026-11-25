@@ -59,7 +59,35 @@ def test_checker_catches_each_planted_breach(tmp_path):
         "Parts: part\n\n- `*.md`: x\n- `*.py`: x\n- `*.txt`: x\n- `GUARDRAILS.sha256`: x\n"
         "- `.env.example`: x\n- `guardrails/*`: x\n- `guardrails/evidence/*`: x\n"
         "- `<part>/evidence/*`: x\n- `docs/handover/*.md`: x\n- `docs/learning/*.md`: x\n"
-        "- `guardrails/proposals/*.md`: x\n- `<part>/src/**/*.py`: x\n", encoding="utf-8")
+        "- `guardrails/proposals/*.md`: x\n- `<part>/src/**/*.py`: x\n- `*.js`: x\n- `*.bicep`: x\n"
+        "- `.github/workflows/*.yml`: x\n- `docs/architecture/adr/*.md`: x\n", encoding="utf-8")
+    # 19 November 2026: new file types (W1, D8), workflows (G12), Bicep caps (C1), client IP
+    # addresses in evidence (D18) and decision record names (L3)
+    (tmp_path / "dash.js").write_text("// A comment " + chr(0x2014) + " with a dash\n", encoding="utf-8")
+    (tmp_path / "appinsights.bicep").write_text(
+        "var c = 'Instrumentation" + "Key=" + "0" * 8 + "-1111-2222-3333-" + "4" * 12 + "'\n",
+        encoding="utf-8")
+    (tmp_path / "caps.bicep").write_text(
+        "resource app 'Microsoft.App/containerApps@2024-03-01' = {\n  minReplicas: 1\n"
+        "  maxReplicas: 10\n}\nresource law 'Microsoft.OperationalInsights/workspaces@2023-09-01'"
+        " = {\n  dailyQuotaGb: 1\n}\nresource pe 'Microsoft.Network/privateEndpoints@2023-09-01'"
+        " = {}\n", encoding="utf-8")
+    (tmp_path / ".github" / "workflows").mkdir(parents=True)
+    (tmp_path / ".github" / "workflows" / "bad.yml").write_text(
+        "on:\n  pull_request_target:\npermissions:\n  id-token: write\njobs:\n  deploy:\n"
+        "    runs-on: ubuntu-latest\n    steps:\n      - uses: azure/login@v2\n", encoding="utf-8")
+    (tmp_path / ".github" / "workflows" / "good.yml").write_text(
+        "on:\n  push:\n    branches: [main]\n  workflow_dispatch:\njobs:\n  test:\n"
+        "    runs-on: ubuntu-latest\n  deploy:\n    needs: test\n    environment: production\n"
+        "    permissions:\n      id-token: write\n    steps:\n      - uses: azure/login@v2\n",
+        encoding="utf-8")
+    (tmp_path / ".github" / "workflows" / "tests.yml").write_text(
+        "on:\n  push:\n  pull_request:\njobs:\n  test:\n    runs-on: ubuntu-latest\n",
+        encoding="utf-8")
+    (tmp_path / "docs" / "architecture" / "adr").mkdir(parents=True)
+    (tmp_path / "docs" / "architecture" / "adr" / "first-decision.md").write_text("x\n", encoding="utf-8")
+    (tmp_path / "docs" / "architecture" / "adr" / "0001-one-repository.md").write_text("x\n",
+                                                                                    encoding="utf-8")
     (tmp_path / "guardrails" / "proposals").mkdir()
     (tmp_path / "guardrails" / "proposals" / "2026-11-02-x.md").write_text("x\n", encoding="utf-8")
     (tmp_path / "part" / "src" / "scratch").mkdir(parents=True)
@@ -83,7 +111,25 @@ def test_checker_catches_each_planted_breach(tmp_path):
                                                                             encoding="utf-8")
     (tmp_path / "part" / "evidence" / "pytest-x-2026-13-45.txt").write_text("1 passed\n",
                                                                             encoding="utf-8")
+    (tmp_path / "part" / "evidence" / "smoke-api-2026-11-19.txt").write_text(
+        "GET /health 200 from " + "203.0.113." + "7\n", encoding="utf-8")
+    (tmp_path / "part" / "evidence" / "smoke-local-2026-11-19.txt").write_text(
+        "http://127.0.0.1:8765 and 10.0.0.4, pytest 8.3.4\n", encoding="utf-8")
     found = "\n".join(check.check(tmp_path))
+    assert "W1 dash.js" in found
+    assert "D8 appinsights.bicep" in found
+    for why in ("minReplicas: 0", "maxReplicas of 2 or less", "dailyQuotaGb of 0.2 or less",
+                "no private endpoint"):
+        assert f"C1 caps.bicep: " in found and why in found, why
+    assert "C1 (Bicep): a container app needs a Microsoft.Consumption/budgets" in found
+    for why in ("pull_request_target", "whole workflow", "environment production",
+                "pushes to main only", "needs a test job first"):
+        assert why in "\n".join(l for l in found.splitlines() if "bad.yml" in l), why
+    assert "good.yml" not in found and "tests.yml" not in found
+    assert "D18 part/evidence/smoke-api-2026-11-19.txt" in found
+    assert "smoke-local" not in found
+    assert "L3 docs/architecture/adr/first-decision.md" in found
+    assert "0001-one-repository" not in found
     assert "GUARDRAILS.md: changed without updating" in found
     assert "W1 dash.md" in found
     assert "W2 spelling.md: American spelling 'analyze'" in found
@@ -297,6 +343,10 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         bash("git ls-files data/tables | xargs rm"),
     ]
     allowed = [
+        # Reading a workflow and writing the API's Bicep or the front end stay allowed (G12)
+        tool("Read", ".github", "workflows", "ci.yml"),
+        tool("Write", "service-ai", "infra", "main.bicep"),
+        tool("Write", "docs", "site", "build.mjs"),
         bash("git status"),
         bash("cat mcp/.env.example"),
         bash("git add data/src/x.py data/tables/y.csv"),
@@ -413,6 +463,12 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         powershell("robocopy .claude C:\\temp\\x /MOVE"),
         tool("Write", ".claude", "hooks", "x.py"),
         bash("find . -name '*.py' -delete"),
+        # G12 (19 November 2026): GitHub Actions workflows run with deploy rights
+        tool("Edit", ".github", "workflows", "deploy.yml"),
+        tool("Write", ".github", "workflows", "ci.yml"),
+        bash("echo x > .github/workflows/ci.yml"),
+        bash("mv deploy.yml .github/workflows/deploy.yml"),
+        bash("rm -rf .github"),
     ]
     # A chat whose project folder is a part: the root still comes from git (G9, D3)
     part = ROOT / "service-ai"

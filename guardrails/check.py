@@ -3,7 +3,9 @@
 It also checks the fingerprints of the guardrail files (G9) and the layout (L1: every
 file matches an entry in guardrails/layout.md; L3: document names; L4: evidence names
 carry the run date as a valid calendar date; L5: no scratch or temporary names), which
-needs Python 3.13 or later.
+needs Python 3.13 or later. Since 19 November 2026 it also reads GitHub Actions workflows
+(G12), Bicep files (C1) and evidence files for client IP addresses (D18). Those checks
+read text patterns, not YAML or Bicep semantics, so values they check must be literals.
 
 Run from anywhere:  python guardrails/check.py
 Exit code 0 when clean, 1 with one line per finding otherwise. Every part's
@@ -25,7 +27,8 @@ from pathlib import Path, PurePosixPath
 ROOT = Path(__file__).resolve().parents[1]
 MAX_BYTES = 50 * 1024 * 1024
 TEXT = {".md", ".py", ".csv", ".json", ".toml", ".txt", ".tmdl", ".html", ".sql", ".yaml",
-        ".yml", ".ps1", ".mf", ".example", ""}
+        ".yml", ".ps1", ".mf", ".example", "", ".js", ".mjs", ".cjs", ".css", ".bicep",
+        ".bicepparam"}
 EM_DASH = chr(0x2014)
 SECRET_PATTERNS = [
     re.compile(r"sk-ant-[A-Za-z0-9_\-]{10,}"),                 # Anthropic keys
@@ -39,6 +42,8 @@ SECRET_PATTERNS = [
                r"\b(password|pwd)\s*=\s*[^;\s'\"]{4,}"),       # connection strings
     re.compile(r"\b[a-z][a-z0-9+.\-]*://[^\s/:@'\"]+:[^\s/@'\"$<{]{3,}@"),  # user:pass@ URLs
     re.compile(r"(?i)\b(AccountKey|SharedAccessKey)=[A-Za-z0-9+/=]{20,}"),
+    # Application Insights connection strings (D8: set from Bicep, never written in a file)
+    re.compile(r"(?i)\bInstrumentationKey=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"),
     # NAME_TOKEN=value lines, as an environment dump or a settings file prints them: an
     # upper-case name holding KEY, TOKEN, SECRET or PASSWORD and an unquoted 12-character value.
     re.compile(r"(?m)^\s*(?:export\s+|set\s+)?[A-Z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD)"
@@ -72,7 +77,22 @@ DOCUMENT_NAMES = {
     "docs/handover": re.compile(r"^\d{4}-\d{2}-\d{2}-fjordvik-[a-z0-9-]+\.md$"),
     "docs/learning": re.compile(r"^service-ai\.md$"),
     "guardrails/proposals": re.compile(r"^(\d{4}-\d{2}-\d{2}-[a-z0-9]+-[a-z0-9-]+|README)\.md$"),
+    "docs/architecture/adr": re.compile(r"^\d{4}-[a-z0-9-]+\.md$"),
 }
+# G12: GitHub Actions workflows. A workflow with a deploy step must run from main through
+# the production environment, after a test job; none may use pull_request_target or grant
+# id-token: write to the whole workflow.
+WORKFLOWS = ".github/workflows/"
+DEPLOY_STEP = re.compile(r"(?i)azure/login|containerapp|deploy-pages|upload-pages-artifact"
+                         r"|az deployment|azure/arm-deploy")
+PRODUCTION = re.compile(r"(?m)environment\s*:\s*['\"]?production['\"]?\s*$"
+                        r"|environment\s*:\s*\n\s+name\s*:\s*['\"]?production")
+MAIN_ONLY = re.compile(r"branches\s*:\s*\[\s*['\"]?main['\"]?\s*\]"
+                       r"|branches\s*:\s*\n\s*-\s*['\"]?main['\"]?\s*\n(?!\s*-)")
+# D18: public IPv4 addresses in evidence files (loopback, 0.0.0.0, private and link-local
+# ranges are allowed).
+IPV4 = re.compile(r"(?<![\d.])((?:25[0-5]|2[0-4]\d|1?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|1?\d?\d)){3})(?!\.?\d)")
+NOT_PUBLIC = re.compile(r"^(127\.|0\.0\.0\.0$|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.)")
 # L5: names that look like scratch, temporary or backup files. Words a project needs
 # (temp for temperature, copy, old, debug) are left out.
 SCRATCH_NAME = re.compile(r"(?i)(^|[-_. ])(scratch|tmp|untitled|backup|bak)([-_. ]|$)"
@@ -163,6 +183,54 @@ def name_findings(rel: str, parts: list[str], explicit: set[str]) -> list[str]:
     return found
 
 
+def workflow_findings(rel: str, text: str) -> list[str]:
+    """G12 for one GitHub Actions workflow, read as text."""
+    found = []
+    if "pull_request_target" in text:
+        found.append(f"G12 {rel}: pull_request_target runs pull request code with the "
+                     "repository's secrets; never use it")
+    if re.search(r"(?m)^ {0,2}id-token\s*:\s*write|^permissions\s*:\s*write-all", text):
+        found.append(f"G12 {rel}: id-token: write (or write-all) is granted to the whole "
+                     "workflow; grant it to the deploy job only")
+    if DEPLOY_STEP.search(text):
+        triggers = text.split("\njobs:", 1)[0]
+        if not PRODUCTION.search(text):
+            found.append(f"G12 {rel}: a deploy job must use the GitHub environment production")
+        if not MAIN_ONLY.search(triggers) or re.search(r"\bpull_request\b(?!_target)", triggers):
+            found.append(f"G12 {rel}: a deploy workflow runs on pushes to main only, never on "
+                         "pull requests")
+        if not re.search(r"(?m)^\s+needs\s*:", text):
+            found.append(f"G12 {rel}: a deploy job needs a test job first (needs:)")
+    return found
+
+
+def bicep_findings(texts: dict[str, str]) -> list[str]:
+    """C1 across every Bicep file: replica caps, a log cap, a budget, no private endpoint.
+    The values must be literals in the Bicep, so the caps are visible in review."""
+    found = []
+    for rel, text in texts.items():
+        if "Microsoft.Network/privateEndpoints" in text:
+            found.append(f"C1 {rel}: no private endpoint (it adds an hourly charge)")
+        if "Microsoft.App/containerApps" in text:
+            mins = re.findall(r"minReplicas\s*:\s*(\d+)", text)
+            maxs = re.findall(r"maxReplicas\s*:\s*(\d+)", text)
+            if not mins or any(int(m) != 0 for m in mins):
+                found.append(f"C1 {rel}: a container app needs minReplicas: 0")
+            if not maxs or any(int(m) > 2 for m in maxs):
+                found.append(f"C1 {rel}: a container app needs maxReplicas of 2 or less")
+        if "Microsoft.OperationalInsights/workspaces" in text:
+            caps = re.findall(r"dailyQuotaGb\s*:\s*([\d.]+)", text)
+            if not caps or any(float(c) > 0.2 for c in caps):
+                found.append(f"C1 {rel}: a Log Analytics workspace needs dailyQuotaGb of 0.2 or less")
+    joined = "\n".join(texts.values())
+    if "Microsoft.App/containerApps" in joined:
+        amounts = re.findall(r"Microsoft\.Consumption/budgets[\s\S]*?\bamount\s*:\s*([\d.]+)", joined)
+        if not amounts or any(float(a) > 5 for a in amounts):
+            found.append("C1 (Bicep): a container app needs a Microsoft.Consumption/budgets "
+                         "resource with amount of 5 or less")
+    return found
+
+
 def fingerprint(path: Path) -> str:
     """SHA-256 of a file with CRLF line endings read as LF, so a checkout that converts
     line endings (core.autocrlf) doesn't change the fingerprint."""
@@ -212,6 +280,7 @@ def check(root: Path = ROOT) -> list[str]:
         findings.append(f"L1 {LAYOUT}: no 'Parts:' line, so no entry can be read")
         mapped = None
     off_map: dict[str, list[str]] = {}
+    bicep: dict[str, str] = {}
     for rel in files(root):
         path = root / rel
         name = Path(rel).name
@@ -249,11 +318,22 @@ def check(root: Path = ROOT) -> list[str]:
             m = pattern.search(text)
             if m:
                 findings.append(f"D2 {rel}:{line_of(text, m.start())}: a name on the private banned list")
+        if rel.startswith(WORKFLOWS) and rel.endswith((".yml", ".yaml")):
+            findings += workflow_findings(rel, text)
+        if rel.endswith(".bicep"):
+            bicep[rel] = text
+        if "/evidence/" in f"/{rel}":
+            for m in IPV4.finditer(text):
+                if not NOT_PUBLIC.match(m.group(1)):
+                    findings.append(f"D18 {rel}:{line_of(text, m.start())}: looks like a public "
+                                    "IP address; evidence holds no client data")
+                    break
         if markdown and rel not in SKIP_PROSE_CHECKS:
             for m in AMERICAN.finditer(own):
                 findings.append(f"W2 {rel}: American spelling '{m.group(0)}'")
             for m in PROJECT_COUNT.finditer(own):
                 findings.append(f"W5 {rel}: '{m.group(0)}' (Fjordvik is one project in parts)")
+    findings += bicep_findings(bicep)
     for folder, names in sorted(off_map.items()):
         where = "(root)" if folder == "." else f"{folder}/"
         findings.append(f"L1 {where}: {len(names)} file(s) not on the layout map ({LAYOUT}), "

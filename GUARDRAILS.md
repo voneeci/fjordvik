@@ -49,17 +49,18 @@ First edition, 2 November 2026. Slimmed on 3 November 2026 after Jasila's review
 | D5 | The checksums of tables that already exist stay fixed. A change that moves one needs Reece's yes, and the test change says which change and why. | `data/tests/test_reproducible.py` |
 | D6 | Reference data (exchange rates, town coordinates) is fetched from its publisher and cited with source, date read and checksum; never typed by hand. | `data/tests` |
 | D7 | Every setting the data generator uses is labelled as Fjordvik's own input. The one exception is the illustrative emission factors (Reece, 12 October 2026), and every doc says so. Reece confirmed this on 2 November 2026: Fjordvik is a learning project that will never be sold, unlike the council platform, so illustrative factors are fine here. | Review |
-| D8 | Secrets follow RULES.md. In this repository, keys come from environment variables only, and are never printed: to check a key is set, use `python -c "import os; print('NAME' in os.environ)"`. `.env.example` holds names, never values. | Hook (common forms); permission rules (deny reads of `.env` files); `check.py` (secret patterns, connection strings, tracked `.env` files) |
+| D8 | Secrets follow RULES.md. In this repository, keys come from environment variables only, and are never printed: to check a key is set, use `python -c "import os; print('NAME' in os.environ)"`. `.env.example` holds names, never values. Cloud sign-in is OpenID Connect (OIDC) only: no client secret, password or publish profile is ever created. The Azure client, tenant and subscription IDs are not credentials, but they live only in GitHub environment secrets, never in a file. The Application Insights connection string is set as a Container Apps setting from Bicep, never written in a file. | Hook (common forms); permission rules (deny reads of `.env` files); `check.py` (secret patterns, connection strings including Application Insights, tracked `.env` files, in every text file type including `.js`, `.css` and `.bicep`) |
 | D9 | No file in git is over 50 MB. | `check.py` |
 | D10 | `data/generator-truth/` is an answer key for evaluation only: never a model feature, and never read by mcp or an agent while it runs. | Review; service-ai tests from phase 3 |
 | D11 | A feature or driver for day t uses only data recorded on or before day t. A feature that fails the point-in-time test is not used: rebuilding it with every row after day t deleted must not change it. | service-ai tests from phase 2 |
 | D12 | Models read only columns on a written feature allowlist. Repair dates, downtime, failure mode, technician notes and the answer key are never on it, and no allowlisted column is computed from them. A model trained on shuffled labels scores no better than the dummy model. | service-ai tests from phase 3 |
+| D18 | A log line from any deployed service holds only an allowlisted set of fields: time, endpoint, status, latency, synthetic pump ID, model version, data checksum, commit, score and alert flag. Never a client IP address, request headers or user agent. Evidence from a live run is checked for IP addresses before it is committed. | service-ai tests from the API build (the log formatter); `check.py` (public IPv4 addresses in `evidence/` files) |
 
 ## 2. AI and agent safety
 
 | Rule | What | Checked by |
 | --- | --- | --- |
-| A1 | Fjordvik's own data server, the `mcp` part of this repository (a Model Context Protocol server), is read-only: every tool it offers is annotated `readOnlyHint: true` and `destructiveHint: false`. `run_sql` keeps its three guards: one SELECT only, locked external access, capped rows. A1 covers only this server. Chats may use other MCP servers, such as Canva, with write tools as their work needs. | `mcp/tests/test_server.py`, `test_sql_guard.py` |
+| A1 | Fjordvik's own data server, the `mcp` part of this repository (a Model Context Protocol server), is read-only: every tool it offers is annotated `readOnlyHint: true` and `destructiveHint: false`. `run_sql` keeps its three guards: one SELECT only, locked external access, capped rows. A1 covers only this server. Chats may use other MCP servers, such as Canva, with write tools as their work needs. The failure risk API in service-ai is read-only too: GET requests only, reading only `service-ai/results/ml/` checked against its manifest, never `data/generator-truth/` or `service-ai/eval/`. | `mcp/tests/test_server.py`, `test_sql_guard.py`; service-ai tests from the API build |
 | A2 | Over HTTP (Hypertext Transfer Protocol) every mcp tool checks the signed-in role first, on the server, whatever its annotations say. Retrieval filters by role before ranking. Adding a role, or opening the server beyond 127.0.0.1, needs Reece's yes. | `mcp/tests/test_http_auth.py`; the every-role test in the phase rules |
 | A3 | Agents draft, never act. Drafts go to `service-ai/outbox/`; nothing is applied until Reece runs the approve command. Applying needs an approval record written by a human-only process, and the agent's role can't write one. The approve command shows exactly what it will apply, and applies one request only. | service-ai tests from phase 7 |
 | A4 | Every draft has a unique request ID (a version 4 universally unique identifier, or UUID), set when the draft is made and stored with the outcome under a unique constraint. Applying the same request again, including after a timeout, changes nothing and says so. | service-ai tests from phase 7 |
@@ -70,6 +71,7 @@ First edition, 2 November 2026. Slimmed on 3 November 2026 after Jasila's review
 | A10 | The model name is a setting, never hard-coded in more than one place. | Review |
 | A11 | An agent has least agency: read-only tools plus "create draft", with no send, write or apply tool. It stops after a set number of steps. | service-ai tests from phase 7 (the registered tools equal the approved list; a scripted loop stops at the limit) |
 | A12 | Every agent and assistant tool call is logged with time, role, tool, inputs, request ID and result status. The log is append-only and sits outside `data/`. | service-ai tests from phase 6 |
+| A14 | Every API response that carries a model result says it was measured on synthetic data with planted signals (phase rule W8 applied to the API). | service-ai tests from the API build |
 | E1 | Train, validation and test periods are fixed by date before building, with a 30-day gap before each cut-off. Settings and thresholds are chosen on validation only. The test period is scored once per frozen configuration. A split lock file holds the dates and the hash of the chosen settings, committed before the first test run; the test script refuses to run without it. No training row's label window ends after its cut-off. | service-ai tests from phase 2 |
 
 ## 3. Git and evidence
@@ -80,12 +82,13 @@ First edition, 2 November 2026. Slimmed on 3 November 2026 after Jasila's review
 | G2 | Never bypass a git hook (`--no-verify`, `-n`) and never change hook settings; only Reece does either, by hand. | Hook; permission rules (deny edits to `.git/hooks/`); Reece's own guard |
 | G3 | Pushing follows RULES.md (only when Reece says, and confirm it reached the remote). Never push with `--force`. | Hook (force push) |
 | G4 | Every test run saves its raw output in its part's `evidence/` folder. A result counts only once its evidence is saved. | Review |
-| G5 | Tests and tolerances follow RULES.md: never loosen one to make it pass. | Review |
+| G5 | Tests and tolerances follow RULES.md: never loosen one to make it pass. The dashboard parity test is fixed before the first chart's code: its cases reuse `powerbi/tests/expected.py` and its tolerances (EUR to 0.01; tCO2e to 0.001 or 0.01 as each case sets; ratios to 0.00001), live beside it in `powerbi/tests/`, and may only be tightened. | Review |
 | G6 | Each phase ends with a handover note in `docs/handover/` and a new note in the knowledge folder's `raw/inbox/`. Never run git in the knowledge folder. | Review |
 | G7 | Close Power BI Desktop (Don't save) before regenerating the model or report files, then restore generated files whose content did not change. | Review |
 | G8 | Never commit the local `old historical folders/`. | `.git/info/exclude`; `check.py` |
-| G9 | Only Attena edits `GUARDRAILS.md`, `GUARDRAILS.sha256`, `guardrails/` (files in `guardrails/proposals/` excepted: any chat writes a proposal there), every file in `.claude/` and each part's `tests/test_guardrails.py`. The hook asks Reece to approve each such change, and Reece approves only in Attena. | Hook (asks Reece); permission rules (ask before edits); the fingerprint test |
+| G9 | Only Attena edits `GUARDRAILS.md`, `GUARDRAILS.sha256`, `guardrails/` (files in `guardrails/proposals/` excepted: any chat writes a proposal there), every file in `.claude/` and each part's `tests/test_guardrails.py`. The hook asks Reece to approve each such change, and Reece approves only in Attena. Edits to `.github/workflows/` also need Reece's approval: a workflow runs with deploy rights. He approves them in the chat that makes them. | Hook (asks Reece); permission rules (ask before edits); the fingerprint test |
 | G11 | Every Claude Code chat in this repository starts with the repository root as its folder and works in a part with `cd`. A chat started in a part folder loads no project settings, so the guardrail hook doesn't run for it. | Review |
+| G12 | The API deploy and the GitHub Pages publish run only from `main`, through the GitHub environment `production`, with Reece as its required reviewer; the federated credential's subject is `repo:voneeci/fjordvik:environment:production`. Every deploy job needs a test job first. No workflow uses `pull_request_target`, and `id-token: write` is granted only to a deploy job, never to the whole workflow. | `check.py` (reads each workflow); the GitHub environment settings (Reece) |
 
 ## 4. Writing and docs
 
@@ -108,6 +111,14 @@ First edition, 2 November 2026. Slimmed on 3 November 2026 after Jasila's review
 | L5 | No scratch, temporary or personal files in the repository: they stay in the chat's scratchpad. Output that is not a deliverable is git-ignored. | `check.py` (the map's file types; names with scratch, tmp, untitled, backup or bak, extensions such as `.log` and `.bak`, or spaces; untracked files git would add) |
 | L6 | When a file or folder stops being used, the chat that owns it lists it in its handover. Reece decides whether it goes. This is stricter than RULES.md, which forbids deleting anything git can't restore. | Review |
 
+## 6. Cloud and public pages
+
+| Rule | What | Checked by |
+| --- | --- | --- |
+| C1 | Bicep keeps a demo's cost capped: `minReplicas: 0`, `maxReplicas` at most 2, the smallest CPU and memory pair, a Log Analytics daily cap of at most 0.2 GB, a budget of at most EUR 5 with alerts at 50% and 100%, and no private endpoint. Budgets only alert; the caps are the design. | `check.py` (reads every `.bicep` file; the values must be literals) |
+| P1 | Public pages (GitHub Pages) show group-level synthetic totals only: nothing a Power BI row-level security role restricts, so no site or region breakdowns. Each page says the data is synthetic and the emission factors illustrative. Plant screens need a signed-in host. | Dashboard build tests (generated page data holds no `site_id` or `region_id`) |
+| P2 | Each chart has a written spec (metric, chart type, sort, units, axis start) before its code. A test checks each chart's options against its spec and its data against the parity reference, with screen reader text (`aria`) on. Reece's dashboard design rules (the dashboard-check skill) apply before a page is published. | Dashboard build tests |
+
 ## What the hook doesn't catch
 
 The hook is a safety net for mistakes by cooperative chats, not a defence against a
@@ -129,6 +140,10 @@ The backstops catch what matters: the data tests catch any change to the generat
 (D3, D5); the fingerprints catch any change to the guardrail files (G9); the permission
 rules cover file tools and redirects; the pre-commit check runs `check.py` before each
 commit; and Reece's own guard covers git hook settings (G2).
+
+The workflow (G12) and Bicep (C1) checks in `check.py` read text patterns, not YAML or
+Bicep meaning: a value they check must be a literal, and an unusual layout can slip past
+them. Review covers the rest.
 
 **The hook is frozen.** It changes only after a recorded incident (a chat hits a gap or a
 false block in normal work), or when a rule changes. Each fix comes with its hook case in
@@ -156,3 +171,5 @@ agrees, updates the fingerprint, and adds a line below.
 - 4 November 2026: A1 names the one server it covers, Fjordvik's own `mcp` part, and says chats may use other MCP servers with write tools (Reece approved, in the Attena chat). A3 and A11 still limit the service desk agent.
 - 4 November 2026: W2 is UK English spelling, not Australian (Reece asked, in the Attena chat). `check.py` still looks for common American spellings. A-ron makes the same change in RULES.md.
 - 11 November 2026: D3 and the layout map cover `data/scenarios/`, the generator's checksum manifest for the phase 3 control and drift scenarios and the planning inputs service-ai reads (proposal `2026-11-04-fjordvik-code-scenario-folder.md`; Reece approved, in the Attena chat). The scenarios themselves are built on demand into the git-ignored `service-ai/build/ml-scenarios/`. `check.py`, the hook and the permission rules list the new folder.
+- 19 November 2026: rules for the failure risk API on Azure, the landing zone and public HTML dashboards (Reece approved all 12 gaps from Attena's check of the same day, `knowledge/raw/inbox/2026-11-19-attena-fjordvik-api-guardrail-check.md`). D8 adds OIDC-only sign-in, Azure IDs in GitHub environment secrets and Application Insights connection strings; new D18 (log fields, no client IP addresses); A1 covers the API; new A14 (synthetic notice in API responses); G5 adds the dashboard parity test; G9 adds `.github/workflows/` (hook asks Reece); new G12 (deploy and publish from `main` through `production`); new section 6 with C1 (cost caps), P1 (public pages group-level only) and P2 (chart specs before code). `check.py` scans `.js`, `.css` and `.bicep` files and reads workflows, Bicep and evidence; the layout map adds `docs/architecture/`, `docs/site/`, `.github/workflows/`, `service-ai/Dockerfile` and `service-ai/infra/` (proposal `2026-11-19-fjordvik-code-architecture-folder.md`). The hook change is a rule change under the freeze, with its hook cases in `shared_tests.py`.
+- 25 November 2026: the layout map adds `docs/data-dictionary.xlsx`, the generated data dictionary workbook (Reece chose this home in the question box).
