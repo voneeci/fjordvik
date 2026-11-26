@@ -30,6 +30,11 @@ def test_a_planted_centred_window_fails_the_point_in_time_test(ev_ml, allow):
 
 
 def test_the_feature_path_opens_only_its_four_tables(data_dir, allow, monkeypatch):
+    """Only files inside the repository are compared: on its first call pandas also opens
+    the Linux CPU limit files (/sys/fs/cgroup/cpu.max), so a run of this test on its own
+    would otherwise fail. The answer key and service events are checked over every file
+    opened, inside the repository or not."""
+    repo = Path(__file__).resolve().parents[2]
     opened = []
     real_open = builtins.open
 
@@ -40,8 +45,10 @@ def test_the_feature_path_opens_only_its_four_tables(data_dir, allow, monkeypatc
     monkeypatch.setattr(builtins, "open", recorder)
     features.read_tables(data_dir, allow)
     monkeypatch.undo()
-    files = {p.name for p in opened if isinstance(p, Path)}
-    assert files == {"fact_asset_telemetry.csv", "dim_asset.csv", "dim_product.csv", "dim_customer.csv"}
+    files = {p.relative_to(repo).as_posix() for p in opened
+             if isinstance(p, Path) and p.is_relative_to(repo)}
+    assert files == {f"data/tables/{name}" for name in
+                     ("fact_asset_telemetry.csv", "dim_asset.csv", "dim_product.csv", "dim_customer.csv")}
     assert not any("generator-truth" in str(p) or "fact_service_event" in str(p) for p in opened)
 
 

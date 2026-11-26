@@ -6,6 +6,8 @@ All data is synthetic: Fjordvik Manufacturing Oy is fictional.
 
 import csv
 import importlib.util
+import re
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -122,9 +124,32 @@ def test_workbook_round_trips_and_is_repeatable(sheets, tmp_path):
     assert a.read_bytes() == b.read_bytes()
     wb = xlsx.read(a)
     assert list(wb)[:7] == ["Read me", "Metrics", "Fields", "Measures", "Tables", "Rules and tools", "Column reference"]
-    assert len(wb["Metrics"]) == len(T.METRICS) + 1
-    assert len(wb["Tables"]) == len(T.TABLES) + 1
-    assert sum(1 for r in wb["Fields"][1:] if not r[0].startswith("service-ai/")) == sum(len(c) for c in D.headers().values())
+    # Each data sheet: the notice row, the table's header row, then one row per item
+    assert wb["Metrics"][0][0] == D.NOTICE and wb["Metrics"][1][0] == "Code"
+    assert len(wb["Metrics"]) == len(T.METRICS) + 2
+    assert len(wb["Tables"]) == len(T.TABLES) + 2
+    assert sum(1 for r in wb["Fields"][2:] if not r[0].startswith("service-ai/")) == sum(len(c) for c in D.headers().values())
+
+
+def test_every_sheet_says_the_data_is_synthetic_and_the_factors_illustrative(sheets, tmp_path):
+    """W6 on every sheet, not only Read me: in the sheet's own cells, so a copied sheet keeps
+    it, and as the printed page header (Jinny's review of pull request 4, 26 November 2026)."""
+    path = tmp_path / "w.xlsx"
+    xlsx.write(path, sheets)
+    for name, rows in xlsx.read(path).items():
+        text = " ".join(" ".join(r) for r in rows)
+        assert "Synthetic data only" in text and "illustrative, not cited" in text, name
+    with zipfile.ZipFile(path) as z:
+        parts = [n for n in z.namelist() if n.startswith("xl/worksheets/sheet")]
+        assert len(parts) == len(sheets)
+        for n in parts:
+            assert "<oddHeader>&amp;LSynthetic data only" in z.read(n).decode("utf-8"), n
+    tables = [s for s in sheets if s.get("table")]
+    assert all(s.get("notice_row") for s in tables)
+    with zipfile.ZipFile(path) as z:
+        refs = [re.search(r'ref="([^"]+)"', z.read(n).decode("utf-8")).group(1)
+                for n in z.namelist() if n.startswith("xl/tables/")]
+    assert refs and all(r.startswith("A2:") for r in refs), refs  # each table starts below the notice
 
 
 def test_every_sheet_column_is_in_the_column_reference(sheets):
@@ -142,8 +167,7 @@ def test_data_sheets_are_excel_tables_with_unique_names(sheets):
 
 
 def test_committed_workbook_matches_a_fresh_build(sheets, tmp_path):
-    if not COMMITTED.exists():
-        pytest.skip("docs/data-dictionary.xlsx is not committed yet: it waits for its layout map entry")
+    assert COMMITTED.exists(), "docs/data-dictionary.xlsx is missing: it is committed and must stay"
     fresh = tmp_path / "fresh.xlsx"
     xlsx.write(fresh, sheets)
     assert COMMITTED.read_bytes() == fresh.read_bytes(), "rebuild: python -m fjordvik_data.dictionary --out ../docs/data-dictionary.xlsx"

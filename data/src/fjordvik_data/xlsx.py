@@ -34,6 +34,8 @@ for _name, (_dark, _light) in SECTIONS.items():
     STYLES[f"{_name}_number"] = (14, True, "FFFFFFFF", _dark, "center", "center", False, 0, False)
     STYLES[f"{_name}_item"] = (11, True, None, _light, "left", "center", False, 1, False)
     STYLES[f"{_name}_text"] = (10.5, False, None, _light, "left", "top", True, 1, False)
+# The synthetic-data notice row above a sheet's table
+STYLES["notice"] = (10, True, "FF1F4E78", "FFDDEBF7", "left", "center", False, 0, False)
 ORDER = list(STYLES)
 
 
@@ -85,14 +87,20 @@ def _cell(ref, value, style):
     return f'<c r="{ref}" s="{s}" t="inlineStr"><is><t xml:space="preserve">{text}</t></is></c>'
 
 
+def _top(sh):
+    """1 when the sheet has a notice row above its rows, else 0."""
+    return 1 if sh.get("notice") and sh.get("notice_row") else 0
+
+
 def _sheet(sh, table_rid):
     rows, widths = sh["rows"], sh.get("widths") or []
     styles, heights, merges = sh.get("styles") or {}, sh.get("heights") or {}, sh.get("merges") or []
-    freeze, zoom = sh.get("freeze"), sh.get("zoom")
+    freeze, zoom, notice, top = sh.get("freeze"), sh.get("zoom"), sh.get("notice"), _top(sh)
     view = f'<sheetView showGridLines="0"{f" zoomScale=\"{zoom}\" zoomScaleNormal=\"{zoom}\"" if zoom else ""} workbookViewId="0">'
     if freeze:
         col = re.match(r"[A-Z]+", freeze).group(0)
-        row = int(freeze[len(col):])
+        row = int(freeze[len(col):]) + top
+        freeze = f"{col}{row}"
         xs, ys = len(col) and (ord(col) - 64) - 1, row - 1
         attrs = (f' xSplit="{xs}"' if xs else "") + (f' ySplit="{ys}"' if ys else "")
         pane = "bottomRight" if xs and ys else ("bottomLeft" if ys else "topRight")
@@ -104,23 +112,30 @@ def _sheet(sh, table_rid):
     if widths:
         out.append("<cols>" + "".join(f'<col min="{i}" max="{i}" width="{w}" customWidth="1"/>' for i, w in enumerate(widths, 1)) + "</cols>")
     out.append("<sheetData>")
+    if top:  # the notice row, styled across the sheet's width; everything else moves down one row
+        width = max(len(r) for r in rows)
+        cells = "".join(_cell(f"{_col(c)}1", notice if c == 1 else "", "notice") for c in range(1, width + 1))
+        out.append(f'<row r="1" ht="20" customHeight="1">{cells}</row>')
     for r, row in enumerate(rows, 1):
-        cells = "".join(_cell(f"{_col(c)}{r}", v, styles.get((r, c), sh["default_style"](r, c)))
+        cells = "".join(_cell(f"{_col(c)}{r + top}", v, styles.get((r, c), sh["default_style"](r, c)))
                         for c, v in enumerate(row, 1))
         h = heights.get(r)
-        out.append(f'<row r="{r}"{f" ht=\"{h}\" customHeight=\"1\"" if h else ""}>{cells}</row>')
+        out.append(f'<row r="{r + top}"{f" ht=\"{h}\" customHeight=\"1\"" if h else ""}>{cells}</row>')
     out.append("</sheetData>")
     if merges:
-        out.append(f'<mergeCells count="{len(merges)}">' + "".join(f'<mergeCell ref="{m}"/>' for m in merges) + "</mergeCells>")
+        moved = [re.sub(r"\d+", lambda m: str(int(m.group(0)) + top), m) for m in merges]
+        out.append(f'<mergeCells count="{len(moved)}">' + "".join(f'<mergeCell ref="{m}"/>' for m in moved) + "</mergeCells>")
     out.append('<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/>')
+    if notice:  # printed at the top left of every page
+        out.append(f"<headerFooter><oddHeader>{escape('&L' + notice.replace('&', '&&'))}</oddHeader></headerFooter>")
     if table_rid:
         out.append(f'<tableParts count="1"><tablePart r:id="{table_rid}"/></tableParts>')
     out.append("</worksheet>")
     return "".join(out)
 
 
-def _table(tid, name, rows):
-    ref = f"A1:{_col(len(rows[0]))}{len(rows)}"
+def _table(tid, name, rows, top=0):
+    ref = f"A{1 + top}:{_col(len(rows[0]))}{len(rows) + top}"
     cols = "".join(f'<tableColumn id="{i}" name="{escape(str(h))}"/>' for i, h in enumerate(rows[0], 1))
     return ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             f'<table xmlns="{NS}" id="{tid}" name="{name}" displayName="{name}" ref="{ref}" totalsRowShown="0">'
@@ -130,7 +145,10 @@ def _table(tid, name, rows):
 
 def write(path, sheets):
     """sheets: list of dicts with name, rows and default_style(row, col), and optionally widths,
-    styles {(row, col): name}, heights {row: points}, merges, freeze, zoom and table (a name)."""
+    styles {(row, col): name}, heights {row: points}, merges, freeze, zoom, table (a name) and
+    notice (text printed as the page header). With notice_row, the notice also sits in row 1
+    above the rows, and every row number given (styles, heights, merges, freeze, the table)
+    counts from the row below it."""
     names = [s["name"] for s in sheets]
     assert len(set(names)) == len(names) and all(len(n) <= 31 and not set(n) & set('[]:*?/\\') for n in names), names
     tables = [s["table"] for s in sheets if s.get("table")]
@@ -143,7 +161,7 @@ def write(path, sheets):
             assert len({h.lower() for h in headers}) == len(headers) and all(headers), (sh["name"], headers)
             tid += 1
             rid = "rId1"
-            parts[f"xl/tables/table{tid}.xml"] = _table(tid, sh["table"], sh["rows"])
+            parts[f"xl/tables/table{tid}.xml"] = _table(tid, sh["table"], sh["rows"], _top(sh))
             parts[f"xl/worksheets/_rels/sheet{i}.xml.rels"] = (
                 '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
                 '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'

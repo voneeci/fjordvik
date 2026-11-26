@@ -30,6 +30,9 @@ TABLES = DATA / "tables"
 MODEL = REPO / "powerbi" / "FjordvikEmissions.SemanticModel" / "definition" / "tables"
 RESULTS = REPO / "service-ai" / "results"
 YEARS = (2023, 2024, 2025)
+# On every sheet: row 1 above each table, and the printed page header (rule W6)
+NOTICE = ("Synthetic data only: Fjordvik Manufacturing Oy is fictional. "
+          "The emission factors are illustrative, not cited.")
 EMISSION_TABLES = ("fact_emissions", "fact_energy_upstream", "fact_purchases", "fact_freight", "fact_use_phase")
 SMALL = ("dim_date", "dim_site", "dim_source", "dim_scope3_category", "dim_supplier", "dim_contract", "dim_product",
          "dim_product_group", "dim_region", "dim_product_code", "dim_score_criterion", "dim_part", "bridge_part_compatibility")
@@ -387,12 +390,13 @@ def read_me(n_metrics, n_fields, n_measures):
         add([], merge=False)
         add([], merge=False)
     return {"name": "Read me", "rows": rows, "styles": styles, "merges": merges, "heights": heights,
-            "widths": [4] + [11] * 9, "default_style": lambda r, c: "default"}
+            "widths": [4] + [11] * 9, "default_style": lambda r, c: "default", "notice": NOTICE}
 
 
 def table_sheet(name, rows, widths, wrap=(), freeze="A2", zoom=None, table=None):
-    """A data sheet laid out like the council dictionary's: an Excel table in the blue
-    Medium 2 style with banded rows, a bold white header and a bold first column."""
+    """A data sheet laid out like the council dictionary's: the synthetic-data notice in
+    row 1, then an Excel table in the blue Medium 2 style with banded rows, a bold white
+    header and a bold first column. Row numbers here count from the table's header row."""
     wrap = set(wrap)
 
     def style(r, c):
@@ -402,7 +406,8 @@ def table_sheet(name, rows, widths, wrap=(), freeze="A2", zoom=None, table=None)
             return "cell_first"
         return "cell_wrap" if c in wrap else "cell"
     return {"name": name, "rows": rows, "widths": widths, "default_style": style, "heights": {1: 26},
-            "freeze": freeze, "zoom": zoom, "table": table or re.sub(r"\W", "_", name)}
+            "freeze": freeze, "zoom": zoom, "table": table or re.sub(r"\W", "_", name),
+            "notice": NOTICE, "notice_row": True}
 
 
 def column_reference_rows(sheet_headers):
