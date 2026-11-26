@@ -246,7 +246,7 @@ flowchart LR
 <div class='tablewrap'><table class='key wide concept'><thead><tr><th scope='col'>Line</th><th scope='col'>Meaning</th></tr></thead><tbody><tr><td>Solid line</td><td>Runs in this repository today (in the context and stakeholder drawings, which show no status: part of the design)</td></tr><tr><td>Dotted line</td><td>Does not run yet; the Designed, Planned or Gap box at one of its ends says why</td></tr></tbody></table></div>
 <p>The status word is written in every box, so the drawings read in black and white. Every box names its type and technology in square brackets, and every line says what it does in the direction it points.</p>
 <h3>How the drawings were made</h3>
-<ul><li><strong>Written as text.</strong> Each drawing is written in Mermaid, a text format that GitHub draws inside Markdown files. The drawings live in the repository beside the code, change through the same review as the code, and keep a full history.</li><li><strong>Checked against the C4 checklist.</strong> Each drawing has a title stating its type and scope, a key, the type and technology of every box, a label on every line that matches its direction, and every abbreviation explained.</li><li><strong>Laid out to be read.</strong> Keys sit in a table under each drawing rather than inside it, which keeps the drawings narrow. Wide drawings were reorganised to read at page width where possible, and crossing lines were kept to a minimum, because crossings are the layout feature that most harms understanding (Purchase, 1997, a peer-reviewed study of how people read graphs). Only two line styles are used, on purpose: Mermaid can give a single line its own style only by its position number, which breaks unseen when a line is added.</li><li><strong>Readable without sight.</strong> Each drawing carries a short title and description for screen readers, as the Web Content Accessibility Guidelines (WCAG) 2.2 require for images.</li><li><strong>Kept current.</strong> The context and container drawings are the intended design: they change only through a <a href="https://github.com/voneeci/fjordvik/blob/main/docs/decision-log.md">decision record</a>, in the same change as the code. The data model drawings are generated from the tables' column headers by a script, so they match the tables. Under each drawing, "Last updated" gives the date it was last revised and the commit of the code and data it was checked against.</li></ul></div>
+<ul><li><strong>Written as text.</strong> Each drawing is written in Mermaid, a text format that GitHub draws inside Markdown files. The drawings live in the repository beside the code, change through the same review as the code, and keep a full history.</li><li><strong>Checked against the C4 checklist.</strong> Each drawing has a title stating its type and scope, a key, the type and technology of every box, a label on every line that matches its direction, and every abbreviation explained.</li><li><strong>Laid out to be read.</strong> Keys sit in a table under each drawing rather than inside it, which keeps the drawings narrow. Wide drawings were reorganised to read at page width where possible, and crossing lines were kept to a minimum, because crossings are the layout feature that most harms understanding (Purchase, 1997, a peer-reviewed study of how people read graphs). Only two line styles are used, on purpose: Mermaid can give a single line its own style only by its position number, which breaks unseen when a line is added.</li><li><strong>Readable without sight.</strong> Each drawing carries a short title and description for screen readers, as the Web Content Accessibility Guidelines (WCAG) 2.2 require for images.</li><li><strong>Kept current.</strong> The context and container drawings are the intended design: they change only through a <a href="https://github.com/voneeci/fjordvik/blob/main/docs/decision-log.md">decision record</a>, in the same change as the code. The data model drawings were drawn from the tables' column headers on 25 November 2026, and Jinny's review of 26 November found every drawn column in its table; no script keeps them in step, so a new column is added to its drawing by hand. Under each drawing, or once under a set of drawings such as the data model stars, "Last updated" gives the date it was last revised and the commit of the code and data it was checked against.</li></ul></div>
     </section>
 
     <section class="doc">
@@ -259,7 +259,7 @@ flowchart LR
         <figcaption>
           <span class="num">Drawing 1</span>
           <h3>System context (C4 level 1): the Fjordvik data and AI platform</h3>
-          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/architecture.md?plain=1#L150">docs/architecture.md, line 150</a>, under "Level 1: system context"</p>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/architecture.md?plain=1#L153">docs/architecture.md, line 153</a>, under "Level 1: system context"</p>
         </figcaption>
         <div class="sheet"><pre class="mermaid">---
 config:
@@ -318,7 +318,7 @@ flowchart TB
         <figcaption>
           <span class="num">Drawing 2</span>
           <h3>Containers (C4 level 2): inside the Fjordvik data and AI platform</h3>
-          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/architecture.md?plain=1#L218">docs/architecture.md, line 218</a>, under "Level 2: containers"</p>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/architecture.md?plain=1#L221">docs/architecture.md, line 221</a>, under "Level 2: containers"</p>
         </figcaption>
         <div class="sheet"><pre class="mermaid">---
 title: &quot;Containers (C4 level 2): inside the Fjordvik data and AI platform&quot;
@@ -371,7 +371,7 @@ flowchart TB
         <figcaption>
           <span class="num">Drawing 3</span>
           <h3>Service AI pipeline, part 1 (C4 level 3): phases 2 and 3 as built</h3>
-          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/architecture.md?plain=1#L298">docs/architecture.md, line 298</a>, under "Level 3: the service AI pipeline"</p>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/architecture.md?plain=1#L301">docs/architecture.md, line 301</a>, under "Level 3: the service AI pipeline"</p>
         </figcaption>
         <div class="sheet"><pre class="mermaid">---
 config:
@@ -429,13 +429,13 @@ flowchart TB
 
     style DATA fill:#f7f9fb,stroke:#55626f,color:#17212b</pre></div>
         <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Blue box</th><td>Component, Built</td></tr><tr><th scope='row'>Pale blue cylinder</th><td>Data store</td></tr><tr><th scope='row'>Amber cylinder</th><td>Lock: fixed before any test run</td></tr><tr><th scope='row'>Dark blue box</th><td>Person</td></tr><tr><th scope='row'>Solid line</th><td>Runs in this repository today</td></tr></table></details>
-        <p class="note">The second part shows what phases 4 to 7 and the failure risk API will build on those results. Nothing in it exists yet.</p>
+        <p class="note">Last updated: 25 November 2026, commit <code>f5b1aef</code>.</p><p class="note">The second part shows what phases 4 to 7 and the failure risk API will build on those results. Nothing in it exists yet.</p>
       </figure>
       <figure class="fig" id="d4">
         <figcaption>
           <span class="num">Drawing 4</span>
           <h3>Service AI pipeline, part 2 (C4 level 3): phases 4 to 7 and the API, as planned</h3>
-          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/architecture.md?plain=1#L367">docs/architecture.md, line 367</a>, under "Level 3: the service AI pipeline"</p>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/architecture.md?plain=1#L372">docs/architecture.md, line 372</a>, under "Level 3: the service AI pipeline"</p>
         </figcaption>
         <div class="sheet"><pre class="mermaid">---
 title: &quot;Service AI pipeline, part 2 (C4 level 3): phases 4 to 7 and the API, as planned&quot;
@@ -639,7 +639,7 @@ flowchart LR
         <figcaption>
           <span class="num">Drawing 8</span>
           <h3>Site emissions (fact_emissions): one row per month, site and source the site reports</h3>
-          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L257">docs/data-model.md, line 257</a>, under "Emissions facts"</p>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L260">docs/data-model.md, line 260</a>, under "Emissions facts"</p>
         </figcaption>
         <div class="sheet"><pre class="mermaid">---
 title: &quot;Site emissions (fact_emissions): one row per month, site and source the site reports&quot;
@@ -671,7 +671,7 @@ erDiagram
         <figcaption>
           <span class="num">Drawing 9</span>
           <h3>Site revenue and headcount (fact_site_metrics): one row per month and site</h3>
-          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L299">docs/data-model.md, line 299</a>, under "Emissions facts"</p>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L302">docs/data-model.md, line 302</a>, under "Emissions facts"</p>
         </figcaption>
         <div class="sheet"><pre class="mermaid">---
 title: &quot;Site revenue and headcount (fact_site_metrics): one row per month and site&quot;
@@ -698,7 +698,7 @@ erDiagram
         <figcaption>
           <span class="num">Drawing 10</span>
           <h3>Market-based electricity emissions (fact_scope2_market): one row per month, site, source and instrument</h3>
-          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L336">docs/data-model.md, line 336</a>, under "Emissions facts"</p>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L339">docs/data-model.md, line 339</a>, under "Emissions facts"</p>
         </figcaption>
         <div class="sheet"><pre class="mermaid">---
 title: &quot;Market-based electricity emissions (fact_scope2_market): one row per month, site, source and instrument&quot;
@@ -735,7 +735,7 @@ erDiagram
         <figcaption>
           <span class="num">Drawing 11</span>
           <h3>Upstream energy emissions (fact_energy_upstream): one row per month, site and the source it is worked out from</h3>
-          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L383">docs/data-model.md, line 383</a>, under "Emissions facts"</p>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L386">docs/data-model.md, line 386</a>, under "Emissions facts"</p>
         </figcaption>
         <div class="sheet"><pre class="mermaid">---
 title: &quot;Upstream energy emissions (fact_energy_upstream): one row per month, site and the source it is worked out from&quot;
@@ -769,7 +769,7 @@ erDiagram
         <figcaption>
           <span class="num">Drawing 12</span>
           <h3>Purchased goods emissions (fact_purchases): one row per month, site and supplier</h3>
-          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L427">docs/data-model.md, line 427</a>, under "Emissions facts"</p>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L430">docs/data-model.md, line 430</a>, under "Emissions facts"</p>
         </figcaption>
         <div class="sheet"><pre class="mermaid">---
 title: &quot;Purchased goods emissions (fact_purchases): one row per month, site and supplier&quot;
@@ -806,7 +806,7 @@ erDiagram
         <figcaption>
           <span class="num">Drawing 13</span>
           <h3>Freight emissions (fact_freight): one row per month, site, direction, mode and payer</h3>
-          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L474">docs/data-model.md, line 474</a>, under "Emissions facts"</p>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L477">docs/data-model.md, line 477</a>, under "Emissions facts"</p>
         </figcaption>
         <div class="sheet"><pre class="mermaid">---
 title: &quot;Freight emissions (fact_freight): one row per month, site, direction, mode and payer&quot;
@@ -838,7 +838,7 @@ erDiagram
         <figcaption>
           <span class="num">Drawing 14</span>
           <h3>Product sales (fact_sales): one row per month, shipping site, product and region</h3>
-          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L518">docs/data-model.md, line 518</a>, under "Portfolio facts"</p>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L521">docs/data-model.md, line 521</a>, under "Portfolio facts"</p>
         </figcaption>
         <div class="sheet"><pre class="mermaid">---
 title: &quot;Product sales (fact_sales): one row per month, shipping site, product and region&quot;
@@ -875,7 +875,7 @@ erDiagram
         <figcaption>
           <span class="num">Drawing 15</span>
           <h3>ERP data issues (fact_data_issue): one row per problem the SQL found in the ERP extract</h3>
-          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L565">docs/data-model.md, line 565</a>, under "Portfolio facts"</p>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L568">docs/data-model.md, line 568</a>, under "Portfolio facts"</p>
         </figcaption>
         <div class="sheet"><pre class="mermaid">---
 title: &quot;ERP data issues (fact_data_issue): one row per problem the SQL found in the ERP extract&quot;
@@ -903,7 +903,7 @@ erDiagram
         <figcaption>
           <span class="num">Drawing 16</span>
           <h3>Product use emissions (fact_use_phase): one row per month, shipping site, product and region of use</h3>
-          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L603">docs/data-model.md, line 603</a>, under "Portfolio facts"</p>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L606">docs/data-model.md, line 606</a>, under "Portfolio facts"</p>
         </figcaption>
         <div class="sheet"><pre class="mermaid">---
 title: &quot;Product use emissions (fact_use_phase): one row per month, shipping site, product and region of use&quot;
@@ -939,13 +939,13 @@ erDiagram
         text region_id PK
     }</pre></div>
         <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Box</th><td>One table: its business name, with the table name in brackets</td></tr><tr><th scope='row'>First column in a box</th><td>The kind of value: <code>text</code>, <code>int</code> (a whole number) or <code>date</code></td></tr><tr><th scope='row'>PK</th><td>Primary key: the column, or columns together, that pick out exactly one row of the table</td></tr><tr><th scope='row'>FK</th><td>Foreign key: a column holding the key of a row in another table, so the two tables can be joined</td></tr><tr><th scope='row'>Blank key cell</th><td>The column is not a key; it is drawn only because it carries a note</td></tr><tr><th scope='row'>Last column</th><td>A note on that column; blank when there is nothing to add</td></tr><tr><th scope='row'>Two short bars at a line's end</th><td>Exactly one row at that end</td></tr><tr><th scope='row'>Circle and three prongs (a crow's foot) at a line's end</th><td>Zero, one or many rows at that end</td></tr><tr><th scope='row'>A whole line</th><td>Reads as: one row in the table at the bars matches any number of rows in the table at the crow's foot; the label names the column they are joined on</td></tr></table></details>
-        <p class="note"><strong>What it is.</strong> The lifetime electricity of the pumps sold, times the grid factor of the region where they are used. <strong>What it is for.</strong> Scope 3 category 11, use of sold products, by product and region: 95% of the 2025 total.</p><p class="note">Other columns: <code>units</code>, <code>net_sales_eur</code>, <code>activity_amount</code>, <code>unit</code>, <code>emission_factor</code>, <code>tco2e</code>.</p>
+        <p class="note"><strong>What it is.</strong> The lifetime electricity of the pumps sold, times the grid factor of the region where they are used. <strong>What it is for.</strong> Scope 3 category 11, use of sold products, by product and region.</p><p class="note">Other columns: <code>units</code>, <code>net_sales_eur</code>, <code>activity_amount</code>, <code>unit</code>, <code>emission_factor</code>, <code>tco2e</code>.</p>
       </figure>
       <figure class="fig" id="d17">
         <figcaption>
           <span class="num">Drawing 17</span>
           <h3>Scorecard ratings (fact_product_rating): one row per quarter, product group and criterion</h3>
-          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L655">docs/data-model.md, line 655</a>, under "Portfolio facts"</p>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L658">docs/data-model.md, line 658</a>, under "Portfolio facts"</p>
         </figcaption>
         <div class="sheet"><pre class="mermaid">---
 title: &quot;Scorecard ratings (fact_product_rating): one row per quarter, product group and criterion&quot;
@@ -977,7 +977,7 @@ erDiagram
         <figcaption>
           <span class="num">Drawing 18</span>
           <h3>Sales plan (fact_budget): one row per month, shipping site, product group and region</h3>
-          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L697">docs/data-model.md, line 697</a>, under "Portfolio facts"</p>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L700">docs/data-model.md, line 700</a>, under "Portfolio facts"</p>
         </figcaption>
         <div class="sheet"><pre class="mermaid">---
 title: &quot;Sales plan (fact_budget): one row per month, shipping site, product group and region&quot;
@@ -1014,7 +1014,7 @@ erDiagram
         <figcaption>
           <span class="num">Drawing 19</span>
           <h3>Daily pump readings (fact_asset_telemetry): one row per pump and day</h3>
-          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L746">docs/data-model.md, line 746</a>, under "After-sales service facts"</p>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L749">docs/data-model.md, line 749</a>, under "After-sales service facts"</p>
         </figcaption>
         <div class="sheet"><pre class="mermaid">---
 title: &quot;Daily pump readings (fact_asset_telemetry): one row per pump and day&quot;
@@ -1037,7 +1037,7 @@ erDiagram
         <figcaption>
           <span class="num">Drawing 20</span>
           <h3>Service jobs (fact_service_event): one row per failure, preventive visit or inspection</h3>
-          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L779">docs/data-model.md, line 779</a>, under "After-sales service facts"</p>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L782">docs/data-model.md, line 782</a>, under "After-sales service facts"</p>
         </figcaption>
         <div class="sheet"><pre class="mermaid">---
 title: &quot;Service jobs (fact_service_event): one row per failure, preventive visit or inspection&quot;
@@ -1066,7 +1066,7 @@ erDiagram
         <figcaption>
           <span class="num">Drawing 21</span>
           <h3>Spare part orders (fact_parts_order): one row per order line</h3>
-          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L818">docs/data-model.md, line 818</a>, under "After-sales service facts"</p>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L821">docs/data-model.md, line 821</a>, under "After-sales service facts"</p>
         </figcaption>
         <div class="sheet"><pre class="mermaid">---
 title: &quot;Spare part orders (fact_parts_order): one row per order line&quot;
@@ -1126,7 +1126,7 @@ erDiagram
         <figcaption>
           <span class="num">Drawing 22</span>
           <h3>Parts portal suggestions (fact_portal_event): one row per part shown in a portal session</h3>
-          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L888">docs/data-model.md, line 888</a>, under "After-sales service facts"</p>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L891">docs/data-model.md, line 891</a>, under "After-sales service facts"</p>
         </figcaption>
         <div class="sheet"><pre class="mermaid">---
 title: &quot;Parts portal suggestions (fact_portal_event): one row per part shown in a portal session&quot;
@@ -1160,7 +1160,7 @@ erDiagram
         <figcaption>
           <span class="num">Drawing 23</span>
           <h3>How the dimensions link to each other: products, sites, customers, pumps and parts</h3>
-          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L934">docs/data-model.md, line 934</a>, under "How the dimensions link"</p>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L937">docs/data-model.md, line 937</a>, under "How the dimensions link"</p>
         </figcaption>
         <div class="sheet"><pre class="mermaid">---
 title: &quot;How the dimensions link to each other: products, sites, customers, pumps and parts&quot;

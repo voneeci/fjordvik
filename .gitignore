@@ -1,0 +1,4 @@
+# Python caches anywhere in the repository, including guardrails/, which no part's own
+# .gitignore covers. Each part keeps its own .gitignore for everything else.
+__pycache__/
+*.pyc

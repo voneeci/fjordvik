@@ -1,6 +1,6 @@
 # Solution architecture
 
-Fjordvik needs one platform that takes in its sites', ERP and service data, checks it,
+Fjordvik needs one platform that takes in its sites', enterprise resource planning (ERP) and service data, checks it,
 holds it once, and serves the same figures to its reports, a Claude connector and its
 service AI. This page first explains the concepts and methods behind all of Fjordvik's
 architecture drawings, then shows the platform in the C4 model: the system in its
@@ -139,9 +139,12 @@ the direction it points.
   readers, as the Web Content Accessibility Guidelines (WCAG) 2.2 require for images.
 - **Kept current.** The context and container drawings are the intended design: they change
   only through a [decision record](decision-log.md), in the same change as the code. The
-  data model drawings are generated from the tables' column headers by a script, so they
-  match the tables. Under each drawing, "Last updated" gives the date it was last revised
-  and the commit of the code and data it was checked against.
+  data model drawings were drawn from the tables' column headers on 25 November 2026, and
+  Jinny's review of 26 November found every drawn column in its table; no script keeps
+  them in step, so a new column is added to
+  its drawing by hand. Under each drawing, or once under a set of drawings such as the
+  data model stars, "Last updated" gives the date it was last revised and the commit of
+  the code and data it was checked against.
 
 ## Level 1: system context
 
@@ -361,6 +364,8 @@ flowchart TB
 | Dark blue box | Person |
 | Solid line | Runs in this repository today |
 
+Last updated: 25 November 2026, commit `f5b1aef`.
+
 The second part shows what phases 4 to 7 and the failure risk API will build on those
 results. Nothing in it exists yet.
 
@@ -493,14 +498,14 @@ version; a backup and a tested restore. These belong to stations 06 and 09.
 ## Where Fjordvik stands on the delivery map
 
 The map has eleven stations, from the business case (00) to continuous improvement (10).
-Status on 19 November 2026, at commit `790589d`:
+Status on 26 November 2026, at commit `fcf611f`:
 
 | Station | Status | Evidence or gap |
 | --- | --- | --- |
 | 00 Business case | First edition, not signed | [business-case.md](business-case.md); licence prices missing |
 | 01 Discovery and requirements | First edition, G1 not taken | [requirements.md](requirements.md); no workshops; transition requirements new |
-| 02 Solution architecture | This page, not reviewed | Environment strategy proposed; production load route not designed |
-| 03 Data modelling | Model built; G2 partly met | [data-model.md](data-model.md); history handling proposed |
+| 02 Solution architecture | This page; code-reviewed by Jinny on 26 November 2026, not signed off | Drawings redrawn on 25 November and published as one page ([README](../README.md#architecture-drawings)); environment strategy proposed; production load route not designed |
+| 03 Data modelling | Model built; G2 partly met | [data-model.md](data-model.md); generated [data dictionary](data-dictionary.xlsx); history handling proposed |
 | 04 Build in slices | Strong, two gaps | Locked pass marks, independent review, saved evidence; no continuous integration, no user demos |
 | 05 Migration and cutover | Not started | Reconciliation strong; no runbook, rehearsal, rollback or communication plan |
 | 06 Testing stages | Component and system tests only | No user or operational acceptance; nothing published to test |
@@ -515,7 +520,8 @@ These start once this architecture is agreed:
 
 1. **Continuous integration.** A GitHub Actions workflow that runs every part's tests and
    `guardrails/check.py` on every push, keyless (the 154 live Power BI tests stay manual).
-   The `.github/` folder needs an entry in the layout map first (rule L1).
+   The layout map has had `.github/workflows/` since 19 November 2026; each workflow edit
+   needs Reece's approval (rules G9 and G12).
 2. **Demos.** Hold the open portfolio milestone M5: each page reviewed with two Product
    Managers, recorded as acceptance evidence.
 3. **Cutover runbook.** One runbook for the move from the central spreadsheet and the

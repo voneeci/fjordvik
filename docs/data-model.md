@@ -245,8 +245,11 @@ repository is synthetic, so none of it is personal data today.
 Each diagram below shows one set of facts Fjordvik records, with the reference tables
 it joins. Every box gives the business name and, in brackets, the table name. The
 title states what one row holds, and the text under each diagram says what the data is
-and what it is for. Only the key columns are drawn; the other columns are listed under
-each diagram. The diagrams are generated from the tables' column headers, and each key
+and what it is for. Only the key columns are drawn; under each fact diagram the other
+columns are listed, and the Fields sheet of the [data dictionary](data-dictionary.xlsx)
+lists every column of every table. The diagrams were drawn from the tables' column
+headers on 25 November 2026, and Jinny's review of 26 November found every drawn column in
+its table; no script keeps them in step, so a new column is added to its diagram by hand. Each key
 is checked against its target in the join check below. A key under every diagram
 explains the boxes, columns and line ends. In the table names, `fact_` marks facts
 (events to add up), `dim_` marks dimensions (things to filter and group by) and
@@ -648,7 +651,7 @@ erDiagram
 | Circle and three prongs (a crow's foot) at a line's end | Zero, one or many rows at that end |
 | A whole line | Reads as: one row in the table at the bars matches any number of rows in the table at the crow's foot; the label names the column they are joined on |
 
-**What it is.** The lifetime electricity of the pumps sold, times the grid factor of the region where they are used. **What it is for.** Scope 3 category 11, use of sold products, by product and region: 95% of the 2025 total.
+**What it is.** The lifetime electricity of the pumps sold, times the grid factor of the region where they are used. **What it is for.** Scope 3 category 11, use of sold products, by product and region.
 
 Other columns: `units`, `net_sales_eur`, `activity_amount`, `unit`, `emission_factor`, `tco2e`.
 

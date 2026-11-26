@@ -134,7 +134,7 @@ Grouped by the quality characteristics of ISO/IEC 25010:2023. A target marked
 
 | # | Characteristic | Target | How it is checked | Status |
 | --- | --- | --- | --- | --- |
-| NFR1 | Functional suitability (correctness) | Every Power BI measure and MCP tool equals an independent Python calculation from the raw files | `powerbi/tests/test_measures_live.py`, `mcp/tests/test_queries.py` | Met |
+| NFR1 | Functional suitability (correctness) | Every Power BI measure and Model Context Protocol (MCP) tool equals an independent Python calculation from the raw files | `powerbi/tests/test_measures_live.py`, `mcp/tests/test_queries.py` | Met |
 | NFR2 | Functional suitability (correctness) | Sales plus quarantined lines equal finance revenue to the cent in every site-month | `data/sql` reconciliation check | Met |
 | NFR3 | Performance efficiency | A scheduled refresh completes within the Power BI Service limit of two hours on shared capacity | [refresh design](../powerbi/docs/refresh-design.md) | Not tested: model not published |
 | NFR4 | Performance efficiency | Common report visuals render in under 5 seconds, Microsoft's guidance ([research note](../powerbi/docs/research/power-bi-issues-2026-10-16.md)) | A timed run against the published model | Proposed; not tested |
@@ -241,7 +241,7 @@ per metric once the dashboard approach is agreed.
 | Technician utilisation | Labour hours on jobs over contracted hours, per week | Derived | `fact_service_event.labour_hours`, `dim_technician.weekly_hours` | Service Manager | Active, with a caveat: travel time is not recorded, so it understates the working day |
 | First-time fix rate | Failures not followed by a repeat visit for the same fault | Derived | Needs Fjordvik's own definition of a repeat (the window and what counts as the same fault) | Service Manager | **Dormant** until Fjordvik defines it |
 | Service contract mix | Customers by contract (none, Basic, Premium) | Actual | `dim_customer.service_contract` | Service Manager | Active |
-| Parts revenue by channel | EUR by EDI, email, phone, portal, technician | Actual | `fact_parts_order` | E-commerce owner | Active |
+| Parts revenue by channel | EUR by electronic data interchange (EDI), email, phone, portal, technician | Actual | `fact_parts_order` | E-commerce owner | Active |
 | Portal suggestion click rate | Suggestions clicked over suggestions shown | Derived | `fact_portal_event` | E-commerce owner | Active |
 | Forecast skill | Mean absolute scaled error (MASE) per warehouse | Derived | `service-ai/results/forecast` | Service Manager | Active |
 | Failure model ranking and cost | Average precision against the dummy model; alert cost against visiting all or none | Derived | `service-ai/results/ml` | Service Manager | Active |

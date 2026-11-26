@@ -147,7 +147,7 @@ dataset, which only the generator or the checked load may cross (rule D3).
 | STRIDE | Threat | Control in place | Open |
 | --- | --- | --- | --- |
 | Elevation of privilege | The agent applies its own draft | Draft only; the agent's role cannot write an approval record; only a human-run approve command applies (rules A3, A11) | Tests start in phase 7 |
-| Tampering | A draft applied twice, for example after a timeout | Unique version 4 UUID request ID under a unique constraint (rule A4) | |
+| Tampering | A draft applied twice, for example after a timeout | Unique version 4 universally unique identifier (UUID) request ID under a unique constraint (rule A4) | |
 | Repudiation | No record of what the agent did | Every tool call logged with time, role, tool, inputs, request ID and result, append-only (rule A12) | |
 | Denial of service | An agent loops | Stops after a set number of steps (rule A11) | The step limit is not set yet |
 

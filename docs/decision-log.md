@@ -4,9 +4,11 @@ The architecture decisions behind Fjordvik's data and AI platform, one numbered 
 each: the context, the decision, what it was chosen over, and what follows from it. A
 reviewer, or a new chat, can see why the platform is shaped as it is without reading every
 handover. These are the architecture decision records (ADRs) of station 02 of the delivery
-map.
+map. Abbreviations in the records: enterprise resource planning (ERP), European Central
+Bank (ECB), Tabular Model Definition Language (TMDL) and the Power BI enhanced report
+format (PBIR).
 
-Records 001 to 025, 030 and 031 were taken during the build and are written up here from the
+Records 001 to 025 and 030 to 032 were taken during the build and are written up here from the
 [project guide](learning-guide.md), the [learning notes](learning/service-ai.md), the
 handovers and the repository's `CLAUDE.md` files. Records 026 to 029 are proposals
 and wait for Reece's decision. A decision is never edited after it
@@ -45,6 +47,7 @@ is accepted: a later record supersedes it and says so.
 | 025 | Agents draft, never act | Accepted | 2 November 2026 |
 | 030 | The guardrail hook is frozen | Accepted | 3 November 2026 |
 | 031 | Power Automate flows designed and tested offline, not built in a tenant | Accepted | By 16 October 2026 |
+| 032 | Wide drawings split and redrawn, not laid out with ELK | Accepted | 25 November 2026 |
 | 026 | Four environments with separate credentials | Proposed | 19 November 2026 |
 | 027 | History handling for dimensions | Proposed | 19 November 2026 |
 | 028 | Continuous integration on every push | Proposed | 19 November 2026 |
@@ -356,6 +359,26 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 - **Source:** [Project guide](learning-guide.md#4-the-power-automate-flows-power-automate),
   [tenant setup](../power-automate/docs/tenant-setup.md).
 
+### ADR-032: Wide drawings split and redrawn, not laid out with ELK
+
+- **Status:** Accepted, 25 November 2026, in the redraw Reece asked for after Jasila's
+  drawing review; written up on 26 November after Jinny's review of pull request 4 noted
+  it was missing.
+- **Context:** Jasila's review measured the widest drawings (5,073 and 5,129 pixels wide)
+  and tested Mermaid's ELK layout on them, which made one far narrower and the other
+  somewhat narrower. Mermaid 11 ships ELK as a separate layout package that a page must
+  load and register, and which Mermaid version GitHub runs, and whether it includes ELK,
+  was not found in an opened source.
+- **Decision:** Keep Mermaid's default layout. Split the widest drawings into parts (the
+  service AI pipeline and the data flow, in two parts each), draw them top to bottom, and
+  draw the data model as one star per fact table.
+- **Over:** `layout: elk` on the wide drawings.
+- **Consequences:** The drawings look the same on GitHub, on the drawings page and in any
+  Mermaid viewer, with no extra package to load. More, smaller drawings (25 instead of
+  12). If a drawing grows too wide again, test ELK on it and record the outcome here.
+- **Source:** Jasila's review (knowledge inbox, 25 November 2026);
+  [architecture drawings](../README.md#architecture-drawings).
+
 ## Proposed
 
 Each waits for Reece's decision. Accepting one changes its status here and starts its
@@ -397,7 +420,8 @@ follow-up task in [architecture.md](architecture.md#next-steps-for-stations-04-a
 - **Proposal:** A GitHub Actions workflow running every part's tests and the guardrail
   checks on every push and pull request, without keys or network; the live Power BI tests
   stay manual.
-- **Consequences:** Needs an entry for `.github/` in the layout map (rule L1).
+- **Consequences:** The layout map has had `.github/workflows/` since 19 November 2026,
+  and each workflow edit needs Reece's approval (rules G9 and G12).
 
 ### ADR-029: A daily date table for the service data
 
@@ -418,3 +442,6 @@ follow-up task in [architecture.md](architecture.md#next-steps-for-stations-04-a
 - 19 November 2026: a context line on every record (Nygard's format); ADR-030 and ADR-031
   added from Jasila's research of the same day. The records were still in their first,
   unreviewed edition; from here on an accepted record is only ever superseded.
+- 26 November 2026: ADR-032 written up (a choice made in the 25 November redraw), and
+  ADR-028's note on the layout map brought up to date, after Jinny's review of pull
+  request 4.

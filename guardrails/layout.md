@@ -24,6 +24,7 @@ Parts: data, mcp, powerbi, power-automate, service-ai
 - `GUARDRAILS.md`: the master rules.
 - `GUARDRAILS.sha256`: the master rules' fingerprint.
 - `.gitattributes`: line-ending settings for the whole repository.
+- `.gitignore`: files git never adds anywhere in the repository (Python caches); each part keeps its own `.gitignore` for the rest (added 26 November 2026).
 - `.claude/settings.json`: the Claude Code hook that enforces the guardrails.
 - `.github/workflows/*.yml`: GitHub Actions workflows: tests on every push, the API deploy and the GitHub Pages publish (G9, G12; added 19 November 2026).
 
