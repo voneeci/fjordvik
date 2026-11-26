@@ -59,7 +59,62 @@ def test_checker_catches_each_planted_breach(tmp_path):
         "Parts: part\n\n- `*.md`: x\n- `*.py`: x\n- `*.txt`: x\n- `GUARDRAILS.sha256`: x\n"
         "- `.env.example`: x\n- `guardrails/*`: x\n- `guardrails/evidence/*`: x\n"
         "- `<part>/evidence/*`: x\n- `docs/handover/*.md`: x\n- `docs/learning/*.md`: x\n"
-        "- `guardrails/proposals/*.md`: x\n- `<part>/src/**/*.py`: x\n", encoding="utf-8")
+        "- `guardrails/proposals/*.md`: x\n- `<part>/src/**/*.py`: x\n- `*.js`: x\n- `*.bicep`: x\n"
+        "- `.github/workflows/*.yml`: x\n- `docs/architecture/adr/*.md`: x\n"
+        "- `.github/actions/*/action.yml`: x\n", encoding="utf-8")
+    # 19 November 2026: new file types (W1, D8), workflows (G12), Bicep caps (C1), client IP
+    # addresses in evidence (D18) and decision record names (L3)
+    (tmp_path / "dash.js").write_text("// A comment " + chr(0x2014) + " with a dash\n", encoding="utf-8")
+    (tmp_path / "appinsights.bicep").write_text(
+        "var c = 'Instrumentation" + "Key=" + "0" * 8 + "-1111-2222-3333-" + "4" * 12 + "'\n",
+        encoding="utf-8")
+    (tmp_path / "caps.bicep").write_text(
+        "resource app 'Microsoft.App/containerApps@2024-03-01' = {\n  minReplicas: 1\n"
+        "  maxReplicas: 10\n}\nresource law 'Microsoft.OperationalInsights/workspaces@2023-09-01'"
+        " = {\n  dailyQuotaGb: 1\n}\nresource pe 'Microsoft.Network/privateEndpoints@2023-09-01'"
+        " = {}\n", encoding="utf-8")
+    (tmp_path / "lower.bicep").write_text(
+        "resource pe 'microsoft.network/privateendpoints@2023-09-01' = {}\n", encoding="utf-8")
+    (tmp_path / ".github" / "workflows").mkdir(parents=True)
+    (tmp_path / ".github" / "workflows" / "bad.yml").write_text(
+        "on:\n  pull_request_target:\npermissions:\n  id-token: write\njobs:\n  deploy:\n"
+        "    runs-on: ubuntu-latest\n    steps:\n      - uses: azure/login@v2\n", encoding="utf-8")
+    (tmp_path / ".github" / "workflows" / "good.yml").write_text(
+        "# Never on pull_request: deploys come from main only.\n"
+        "on:\n  push:\n    branches: [main]\n  workflow_dispatch:\njobs:\n  test:\n"
+        "    runs-on: ubuntu-latest\n  deploy:\n    needs: test\n"
+        "    environment: production  # Reece reviews\n"
+        "    permissions:\n      id-token: write\n    steps:\n      - uses: azure/login@v2\n",
+        encoding="utf-8")
+    # 25 November 2026, Jinny's review: more deploy actions, grants in any layout or in a
+    # job that doesn't deploy, and a local action that deploys
+    (tmp_path / ".github" / "workflows" / "swa.yml").write_text(
+        "on:\n  push:\n    branches: [main]\njobs:\n  test:\n    runs-on: x\n  deploy:\n"
+        "    needs: test\n    steps:\n      - uses: Azure/static-web-apps-deploy@v1\n",
+        encoding="utf-8")
+    (tmp_path / ".github" / "workflows" / "ghpages.yml").write_text(
+        "on:\n  push:\n    branches: [main]\njobs:\n  test:\n    runs-on: x\n  publish:\n"
+        "    needs: test\n    steps:\n      - run: git push origin gh-pages\n", encoding="utf-8")
+    (tmp_path / ".github" / "workflows" / "grants.yml").write_text(
+        "on:\n  push:\n    branches: [main]\npermissions:\n    id-token: write\njobs:\n"
+        "  test:\n    runs-on: x\n    permissions: write-all\n", encoding="utf-8")
+    (tmp_path / ".github" / "workflows" / "flow.yml").write_text(
+        "on:\n  push:\n    branches: [main]\npermissions: {id-token: write}\njobs:\n"
+        "  test:\n    runs-on: x\n", encoding="utf-8")
+    (tmp_path / ".github" / "actions" / "publish").mkdir(parents=True)
+    (tmp_path / ".github" / "actions" / "publish" / "action.yml").write_text(
+        "runs:\n  using: composite\n  steps:\n    - uses: peaceiris/actions-gh-pages@v4\n",
+        encoding="utf-8")
+    (tmp_path / ".github" / "workflows" / "local.yml").write_text(
+        "on:\n  push:\n    branches: [main]\njobs:\n  test:\n    runs-on: x\n  site:\n"
+        "    needs: test\n    steps:\n      - uses: ./.github/actions/publish\n", encoding="utf-8")
+    (tmp_path / ".github" / "workflows" / "tests.yml").write_text(
+        "on:\n  push:\n  pull_request:\njobs:\n  test:\n    runs-on: ubuntu-latest\n",
+        encoding="utf-8")
+    (tmp_path / "docs" / "architecture" / "adr").mkdir(parents=True)
+    (tmp_path / "docs" / "architecture" / "adr" / "first-decision.md").write_text("x\n", encoding="utf-8")
+    (tmp_path / "docs" / "architecture" / "adr" / "0001-one-repository.md").write_text("x\n",
+                                                                                    encoding="utf-8")
     (tmp_path / "guardrails" / "proposals").mkdir()
     (tmp_path / "guardrails" / "proposals" / "2026-11-02-x.md").write_text("x\n", encoding="utf-8")
     (tmp_path / "part" / "src" / "scratch").mkdir(parents=True)
@@ -83,7 +138,69 @@ def test_checker_catches_each_planted_breach(tmp_path):
                                                                             encoding="utf-8")
     (tmp_path / "part" / "evidence" / "pytest-x-2026-13-45.txt").write_text("1 passed\n",
                                                                             encoding="utf-8")
+    (tmp_path / "part" / "evidence" / "smoke-api-2026-11-19.txt").write_text(
+        "GET /health 200 from " + "203.0.113." + "7\n", encoding="utf-8")
+    (tmp_path / "part" / "evidence" / "smoke-local-2026-11-19.txt").write_text(
+        "http://127.0.0.1:8765 and 10.0.0.4, pytest 8.3.4, ::1 and fe80::1 at 12:30:45\n",
+        encoding="utf-8")
+    (tmp_path / "part" / "evidence" / "versions-2026-11-25.txt").write_text(
+        "python==3.13.1.0\ntool v3.13.1.0\nversion 2.31.0.5\nrequests-2.31.0.5\n",
+        encoding="utf-8")
+    # 26 November 2026, Jinny's recheck: Python slices in a saved failing run are not IPv6
+    # addresses, and an untracked Python cache (written when a guardrail module is imported)
+    # is not a stray file
+    (tmp_path / "part" / "evidence" / "pytest-failing-2026-11-26.txt").write_text(
+        "tests/conftest.py:50: in rows\n    return frame.iloc[::10]\nvalues[::2] rows[1::2]\n",
+        encoding="utf-8")
+    (tmp_path / "guardrails" / "__pycache__").mkdir()
+    (tmp_path / "guardrails" / "__pycache__" / "check.cpython-314.pyc").write_bytes(b"\x00")
+    (tmp_path / "part" / "evidence" / "smoke-v6-2026-11-25.txt").write_text(
+        "GET /health 200 from 2001:" + "db8::7\n", encoding="utf-8")
+    (tmp_path / "part" / "evidence" / "capture-2026-11-25.har").write_text(
+        '{"serverIPAddress": "203.0.113.' + '9"}\n', encoding="utf-8")
     found = "\n".join(check.check(tmp_path))
+    assert "W1 dash.js" in found
+    assert "D8 appinsights.bicep" in found
+    caps = "\n".join(l for l in found.splitlines() if l.startswith("C1 caps.bicep: "))
+    for why in ("minReplicas: 0", "maxReplicas of 2 or less", "dailyQuotaGb of 0.2 or less",
+                "no private endpoint", "smallest CPU and memory pair"):
+        assert why in caps, why
+    assert "C1 lower.bicep: no private endpoint" in found
+    assert "C1 (Bicep): a container app needs a Microsoft.Consumption/budgets" in found
+
+    def lines(name: str) -> str:
+        return "\n".join(l for l in found.splitlines() if name in l)
+
+    for why in ("pull_request_target", "whole workflow", "environment production",
+                "pushes to main only", "needs a test job first"):
+        assert why in lines("bad.yml"), why
+    assert "deploy job deploy must use the GitHub environment production" in lines("swa.yml")
+    assert "deploy job publish must use the GitHub environment production" in lines("ghpages.yml")
+    assert "deploy job site must use the GitHub environment production" in lines("local.yml")
+    assert "whole workflow" in lines("grants.yml") and "job test holds" in lines("grants.yml")
+    assert "whole workflow" in lines("flow.yml")
+    assert "good.yml" not in found and "tests.yml" not in found
+    assert "D18 part/evidence/smoke-api-2026-11-19.txt" in found
+    assert "D18 part/evidence/smoke-v6-2026-11-25.txt" in found
+    assert "D18 part/evidence/capture-2026-11-25.har" in found
+    assert "smoke-local" not in found and "versions-2026-11-25" not in found
+    assert "pytest-failing-2026-11-26" not in found and "__pycache__" not in found
+    # C1 values Bicep can only write as json('0.2'), and the budget's alerts
+    compliant = (
+        "// caps\nresource app 'Microsoft.App/containerApps@2024-03-01' = {\n"
+        "  properties: { template: { scale: { minReplicas: 0, maxReplicas: 2 }\n"
+        "    containers: [ { resources: { cpu: json('0.25'), memory: '0.5Gi' } } ] } }\n}\n"
+        "resource law 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {\n"
+        "  properties: { workspaceCapping: { dailyQuotaGb: json('0.2') } }\n}\n"
+        "resource budget 'Microsoft.Consumption/budgets@2023-11-01' = {\n"
+        "  properties: { amount: 5, notifications: { a: { threshold: 50 }, b: { threshold: 100 } } }\n}\n")
+    assert check.bicep_findings({"main.bicep": compliant}) == []
+    over = check.bicep_findings({"main.bicep": compliant.replace("json('0.2')", "json('1.5')")})
+    assert any("dailyQuotaGb of 0.2 or less" in f for f in over)
+    no_alerts = check.bicep_findings({"main.bicep": compliant.replace("threshold: 50", "threshold: 80")})
+    assert any("alerts at 50% and 100%" in f for f in no_alerts)
+    assert "L3 docs/architecture/adr/first-decision.md" in found
+    assert "0001-one-repository" not in found
     assert "GUARDRAILS.md: changed without updating" in found
     assert "W1 dash.md" in found
     assert "W2 spelling.md: American spelling 'analyze'" in found
@@ -297,6 +414,15 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         bash("git ls-files data/tables | xargs rm"),
     ]
     allowed = [
+        # Reading a workflow and writing the API's Bicep or the front end stay allowed (G12)
+        tool("Read", ".github", "workflows", "ci.yml"),
+        tool("Write", "service-ai", "infra", "main.bicep"),
+        # 25 November 2026: reading a local action, a git mv between docs, and a doc whose
+        # name only starts with codeowners stay allowed
+        tool("Read", ".github", "actions", "deploy", "action.yml"),
+        bash("git mv docs/a.md docs/b.md"),
+        tool("Edit", "docs", "codeowners-notes.md"),
+        tool("Write", "docs", "site", "build.mjs"),
         bash("git status"),
         bash("cat mcp/.env.example"),
         bash("git add data/src/x.py data/tables/y.csv"),
@@ -413,6 +539,21 @@ def test_claude_hook_blocks_breaches_and_allows_normal_work():
         powershell("robocopy .claude C:\\temp\\x /MOVE"),
         tool("Write", ".claude", "hooks", "x.py"),
         bash("find . -name '*.py' -delete"),
+        # G12 (19 November 2026): GitHub Actions workflows run with deploy rights
+        tool("Edit", ".github", "workflows", "deploy.yml"),
+        tool("Write", ".github", "workflows", "ci.yml"),
+        bash("echo x > .github/workflows/ci.yml"),
+        bash("mv deploy.yml .github/workflows/deploy.yml"),
+        bash("rm -rf .github"),
+        # 25 November 2026, Jinny's review: local actions, CODEOWNERS, and git mv into a
+        # protected folder
+        tool("Edit", ".github", "actions", "deploy", "action.yml"),
+        bash("echo x > .github/actions/deploy/action.yml"),
+        tool("Write", ".github", "CODEOWNERS"),
+        tool("Write", "CODEOWNERS"),
+        tool("Write", "docs", "CODEOWNERS"),
+        bash("git mv deploy.yml .github/workflows/deploy.yml"),
+        bash("git mv notes.md guardrails/check.py"),
     ]
     # A chat whose project folder is a part: the root still comes from git (G9, D3)
     part = ROOT / "service-ai"

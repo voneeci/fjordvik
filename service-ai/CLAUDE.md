@@ -29,7 +29,14 @@ this file.
 
 ```bash
 .venv\Scripts\python -m pip install -e ".[dev]"
-.venv\Scripts\python -m pytest -q        # 27 tests
+.venv\Scripts\python -m pytest -q        # 61 tests
 .venv\Scripts\python scripts\run_forecast.py --period test   # phase 2, needs the split lock
 .venv\Scripts\python scripts\recheck_forecast.py             # independent MASE recheck
+.venv\Scripts\python scripts\run_ml.py --period test         # phase 3, needs the split lock and build\ml-scenarios
+.venv\Scripts\python scripts\recheck_ml.py                   # independent recheck of the phase 3 metrics
 ```
+
+Phase 3 builds its control and drift scenarios on demand, from `..\data` with its own
+`.venv`: `python -m fjordvik_data.scenarios --out ..\service-ai\build\ml-scenarios`
+(git-ignored). The phase 3 test period has been scored once (`eval\ml\test_runs.jsonl`);
+the test step refuses a run with other settings.

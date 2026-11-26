@@ -1,0 +1,416 @@
+{
+  "data_sha256": "379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68",
+  "commit": "42d73397fd66fd99763c38b977fe27214052a930",
+  "model_version": "ml-1.0.0",
+  "data_basis": "synthetic data with planted signals",
+  "statement": "Measured on synthetic data with planted signals: Fjordvik Manufacturing Oy is fictional, and these are not results on real pumps or a real service team.",
+  "pass_marks": {
+    "set_by": "Reece, the approved phase 3 plan; fixed, never changed to pass (A9)",
+    "scope": "the test period, scored once; the chosen threshold; the central missed-failure cost",
+    "wording": [
+      "Average precision at least 3 times the dummy's. The dummy's equals the positive share, so about 0.046 on test.",
+      "At the chosen threshold, recall of warned failures at least 0.6, and cost below both plans.",
+      "Unwarned failures reported apart, and the leakage test passing.",
+      "Set here before building: the shuffled-label control, E2 band and M5 limits."
+    ],
+    "average_precision": {
+      "min_ratio_to_dummy": 3,
+      "of": "the classifier, on the test at-risk rows scored 1 July to 1 December 2025"
+    },
+    "recall_of_warned_failures": {
+      "min": 0.6,
+      "at": "the chosen threshold, over the test alert window"
+    },
+    "cost": {
+      "below": [
+        "visit_none",
+        "visit_every_pump"
+      ],
+      "at": "the chosen threshold and the central missed-failure cost, over the test alert window"
+    },
+    "unwarned_failures": "reported apart",
+    "leakage_test": "passes",
+    "controls": "the shuffled-label, E2 and M5 limits below are met"
+  },
+  "environment": {
+    "python": "3.14.7",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.1",
+    "joblib": "1.6.0",
+    "threadpoolctl": "3.8.0"
+  },
+  "period": "validation",
+  "data_used_up_to": "2025-06-30",
+  "pump_subset": null,
+  "counts": {
+    "overall": {
+      "telemetry_rows": 474927,
+      "open_failure_ticket": 2017,
+      "no_running_with_no_open_ticket": 58,
+      "warm_up": 38095,
+      "at_risk_rows": 434757
+    },
+    "by_period": {
+      "train": {
+        "telemetry_rows_in_scored_days": 356412,
+        "after_open_ticket_filter": 354968,
+        "at_risk_rows": 354926,
+        "positive_rows": 5590,
+        "dropped_by_warm_up": 36355,
+        "scored_rows": 318571,
+        "scored_positive_rows": 4999
+      },
+      "validation": {
+        "telemetry_rows_in_scored_days": 85451,
+        "after_open_ticket_filter": 85094,
+        "at_risk_rows": 85085,
+        "positive_rows": 1722,
+        "dropped_by_warm_up": 1220,
+        "scored_rows": 83865,
+        "scored_positive_rows": 1721
+      }
+    },
+    "failures": {
+      "train": 199,
+      "validation": 70
+    }
+  },
+  "grid": [
+    {
+      "settings": {
+        "max_leaf_nodes": 15,
+        "max_iter": 100,
+        "learning_rate": 0.05
+      },
+      "average_precision": 0.4208446628386783
+    },
+    {
+      "settings": {
+        "max_leaf_nodes": 15,
+        "max_iter": 100,
+        "learning_rate": 0.1
+      },
+      "average_precision": 0.38673069114473085
+    },
+    {
+      "settings": {
+        "max_leaf_nodes": 15,
+        "max_iter": 200,
+        "learning_rate": 0.05
+      },
+      "average_precision": 0.4172382361532741
+    },
+    {
+      "settings": {
+        "max_leaf_nodes": 15,
+        "max_iter": 200,
+        "learning_rate": 0.1
+      },
+      "average_precision": 0.38229228163278645
+    },
+    {
+      "settings": {
+        "max_leaf_nodes": 31,
+        "max_iter": 100,
+        "learning_rate": 0.05
+      },
+      "average_precision": 0.41718571192596937
+    },
+    {
+      "settings": {
+        "max_leaf_nodes": 31,
+        "max_iter": 100,
+        "learning_rate": 0.1
+      },
+      "average_precision": 0.32019416230513836
+    },
+    {
+      "settings": {
+        "max_leaf_nodes": 31,
+        "max_iter": 200,
+        "learning_rate": 0.05
+      },
+      "average_precision": 0.4149834163197291
+    },
+    {
+      "settings": {
+        "max_leaf_nodes": 31,
+        "max_iter": 200,
+        "learning_rate": 0.1
+      },
+      "average_precision": 0.33140907116388696
+    }
+  ],
+  "settings": {
+    "max_leaf_nodes": 15,
+    "max_iter": 100,
+    "learning_rate": 0.05
+  },
+  "average_precision": {
+    "rows": 83865,
+    "positive_rows": 1721,
+    "positive_share": 0.020521075538067132,
+    "classifier": 0.4208446628386783,
+    "dummy": 0.020521075538067132,
+    "pump_facts_only": 0.0226980156927772,
+    "robust_z_alone": 0.3448325269082991,
+    "isolation_forest_alone": 0.2641380781514064
+  },
+  "ap_ratio_to_dummy": 20.5079242585507,
+  "threshold": {
+    "threshold": 0.8911983188460465,
+    "cost_eur": 23072.36,
+    "alerts": 52,
+    "caught": 45,
+    "wasted": 4,
+    "candidates": 65419
+  },
+  "alerts": {
+    "threshold_view": {
+      "alerts": 52,
+      "caught": 45,
+      "wasted": 4,
+      "neither": 3,
+      "failures": 70,
+      "warned_failures": 70,
+      "unwarned_failures": 0,
+      "missed": 25,
+      "recall_of_warned_failures": 0.6428571428571429,
+      "cost_eur": 23072.36
+    },
+    "evaluated": {
+      "alerts": 52,
+      "caught": 45,
+      "wasted": 4,
+      "neither": 3,
+      "failures": 70,
+      "warned_failures": 48,
+      "unwarned_failures": 22,
+      "missed": 25,
+      "recall_of_warned_failures": 0.9375,
+      "cost_eur": 23072.36
+    },
+    "plans": {
+      "visit_none": {
+        "visits": 0,
+        "caught": 0,
+        "missed": 70,
+        "wasted": 0,
+        "cost_eur": 62470.8
+      },
+      "visit_every_pump": {
+        "visits": 3438,
+        "caught": 48,
+        "missed": 22,
+        "wasted": 3390,
+        "cost_eur": 664886.28
+      }
+    }
+  },
+  "shuffled_labels": {
+    "runs": [
+      {
+        "seed": 20230102,
+        "average_precision": 0.022173937496273992
+      },
+      {
+        "seed": 20230103,
+        "average_precision": 0.025389380591479792
+      },
+      {
+        "seed": 20230104,
+        "average_precision": 0.02141289037233394
+      },
+      {
+        "seed": 20230105,
+        "average_precision": 0.017549889535834213
+      },
+      {
+        "seed": 20230106,
+        "average_precision": 0.04596559573504992
+      }
+    ],
+    "mean_average_precision": 0.026498338746194373,
+    "ratio_to_dummy": 1.2912743631316626,
+    "limit": 1.25,
+    "pass": false
+  },
+  "group_check": {
+    "folds": [
+      {
+        "fold": 1,
+        "rows": 80495,
+        "pumps": 113,
+        "average_precision": 0.3957723630371347,
+        "positive_share": 0.018510466488601777
+      },
+      {
+        "fold": 2,
+        "rows": 80477,
+        "pumps": 113,
+        "average_precision": 0.4023970704538421,
+        "positive_share": 0.01642705369235931
+      },
+      {
+        "fold": 3,
+        "rows": 80496,
+        "pumps": 113,
+        "average_precision": 0.37139604518212505,
+        "positive_share": 0.014770920294176109
+      },
+      {
+        "fold": 4,
+        "rows": 80494,
+        "pumps": 113,
+        "average_precision": 0.3780116162848831,
+        "positive_share": 0.016361467935498298
+      },
+      {
+        "fold": 5,
+        "rows": 80474,
+        "pumps": 112,
+        "average_precision": 0.3899714878545644,
+        "positive_share": 0.017421775977334294
+      }
+    ],
+    "mean_average_precision": 0.3875097165625099,
+    "time_split_average_precision": 0.4208446628386783
+  },
+  "drift_level": {
+    "level": 5.80062053149869,
+    "pump_months": 8967,
+    "false_flag_share": 0.009925281588045055,
+    "chosen_on": "base data to 2025-06-30"
+  },
+  "model_detail": {
+    "n_iter": 100,
+    "params": {
+      "categorical_features": "'from_dtype'",
+      "class_weight": "None",
+      "early_stopping": "'auto'",
+      "interaction_cst": "None",
+      "l2_regularization": "0.0",
+      "learning_rate": "0.05",
+      "loss": "'log_loss'",
+      "max_bins": "255",
+      "max_depth": "None",
+      "max_features": "1.0",
+      "max_iter": "100",
+      "max_leaf_nodes": "15",
+      "min_samples_leaf": "20",
+      "monotonic_cst": "None",
+      "n_iter_no_change": "10",
+      "random_state": "RandomState(PCG64(20230101))",
+      "scoring": "'loss'",
+      "tol": "1e-07",
+      "validation_fraction": "0.1",
+      "verbose": "0",
+      "warm_start": "False"
+    },
+    "iforest_params": {
+      "bootstrap": "False",
+      "contamination": "'auto'",
+      "max_features": "1.0",
+      "max_samples": "'auto'",
+      "n_estimators": "100",
+      "n_jobs": "1",
+      "random_state": "RandomState(PCG64(20230101))",
+      "verbose": "0",
+      "warm_start": "False"
+    },
+    "blank_counts_train": {
+      "vibration_slope14": 39,
+      "bearing_temp_slope14": 39,
+      "power_per_rated_kw_slope14": 39,
+      "power_per_rated_kw_z": 26
+    }
+  },
+  "sensitivity": {
+    "low": {
+      "missed_failure_cost_eur": 339.13,
+      "model": 9239.61,
+      "visit_none": 23739.1,
+      "visit_every_pump": 652713.46
+    },
+    "central": {
+      "missed_failure_cost_eur": 892.44,
+      "model": 23072.36,
+      "visit_none": 62470.8,
+      "visit_every_pump": 664886.28
+    },
+    "high": {
+      "missed_failure_cost_eur": 1784.89,
+      "model": 45383.61,
+      "visit_none": 124942.3,
+      "visit_every_pump": 684520.1799999999
+    }
+  },
+  "ranges": {
+    "classifier_ap": {
+      "low": 0.3517225880659861,
+      "high": 0.4874093231053079,
+      "resamples": 1000
+    },
+    "dummy_ap": {
+      "low": 0.01634585088720743,
+      "high": 0.024745901788229465,
+      "resamples": 1000
+    },
+    "ap_ratio": {
+      "low": 16.128765714915605,
+      "high": 26.569593765472284,
+      "resamples": 1000
+    },
+    "recall": {
+      "low": 0.875,
+      "high": 1.0,
+      "resamples": 1000
+    },
+    "model_cost": {
+      "low": 16444.600000000002,
+      "high": 30211.88,
+      "resamples": 1000
+    },
+    "visit_none_cost": {
+      "low": 50869.08,
+      "high": 74072.52,
+      "resamples": 1000
+    },
+    "visit_every_cost": {
+      "low": 657931.1740000001,
+      "high": 672025.7999999999,
+      "resamples": 1000
+    }
+  },
+  "leakage": {
+    "pump_days_checked": 20,
+    "point_in_time_changes": [],
+    "answer_key_named_in": [
+      "src/fjordvik_service/ml/evaluate.py"
+    ],
+    "pass": true
+  },
+  "control": {
+    "period": "validation",
+    "average_precision": {
+      "rows": 83865,
+      "positive_rows": 1721,
+      "positive_share": 0.020521075538067132,
+      "classifier": 0.021527511364631297,
+      "dummy": 0.020521075538067132,
+      "pump_facts_only": 0.0226980156927772,
+      "robust_z_alone": 0.020779732710055718,
+      "isolation_forest_alone": 0.020098503162261284
+    },
+    "ratio_to_dummy": {
+      "classifier": 1.0490440096425355,
+      "robust_z_alone": 1.0126044646884502,
+      "isolation_forest_alone": 0.9794078836159457
+    },
+    "limit": 1.5,
+    "pass": true,
+    "pump_facts_only_ratio": 1.1060831412404182
+  }
+}

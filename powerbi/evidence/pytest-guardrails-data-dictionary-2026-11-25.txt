@@ -1,0 +1,23 @@
+.....F...sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [  9%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 19%]
+sssssssssssssssssss..................................................... [ 29%]
+........................................................................ [ 39%]
+........................................................................ [ 49%]
+........................................................................ [ 58%]
+........................................................................ [ 68%]
+........................................................................ [ 78%]
+........................................................................ [ 88%]
+........................................................................ [ 98%]
+.............                                                            [100%]
+================================== FAILURES ===================================
+__________________ test_repository_has_no_guardrail_findings __________________
+
+    def test_repository_has_no_guardrail_findings():
+>       assert check.check(ROOT) == []
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError
+
+..\guardrails\shared_tests.py:20: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_guardrails.py::test_repository_has_no_guardrail_findings - ...
+1 failed, 578 passed, 154 skipped in 29.37s

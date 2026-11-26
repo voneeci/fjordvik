@@ -1,0 +1,20 @@
+Recheck of C:\Users\reece\Projects\fjordvik\service-ai\results\ml (test); synthetic data with planted signals
+metric                                        saved             recomputed  result
+classifier_ap                    0.4037308874563429     0.4037308874563433  match
+dummy_ap                       0.015463216802229422   0.015463216802229422  match
+ap_ratio                         26.109113816352536      26.10911381635256  match
+model_cost                                 24476.56               24476.56  match
+visit_none_cost                  49084.200000000004     49084.200000000004  match
+visit_every_cost                  693162.5599999999      693162.5599999999  match
+recall_of_warned_failures        0.7368421052631579     0.7368421052631579  match
+alerts                                           38                     38  match
+caught                                           28                     28  match
+wasted                                            2                      2  match
+neither                                           8                      8  match
+failures                                         55                     55  match
+warned_failures                                  38                     38  match
+unwarned_failures                                17                     17  match
+missed                                           27                     27  match
+at-risk rows rebuilt: 105803; scored rows 88274, positive 1365
+OK: every headline metric matches the independent recomputation
+exit 0

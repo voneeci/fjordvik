@@ -1,0 +1,1524 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fjordvik Architecture Drawings</title>
+<meta name="description" content="Architecture drawings for Fjordvik, a portfolio project over synthetic data: C4 context, containers and components, data flow, star schemas, stakeholders and trust boundaries.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+  /* Layout: a drawing register. A narrow contents rail beside a column of drawing sheets,
+     each sheet kept on light paper in both themes because the diagrams' own colours are
+     drawn for paper. */
+  :root {
+    --bg: #f4f6f8;
+    --panel: #ffffff;
+    --ink: #17212b;
+    --muted: #55626f;
+    --rule: #d6dde4;
+    --accent: #1168bd;
+    --accent-soft: #e3eef9;
+    --paper: #ffffff;
+    --paper-rule: #c9d3dd;
+    --display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+    --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #11171d; --panel: #18212a; --ink: #e6ecf2; --muted: #9aa8b6; --rule: #2a3642;
+      --accent: #6aa9e8; --accent-soft: #1b2c3d; --paper: #ffffff; --paper-rule: #3a4856;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #11171d; --panel: #18212a; --ink: #e6ecf2; --muted: #9aa8b6; --rule: #2a3642;
+    --accent: #6aa9e8; --accent-soft: #1b2c3d; --paper: #ffffff; --paper-rule: #3a4856;
+    color-scheme: dark;
+  }
+  body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.55; }
+  .wrap {
+    max-width: 1280px; margin: 0 auto;
+    padding-block: 28px 64px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 32px; align-items: end;
+         border-bottom: 2px solid var(--ink); padding-bottom: 16px; margin-bottom: 28px; }
+  .top h1 { font-family: var(--display); font-weight: 600; font-size: clamp(1.6rem, 3vw, 2.2rem); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+  .top p { margin: 6px 0 0; color: var(--muted); max-width: 62ch; }
+  .stamp { font-family: var(--mono); font-size: 12.5px; border: 1px solid var(--rule); background: var(--panel);
+           padding: 8px 12px; display: grid; grid-template-columns: auto auto; gap: 2px 14px; }
+  .stamp dt { color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-size: 11px; align-self: center; }
+  .stamp dd { margin: 0; }
+  .status { display: inline-block; background: var(--accent-soft); color: var(--accent); font-weight: 600; font-size: 12px; padding: 1px 8px; }
+  .grid { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 32px; align-items: start; }
+  nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); font-size: 13.5px;
+            max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px);
+            overflow-y: auto; overscroll-behavior: contain; padding-right: 6px;
+            scrollbar-width: thin; scrollbar-color: var(--rule) transparent; }
+  nav.toc::-webkit-scrollbar { width: 8px; }
+  nav.toc::-webkit-scrollbar-thumb { background: var(--rule); }
+  nav.toc h2 { font-family: var(--display); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 8px; font-weight: 600; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  nav.toc a { display: grid; grid-template-columns: 2ch 1fr; gap: 8px; padding: 5px 8px; color: var(--ink); text-decoration: none; border-left: 2px solid transparent; }
+  nav.toc a:hover, nav.toc a:focus-visible { border-left-color: var(--accent); background: var(--panel); outline: none; }
+  .tn { font-family: var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+  .howto { margin-top: 20px; padding: 12px; border: 1px solid var(--rule); background: var(--panel); font-size: 13px; color: var(--muted); }
+  .howto strong { color: var(--ink); }
+  .howto ul { margin: 6px 0 0; padding-left: 18px; }
+  main { min-width: 0; display: grid; gap: 48px; }
+  .doc { display: grid; gap: 28px; min-width: 0; }
+  .dochead h2 { font-family: var(--display); font-weight: 600; font-size: 1.45rem; margin: 0; }
+  .dochead p { margin: 4px 0 0; color: var(--muted); }
+  .path, code { font-family: var(--mono); font-size: 0.86em; }
+  .path { margin-left: 6px; color: var(--accent); }
+  .fig { margin: 0; min-width: 0; border-top: 1px solid var(--rule); padding-top: 16px; }
+  .fig figcaption { display: grid; gap: 2px; margin-bottom: 12px; }
+  .num { font-family: var(--mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }
+  .fig h3 { font-family: var(--display); font-weight: 500; font-size: 1.12rem; margin: 0; text-wrap: balance; }
+  .src { margin: 0; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .sheet { background: var(--paper); border: 1px solid var(--paper-rule); padding: 16px; overflow-x: auto; }
+  .sheet pre.mermaid { margin: 0; min-width: 640px; background: transparent; color: #17212b; }
+  .prose { max-width: 100ch; display: grid; gap: 4px; }
+  .prose h3 { font-family: var(--display); font-weight: 500; font-size: 1.12rem; margin: 18px 0 4px; }
+  .prose p, .prose li { margin: 0 0 6px; max-width: 80ch; }
+  .prose ul { margin: 0; padding-left: 20px; }
+  .prose a, .src a, .note a, .stamp a, table.key a, .foot a { color: var(--accent); }
+  .top p.disclaimer { color: var(--ink); font-size: 14px; }
+  .foot { margin: 40px 0 0; padding: 16px 0 8px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 13px; }
+  .foot p { margin: 0; max-width: 95ch; }
+  .prose .tablewrap { margin: 4px 0 8px; }
+  .prose .sheet.legend { margin: 6px 0 10px; cursor: default; }
+  .prose .sheet.legend pre.mermaid { min-width: 0; }
+  table.key.concept { min-width: 0; width: 100%; }
+  table.key.concept td { color: var(--ink); vertical-align: top; }
+  table.key.concept td:first-child { font-weight: 600; white-space: nowrap; }
+  details.keybox { margin-top: 10px; max-width: 95ch; }
+  details.keybox summary { cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
+    padding: 4px 10px 4px 8px; border: 1px solid var(--rule); background: var(--panel); min-height: 24px; }
+  details.keybox summary::-webkit-details-marker { display: none; }
+  details.keybox summary::before { content: "+"; font-size: 13px; width: 1ch; color: var(--accent); }
+  details.keybox[open] summary::before { content: "\2212"; }
+  details.keybox summary:hover, details.keybox summary:focus-visible { border-color: var(--accent); color: var(--ink); outline: none; }
+  details.keybox table.key { margin-top: 6px; }
+  table.key { border-collapse: collapse; margin-top: 10px; font-size: 13px; max-width: 95ch; }
+  table.key caption { text-align: left; font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding-bottom: 4px; }
+  table.key th, table.key td { text-align: left; vertical-align: top; padding: 4px 12px 4px 0; border-top: 1px solid var(--rule); }
+  table.key th { font-weight: 600; white-space: nowrap; color: var(--ink); }
+  table.key td { color: var(--muted); }
+  .tablewrap { overflow-x: auto; max-width: 100%; }
+  table.key.wide { max-width: none; min-width: 640px; }
+  table.key.wide thead th { font-weight: 600; color: var(--ink); white-space: nowrap; border-top: 0; }
+  table.key.wide td:first-child { color: var(--ink); font-weight: 500; }
+  .note strong { color: var(--ink); }
+  .note { margin: 10px 0 0; color: var(--muted); font-size: 13.5px; max-width: 95ch; }
+  .note code { color: var(--ink); }
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: 1fr; }
+    nav.toc { position: static; max-height: none; overflow: visible; }
+  }
+  /* Picker bar and full-screen viewer */
+  .picker { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: -12px 0 28px;
+            padding: 10px 12px; background: var(--panel); border: 1px solid var(--rule); }
+  .picker label { font-weight: 600; font-size: 13.5px; }
+  select, .btn { font: inherit; font-size: 13.5px; color: var(--ink); background: var(--bg);
+                 border: 1px solid var(--rule); padding: 6px 10px; min-height: 34px; }
+  select { min-width: 0; max-width: 100%; flex: 1 1 280px; }
+  .btn { cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 34px; }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; }
+  .btn.primary:hover { color: var(--bg); filter: brightness(1.08); }
+  .fig figcaption { position: relative; padding-right: 96px; }
+  .expand { position: absolute; right: 0; top: 0; }
+  .sheet { cursor: zoom-in; }
+  .viewer[hidden] { display: none !important; }
+  .viewer { position: fixed; inset: 0; z-index: 50; background: var(--bg); display: grid;
+            grid-template-rows: auto auto minmax(0, 1fr);
+            padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .vbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; border-bottom: 1px solid var(--rule);
+          background: var(--panel); padding-block: 10px;
+          padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .vbar .grp { display: flex; gap: 4px; align-items: center; }
+  .vbar .spacer { flex: 1 1 auto; }
+  .zoomval { font-family: var(--mono); font-size: 12.5px; min-width: 5ch; text-align: center; font-variant-numeric: tabular-nums; color: var(--muted); }
+  .vcap { padding-block: 6px; font-size: 12.5px; color: var(--muted); font-family: var(--mono);
+          padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .stage { overflow: auto; background: var(--paper); margin: 0 max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px));
+           border: 1px solid var(--paper-rule); cursor: grab; touch-action: pan-x pan-y; }
+  .stage.dragging { cursor: grabbing; user-select: none; }
+  .stage .inner { padding: 16px; width: max-content; min-width: 100%; box-sizing: border-box; display: flex; justify-content: center; }
+  .stage svg { display: block; max-width: none !important; }
+  .waiting { padding: 24px; color: #55626f; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Fjordvik architecture drawings</h1>
+      <p>All 25 architecture drawings for the Fjordvik data and AI platform, from the people and systems around it down to each data table.</p>
+      <p class="disclaimer"><strong>Synthetic data only.</strong> Fjordvik Manufacturing Oy is a fictional company and this is a portfolio project. The emission factors are illustrative, not cited.</p>
+    </div>
+    <dl class="stamp">
+      <dt>Source</dt><dd><a href="https://github.com/voneeci/fjordvik/tree/main/docs">docs/ in the Fjordvik repository</a></dd>
+      <dt>Last updated</dt><dd>25 November 2026</dd>
+    </dl>
+  </header>
+  <div class="picker">
+    <label for="pick">Open a drawing full screen</label>
+    <select id="pick"><option value="">Choose a drawing</option></select>
+    <button type="button" class="btn primary" id="pickgo">Open</button>
+  </div>
+  <div class="grid">
+    <nav class="toc" aria-label="Drawings">
+      <h2>Drawings</h2>
+      <ol>
+<li><a href="#concepts"><span class="tn">i</span>Concepts and methods</a></li>
+<li><a href="#d1"><span class="tn">1</span>System context (C4 level 1): the Fjordvik data and AI platform</a></li>
+<li><a href="#d2"><span class="tn">2</span>Containers (C4 level 2): inside the Fjordvik data and AI platform</a></li>
+<li><a href="#d3"><span class="tn">3</span>Service AI pipeline, part 1 (C4 level 3): phases 2 and 3 as built</a></li>
+<li><a href="#d4"><span class="tn">4</span>Service AI pipeline, part 2 (C4 level 3): phases 4 to 7 and the API, as planned</a></li>
+<li><a href="#d5"><span class="tn">5</span>Conceptual model: the business things Fjordvik&#x27;s data describes</a></li>
+<li><a href="#d6"><span class="tn">6</span>Data flow, part 1 (level 1 data flow diagram): what the six sites send and where it lands</a></li>
+<li><a href="#d7"><span class="tn">7</span>Data flow, part 2 (level 1 data flow diagram): what group functions, service systems and publishers send</a></li>
+<li><a href="#d8"><span class="tn">8</span>Site emissions (fact_emissions): one row per month, site and source the site reports</a></li>
+<li><a href="#d9"><span class="tn">9</span>Site revenue and headcount (fact_site_metrics): one row per month and site</a></li>
+<li><a href="#d10"><span class="tn">10</span>Market-based electricity emissions (fact_scope2_market): one row per month, site, source and instrument</a></li>
+<li><a href="#d11"><span class="tn">11</span>Upstream energy emissions (fact_energy_upstream): one row per month, site and the source it is worked out from</a></li>
+<li><a href="#d12"><span class="tn">12</span>Purchased goods emissions (fact_purchases): one row per month, site and supplier</a></li>
+<li><a href="#d13"><span class="tn">13</span>Freight emissions (fact_freight): one row per month, site, direction, mode and payer</a></li>
+<li><a href="#d14"><span class="tn">14</span>Product sales (fact_sales): one row per month, shipping site, product and region</a></li>
+<li><a href="#d15"><span class="tn">15</span>ERP data issues (fact_data_issue): one row per problem the SQL found in the ERP extract</a></li>
+<li><a href="#d16"><span class="tn">16</span>Product use emissions (fact_use_phase): one row per month, shipping site, product and region of use</a></li>
+<li><a href="#d17"><span class="tn">17</span>Scorecard ratings (fact_product_rating): one row per quarter, product group and criterion</a></li>
+<li><a href="#d18"><span class="tn">18</span>Sales plan (fact_budget): one row per month, shipping site, product group and region</a></li>
+<li><a href="#d19"><span class="tn">19</span>Daily pump readings (fact_asset_telemetry): one row per pump and day</a></li>
+<li><a href="#d20"><span class="tn">20</span>Service jobs (fact_service_event): one row per failure, preventive visit or inspection</a></li>
+<li><a href="#d21"><span class="tn">21</span>Spare part orders (fact_parts_order): one row per order line</a></li>
+<li><a href="#d22"><span class="tn">22</span>Parts portal suggestions (fact_portal_event): one row per part shown in a portal session</a></li>
+<li><a href="#d23"><span class="tn">23</span>How the dimensions link to each other: products, sites, customers, pumps and parts</a></li>
+<li><a href="#d24"><span class="tn">24</span>Stakeholder map: who supplies the data and who uses the results</a></li>
+<li><a href="#d25"><span class="tn">25</span>Trust boundaries (threat model): zones of trust and the crossings B1 to B8</a></li>
+      </ol>
+    </nav>
+    <main>
+
+    <section class="doc concepts" id="concepts">
+      <header class="dochead">
+        <h2>Concepts and methods</h2>
+        <p>The ideas behind the drawings and how they were made. <a class="path" href="https://github.com/voneeci/fjordvik/blob/main/docs/architecture.md">docs/architecture.md</a></p>
+      </header>
+      <div class="prose"><p>Fjordvik's architecture is described in 25 drawings across four documents: this one, the <a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md">data model</a>, the <a href="https://github.com/voneeci/fjordvik/blob/main/docs/requirements.md">requirements</a> and the <a href="https://github.com/voneeci/fjordvik/blob/main/docs/threat-model.md">threat model</a>. Each drawing answers one question for one kind of reader, at one level of detail. This section explains the ideas behind them and how they were made, so the drawings can be read without prior knowledge of the notations.</p>
+<p>Every external system in the drawings is simulated: the data generator in <code>data</code> writes what each one would send, in its shape.</p>
+<h3>The kinds of drawing</h3>
+<div class='tablewrap'><table class='key wide concept'><thead><tr><th scope='col'>Kind of drawing</th><th scope='col'>The question it answers</th><th scope='col'>Method</th><th scope='col'>Drawings</th></tr></thead><tbody><tr><td>System context</td><td>Who uses the platform, and which other systems does it depend on?</td><td>C4 model, level 1</td><td>System context</td></tr><tr><td>Containers</td><td>Which applications and data stores make up the platform, and how do they connect?</td><td>C4 model, level 2</td><td>Containers</td></tr><tr><td>Components</td><td>What are the building blocks inside one container?</td><td>C4 model, level 3</td><td>Service AI pipeline, parts 1 and 2</td></tr><tr><td>Conceptual model</td><td>Which business things does the data describe, and how do they relate?</td><td>Boxes and labelled arrows that read as sentences</td><td>Conceptual model</td></tr><tr><td>Data flow</td><td>Where does each kind of data start, who owns it, and what carries it into the tables?</td><td>Data flow diagram, level 1</td><td>Data flow, parts 1 and 2</td></tr><tr><td>Data model</td><td>What does each table hold, and how do the tables join?</td><td>Entity relationship diagram drawn as a star schema</td><td>One star per fact table, and how the dimensions link</td></tr><tr><td>Stakeholder map</td><td>Who supplies the data, and who uses the results?</td><td>Grouped roles around the platform</td><td>Stakeholder map</td></tr><tr><td>Trust boundaries</td><td>Where does data or control pass between parties that trust each other to different degrees?</td><td>Threat model with trust zones</td><td>Trust boundaries</td></tr></tbody></table></div>
+<h3>The C4 model</h3>
+<p>The C4 model, created by Simon Brown (<a href="https://c4model.com/">c4model.com</a>), describes software at four zoom levels, like a map: <strong>context</strong> (the whole system as one box, with its users and neighbouring systems), <strong>containers</strong> (the applications and data stores inside it), <strong>components</strong> (the building blocks inside one container) and <strong>code</strong> (classes and functions). Fjordvik draws the first three. The code level is left out, as the C4 guidance suggests, because the code itself shows it more accurately. A reader with two minutes looks at level 1; someone working on one part goes down to level 3.</p>
+<h3>Data flow diagrams</h3>
+<p>A data flow diagram follows data rather than systems. It uses four elements: an <strong>external entity</strong> (who owns and sends the data), a <strong>process</strong> (a step that moves or changes it, numbered P1 to P11), a <strong>data store</strong> (where it rests) and a <strong>data flow</strong> (a labelled arrow). Its one strict rule is that data always passes through a process: it never moves straight from an owner to a table, or from one table to another. Level 1 means each process is shown as one step, without its inner detail.</p>
+<h3>Data models and star schemas</h3>
+<p>The tables follow a <strong>star schema</strong>, the design Microsoft recommends for Power BI: each <strong>fact table</strong> records events to add up (sales, readings, emissions) and sits in the middle of a star of <strong>dimension tables</strong>, the things facts are filtered and grouped by (month, site, product). Each fact table has a stated <strong>grain</strong>: what one row holds, such as "one row per month, site and source". A <strong>primary key (PK)</strong> picks out exactly one row of a table; a <strong>foreign key (FK)</strong> holds the key of a row in another table, so the two can be joined. The lines use <strong>crow's foot</strong> notation: two short bars mean exactly one row, and a circle with three prongs means zero, one or many. Every line therefore reads "one row here matches any number of rows there".</p>
+<h3>Trust boundaries</h3>
+<p>A <strong>trust boundary</strong> is where data or control passes between parties that trust each other to different degrees, for example from a site's spreadsheet into the platform, or from Claude into the connector. Threat modelling guidance from OWASP (the Open Worldwide Application Security Project) and Microsoft draws each zone of equal trust inside a dashed line; every arrow that crosses a line is a point to check. The threat model checks each crossing against STRIDE: spoofing, tampering, repudiation, information disclosure, denial of service and elevation of privilege.</p>
+<h3>Status words and lines</h3>
+<p>Every drawing uses the same words and styles, so a reader learns them once. This example shows each one as it appears in the drawings:</p>
+<div class="sheet legend"><pre class="mermaid">---
+title: &quot;How status is shown: four box styles and two line styles&quot;
+---
+flowchart LR
+    accTitle: How status is shown in the drawings
+    accDescr: Four example boxes, one per status, and two example lines. A solid blue box is Built. A white box with a long-dashed blue border is Designed. A grey box with a dotted border is Planned. A white box with a dotted red border is a Gap. A solid line between two Built boxes runs today; a dotted line from a Designed box to a Planned box does not run yet.
+    classDef built fill:#1168bd,color:#ffffff,stroke:#0b4884
+    classDef designed fill:#ffffff,color:#0b4884,stroke:#1168bd,stroke-width:2px,stroke-dasharray:8 4
+    classDef planned fill:#eeeeee,color:#333333,stroke:#555555,stroke-width:2px,stroke-dasharray:2 3
+    classDef gap fill:#ffffff,color:#8a1c1c,stroke:#8a1c1c,stroke-width:2px,stroke-dasharray:2 3
+
+    B1[&quot;Built&lt;br/&gt;runs and is tested&quot;]:::built --&gt;|&quot;solid line: runs today&quot;| B2[&quot;Built&quot;]:::built
+    D1[&quot;Designed&lt;br/&gt;written down, not running&quot;]:::designed -.-&gt;|&quot;dotted line: does not run yet&quot;| P1[&quot;Planned&lt;br/&gt;a later step, no code yet&quot;]:::planned
+    G1[&quot;Gap&lt;br/&gt;nothing designed yet&quot;]:::gap</pre></div>
+<div class='tablewrap'><table class='key wide concept'><thead><tr><th scope='col'>Status word in the box</th><th scope='col'>Meaning</th><th scope='col'>Box style</th></tr></thead><tbody><tr><td>Built</td><td>Runs and is tested in this repository</td><td>Solid blue fill</td></tr><tr><td>Designed</td><td>A written design, not running anywhere</td><td>White, long-dashed blue border</td></tr><tr><td>Planned</td><td>A later phase or step with a pass mark or a decision, no code yet</td><td>Grey, dotted border</td></tr><tr><td>Gap</td><td>Nothing designed yet</td><td>White, dotted red border</td></tr></tbody></table></div>
+<div class='tablewrap'><table class='key wide concept'><thead><tr><th scope='col'>Line</th><th scope='col'>Meaning</th></tr></thead><tbody><tr><td>Solid line</td><td>Runs in this repository today (in the context and stakeholder drawings, which show no status: part of the design)</td></tr><tr><td>Dotted line</td><td>Does not run yet; the Designed, Planned or Gap box at one of its ends says why</td></tr></tbody></table></div>
+<p>The status word is written in every box, so the drawings read in black and white. Every box names its type and technology in square brackets, and every line says what it does in the direction it points.</p>
+<h3>How the drawings were made</h3>
+<ul><li><strong>Written as text.</strong> Each drawing is written in Mermaid, a text format that GitHub draws inside Markdown files. The drawings live in the repository beside the code, change through the same review as the code, and keep a full history.</li><li><strong>Checked against the C4 checklist.</strong> Each drawing has a title stating its type and scope, a key, the type and technology of every box, a label on every line that matches its direction, and every abbreviation explained.</li><li><strong>Laid out to be read.</strong> Keys sit in a table under each drawing rather than inside it, which keeps the drawings narrow. Wide drawings were reorganised to read at page width where possible, and crossing lines were kept to a minimum, because crossings are the layout feature that most harms understanding (Purchase, 1997, a peer-reviewed study of how people read graphs). Only two line styles are used, on purpose: Mermaid can give a single line its own style only by its position number, which breaks unseen when a line is added.</li><li><strong>Readable without sight.</strong> Each drawing carries a short title and description for screen readers, as the Web Content Accessibility Guidelines (WCAG) 2.2 require for images.</li><li><strong>Kept current.</strong> The context and container drawings are the intended design: they change only through a <a href="https://github.com/voneeci/fjordvik/blob/main/docs/decision-log.md">decision record</a>, in the same change as the code. The data model drawings were drawn from the tables' column headers on 25 November 2026, and Jinny's review of 26 November found every drawn column in its table; no script keeps them in step, so a new column is added to its drawing by hand. Under each drawing, or once under a set of drawings such as the data model stars, "Last updated" gives the date it was last revised and the commit of the code and data it was checked against.</li></ul></div>
+    </section>
+
+    <section class="doc">
+      <header class="dochead">
+        <h2>Solution architecture</h2>
+        <p>C4 levels 1 to 3: who uses the platform, its containers, and the service AI pipeline. <a class="path" href="https://github.com/voneeci/fjordvik/blob/main/docs/architecture.md">docs/architecture.md</a></p>
+      </header>
+      
+      <figure class="fig" id="d1">
+        <figcaption>
+          <span class="num">Drawing 1</span>
+          <h3>System context (C4 level 1): the Fjordvik data and AI platform</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/architecture.md?plain=1#L153">docs/architecture.md, line 153</a>, under "Level 1: system context"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+config:
+  flowchart:
+    nodeSpacing: 20
+    rankSpacing: 35
+title: &quot;System context (C4 level 1): the Fjordvik data and AI platform&quot;
+---
+flowchart TB
+    accTitle: System context of the Fjordvik data and AI platform
+    accDescr: Six groups of people and nine external systems around one platform. Site energy coordinators upload workbooks through Microsoft 365; the ERP, finance, HR and transport systems, the pump monitoring service, the CRM and two publishers send data in; the platform publishes to the Power BI Service, answers Claude&#x27;s read-only tool calls, sends risk lists and drafts to the service team, schedules and answers to technicians, and part suggestions to the parts portal.
+    classDef person fill:#08427b,color:#ffffff,stroke:#052e56
+    classDef system fill:#1168bd,color:#ffffff,stroke:#0b4884
+    classDef external fill:#6b6b6b,color:#ffffff,stroke:#333333
+
+    SEC[&quot;Site Energy Coordinators&lt;br/&gt;[Person]&lt;br/&gt;upload the monthly workbook&quot;]:::person
+    OFFICE[&quot;Sustainability, finance&lt;br/&gt;and portfolio staff [Person]&lt;br/&gt;read and sign off figures&quot;]:::person
+    MGR[&quot;Country and region managers&lt;br/&gt;[Person]&lt;br/&gt;see only their sites or region&quot;]:::person
+    SVC[&quot;Service Manager and desk&lt;br/&gt;[Person]&lt;br/&gt;plan visits, approve drafts&quot;]:::person
+    TECH[&quot;Technicians [Person]&lt;br/&gt;visit pumps&quot;]:::person
+    CUST[&quot;Customers [Person]&lt;br/&gt;order spare parts&quot;]:::person
+
+    P[&quot;Fjordvik data and AI platform&lt;br/&gt;[Software system]&lt;br/&gt;checks, holds and serves one set of figures;&lt;br/&gt;forecasts, risk scores, plans and drafts&quot;]:::system
+
+    M365[&quot;Microsoft 365&lt;br/&gt;[External]&quot;]:::external
+    ERP[&quot;Oracle ERP&lt;br/&gt;[External]&quot;]:::external
+    FINHR[&quot;Finance, HR and&lt;br/&gt;transport systems [External]&quot;]:::external
+    MON[&quot;Pump monitoring&lt;br/&gt;service [External]&quot;]:::external
+    CRM[&quot;CRM and installed&lt;br/&gt;base register [External]&quot;]:::external
+    PUB[&quot;ECB and GeoNames&lt;br/&gt;[External publishers]&quot;]:::external
+    PBI[&quot;Power BI Service&lt;br/&gt;[External]&quot;]:::external
+    CLAUDE[&quot;Claude&lt;br/&gt;[External]&quot;]:::external
+    PORTAL[&quot;Parts portal&lt;br/&gt;[External]&quot;]:::external
+
+    SEC --&gt;|&quot;uploads workbook [Excel]&quot;| M365
+    M365 --&gt;|&quot;checked site rows&quot;| P
+    P --&gt;|&quot;emails what to fix&quot;| SEC
+    ERP --&gt;|&quot;sales extract [ZIP of CSV]&quot;| P
+    FINHR --&gt;|&quot;monthly exports&quot;| P
+    MON --&gt;|&quot;daily readings&quot;| P
+    CRM --&gt;|&quot;customers and pumps&quot;| P
+    PUB --&gt;|&quot;cited reference files&quot;| P
+    P --&gt;|&quot;semantic model&quot;| PBI
+    PBI --&gt;|&quot;reports&quot;| OFFICE
+    PBI --&gt;|&quot;own sites or region only&quot;| MGR
+    OFFICE --&gt;|&quot;asks questions in&quot;| CLAUDE
+    CLAUDE --&gt;|&quot;calls read-only tools [MCP]&quot;| P
+    P --&gt;|&quot;risk lists, forecasts, drafts&quot;| SVC
+    P --&gt;|&quot;schedule, cited answers&quot;| TECH
+    P --&gt;|&quot;part suggestions&quot;| PORTAL
+    PORTAL --&gt;|&quot;shows suggestions&quot;| CUST</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Dark blue box</th><td>Person, by job title</td></tr><tr><th scope='row'>Blue box</th><td>The software system in scope</td></tr><tr><th scope='row'>Grey box</th><td>External system</td></tr><tr><th scope='row'>Solid line</th><td>Part of the design (status is in the containers drawing)</td></tr><tr><th scope='row'>Abbreviations</th><td>ERP: enterprise resource planning. CRM: customer relationship management. MCP: Model Context Protocol. ECB: European Central Bank</td></tr></table></details>
+        <p class="note">Last updated: 25 November 2026, commit <code>f5b1aef</code>.</p>
+      </figure>
+      <figure class="fig" id="d2">
+        <figcaption>
+          <span class="num">Drawing 2</span>
+          <h3>Containers (C4 level 2): inside the Fjordvik data and AI platform</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/architecture.md?plain=1#L221">docs/architecture.md, line 221</a>, under "Level 2: containers"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;Containers (C4 level 2): inside the Fjordvik data and AI platform&quot;
+---
+flowchart TB
+    accTitle: Containers of the Fjordvik data and AI platform
+    accDescr: Sources feed an intake flow (designed), a SQL pipeline (built) and a production load (gap). The data generator (built) writes the governed dataset, which guardrail tests check. Power BI, the Claude connector and the service AI jobs (all built) read the dataset; the service AI writes results, which a planned failure risk API, planned connector tools and the planned phases 4 to 7 will read.
+    classDef external fill:#6b6b6b,color:#ffffff,stroke:#333333
+    classDef built fill:#1168bd,color:#ffffff,stroke:#0b4884
+    classDef designed fill:#ffffff,color:#0b4884,stroke:#1168bd,stroke-width:2px,stroke-dasharray:8 4
+    classDef planned fill:#eeeeee,color:#333333,stroke:#555555,stroke-width:2px,stroke-dasharray:2 3
+    classDef gap fill:#ffffff,color:#8a1c1c,stroke:#8a1c1c,stroke-width:2px,stroke-dasharray:2 3
+
+    SRC[&quot;Sources [External]&lt;br/&gt;workbooks, ERP extract, exports, readings&lt;br/&gt;(simulated; see the data flow drawings)&quot;]:::external
+    INT[&quot;Intake flows and SharePoint lists&lt;br/&gt;[Power Automate, SharePoint Online]&lt;br/&gt;rules R1 to R10&lt;br/&gt;Designed&quot;]:::designed
+    SQL[&quot;SQL pipeline&lt;br/&gt;[DuckDB SQL]&lt;br/&gt;check, clean, map, reconcile&lt;br/&gt;Built&quot;]:::built
+    STG[(&quot;Staging database&lt;br/&gt;[engine not chosen]&lt;br/&gt;Designed&quot;)]:::designed
+    LOAD[&quot;Production load&lt;br/&gt;[not chosen]&lt;br/&gt;Gap&quot;]:::gap
+    GEN[&quot;Data generator&lt;br/&gt;[Python]&lt;br/&gt;stands in for every source&lt;br/&gt;Built&quot;]:::built
+    DS[(&quot;Governed dataset&lt;br/&gt;[31 CSV files + manifest]&lt;br/&gt;Built&quot;)]:::built
+    GRD[&quot;Guardrails and tests&lt;br/&gt;[Python, pytest, hook]&lt;br/&gt;Built&quot;]:::built
+    PBI[&quot;Semantic model and two reports&lt;br/&gt;[Power BI: TMDL, PBIR]&lt;br/&gt;Built, not published&quot;]:::built
+    MCP[&quot;Claude connector&lt;br/&gt;[Python, MCP SDK, DuckDB]&lt;br/&gt;Built, local only&quot;]:::built
+    SAI[&quot;Service AI jobs&lt;br/&gt;[Python, scikit-learn, statsmodels]&lt;br/&gt;Built&quot;]:::built
+    RES[(&quot;Service AI results&lt;br/&gt;[CSV and JSON + manifest]&lt;br/&gt;Built&quot;)]:::built
+    API[&quot;Failure risk API&lt;br/&gt;[FastAPI, Azure Container Apps]&lt;br/&gt;Planned&quot;]:::planned
+    LATER[&quot;Phases 4 to 7: scheduler,&lt;br/&gt;recommender, assistant, agent&lt;br/&gt;[Python, OR-Tools, Claude API]&lt;br/&gt;Planned&quot;]:::planned
+
+    SRC -.-&gt;|&quot;workbooks&quot;| INT
+    SRC --&gt;|&quot;ERP extract&quot;| SQL
+    SRC -.-&gt;|&quot;monthly exports&quot;| LOAD
+    INT -.-&gt;|&quot;accepted rows&quot;| LOAD
+    SQL -.-&gt;|&quot;clean sales&quot;| STG
+    STG -.-&gt;|&quot;would feed&quot;| LOAD
+    LOAD -.-&gt;|&quot;would write&quot;| DS
+    SQL --&gt;|&quot;clean sales and issues [CSV]&quot;| DS
+    GEN --&gt;|&quot;writes every table [CSV]&quot;| DS
+    GRD --&gt;|&quot;checks names, checksums&quot;| DS
+    DS --&gt;|&quot;tables [DataFolder]&quot;| PBI
+    DS --&gt;|&quot;tables, checksums first&quot;| MCP
+    DS --&gt;|&quot;tables, read in place&quot;| SAI
+    SAI --&gt;|&quot;stamped results&quot;| RES
+    RES -.-&gt;|&quot;scores, model card&quot;| API
+    RES -.-&gt;|&quot;four read-only tools&quot;| MCP
+    RES -.-&gt;|&quot;risk list, forecasts&quot;| LATER</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Grey box</th><td>External source</td></tr><tr><th scope='row'>Status words</th><td>Built, Designed, Planned, Gap, with the box styles above</td></tr><tr><th scope='row'>Cylinder</th><td>Data store</td></tr><tr><th scope='row'>Solid line</th><td>Runs in this repository today</td></tr><tr><th scope='row'>Dotted line</th><td>Does not run yet</td></tr><tr><th scope='row'>Abbreviations</th><td>TMDL and PBIR: Power BI's model and report formats. RLS: row-level security. MCP: Model Context Protocol. API: application programming interface</td></tr></table></details>
+        <p class="note">Last updated: 25 November 2026, commit <code>f5b1aef</code>.</p>
+      </figure>
+      <figure class="fig" id="d3">
+        <figcaption>
+          <span class="num">Drawing 3</span>
+          <h3>Service AI pipeline, part 1 (C4 level 3): phases 2 and 3 as built</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/architecture.md?plain=1#L301">docs/architecture.md, line 301</a>, under "Level 3: the service AI pipeline"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+config:
+  flowchart:
+    nodeSpacing: 20
+    rankSpacing: 35
+title: &quot;Service AI pipeline, part 1 (C4 level 3): phases 2 and 3 as built&quot;
+---
+flowchart TB
+    accTitle: Service AI pipeline, phases 2 and 3 as built
+    accDescr: Parts orders, readings and pump facts feed the demand and drivers step, then the phase 2 parts forecast. Readings and pump facts feed the features, then an anomaly score and the phase 3 failure risk model, then alerts and drift. Both phases go to an evaluation step that needs the evaluation set, pass marks and split lock fixed before code, reads the answer key only after the model is fixed, and is started once by the Data and AI Specialist. It writes stamped results and a model card.
+    classDef built fill:#1168bd,color:#ffffff,stroke:#0b4884
+    classDef store fill:#e3eef9,color:#0b2a4a,stroke:#1168bd
+    classDef lock fill:#fff4d6,color:#5c4400,stroke:#8a6d00,stroke-width:2px
+    classDef person fill:#08427b,color:#ffffff,stroke:#052e56
+
+    subgraph DATA[&quot;Governed dataset, read only&quot;]
+        direction LR
+        ORD[(&quot;Spare part orders&lt;br/&gt;fact_parts_order&quot;)]:::store
+        TEL[(&quot;Daily pump readings&lt;br/&gt;fact_asset_telemetry&quot;)]:::store
+        MAS[(&quot;Pumps, models, customers&lt;br/&gt;dim_asset, dim_product,&lt;br/&gt;dim_customer&quot;)]:::store
+        EVT[(&quot;Service jobs&lt;br/&gt;fact_service_event&quot;)]:::store
+    end
+
+    DEM[&quot;Demand and drivers&lt;br/&gt;[Python: demand.py, drivers.py]&lt;br/&gt;Built&quot;]:::built
+    FC[&quot;Parts forecast, phase 2&lt;br/&gt;[statsmodels Poisson regression]&lt;br/&gt;Built&quot;]:::built
+    FEAT[&quot;Features&lt;br/&gt;[Python: features.py, 31 allowlisted columns]&lt;br/&gt;Built&quot;]:::built
+    ANO[&quot;Anomaly score, phase 3&lt;br/&gt;[scikit-learn isolation forest]&lt;br/&gt;Built&quot;]:::built
+    CLF[&quot;Failure risk, phase 3&lt;br/&gt;[scikit-learn gradient-boosted trees]&lt;br/&gt;Built&quot;]:::built
+    ALR[&quot;Alerts and drift&lt;br/&gt;[Python: alerts.py, drift.py]&lt;br/&gt;Built&quot;]:::built
+
+    LOCK[(&quot;Fixed before code, per phase:&lt;br/&gt;evaluation set, pass mark, split lock&lt;br/&gt;[JSON, written by a separate AI agent]&quot;)]:::lock
+    TRUTH[(&quot;Answer key&lt;br/&gt;[generator-truth, evaluation only]&quot;)]:::store
+    SPEC[&quot;Data and AI Specialist&lt;br/&gt;[Person]&lt;br/&gt;runs each locked test once&quot;]:::person
+    EV[&quot;Evaluation and independent recheck&lt;br/&gt;[Python: evaluate.py, recheck scripts]&lt;br/&gt;Built&quot;]:::built
+    RES[(&quot;Results and model card&lt;br/&gt;[CSV and JSON + manifest]&quot;)]:::store
+
+    ORD --&gt;|&quot;order lines&quot;| DEM
+    TEL --&gt;|&quot;running hours&quot;| DEM
+    MAS --&gt;|&quot;pump ages, regions&quot;| DEM
+    DEM --&gt;|&quot;demand, drivers as known&quot;| FC
+    TEL --&gt;|&quot;readings up to the day scored&quot;| FEAT
+    MAS --&gt;|&quot;pump facts&quot;| FEAT
+    FEAT --&gt;|&quot;feature rows&quot;| ANO
+    ANO --&gt;|&quot;anomaly score as a feature&quot;| CLF
+    FEAT --&gt;|&quot;feature rows&quot;| CLF
+    EVT --&gt;|&quot;failure labels only&quot;| CLF
+    CLF --&gt;|&quot;30-day failure chance&quot;| ALR
+    FC --&gt;|&quot;forecasts, ranges&quot;| EV
+    ALR --&gt;|&quot;alerts, costs, drift flags&quot;| EV
+    LOCK --&gt;|&quot;pass marks, dates&quot;| EV
+    TRUTH --&gt;|&quot;after the model is fixed&quot;| EV
+    SPEC --&gt;|&quot;starts the test run&quot;| EV
+    EV --&gt;|&quot;writes stamped results&quot;| RES
+
+    style DATA fill:#f7f9fb,stroke:#55626f,color:#17212b</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Blue box</th><td>Component, Built</td></tr><tr><th scope='row'>Pale blue cylinder</th><td>Data store</td></tr><tr><th scope='row'>Amber cylinder</th><td>Lock: fixed before any test run</td></tr><tr><th scope='row'>Dark blue box</th><td>Person</td></tr><tr><th scope='row'>Solid line</th><td>Runs in this repository today</td></tr></table></details>
+        <p class="note">Last updated: 25 November 2026, commit <code>f5b1aef</code>.</p><p class="note">The second part shows what phases 4 to 7 and the failure risk API will build on those results. Nothing in it exists yet.</p>
+      </figure>
+      <figure class="fig" id="d4">
+        <figcaption>
+          <span class="num">Drawing 4</span>
+          <h3>Service AI pipeline, part 2 (C4 level 3): phases 4 to 7 and the API, as planned</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/architecture.md?plain=1#L372">docs/architecture.md, line 372</a>, under "Level 3: the service AI pipeline"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;Service AI pipeline, part 2 (C4 level 3): phases 4 to 7 and the API, as planned&quot;
+---
+flowchart TB
+    accTitle: Service AI pipeline, phases 4 to 7 and the API, as planned
+    accDescr: All planned. The phase 3 results feed a failure risk API and the phase 4 technician schedule. Order history and portal clicks feed phase 5 parts recommendations. Manual sections feed the phase 6 service assistant. The schedule, recommendations, assistant and results feed the phase 7 service desk agent, which puts drafts in an outbox for the Service Manager to approve once.
+    classDef planned fill:#eeeeee,color:#333333,stroke:#555555,stroke-width:2px,stroke-dasharray:2 3
+    classDef store fill:#e3eef9,color:#0b2a4a,stroke:#1168bd
+    classDef person fill:#08427b,color:#ffffff,stroke:#052e56
+
+    RES[(&quot;Results and model card&lt;br/&gt;[CSV and JSON], Built&quot;)]:::store
+    ORD[(&quot;Spare part orders&lt;br/&gt;fact_parts_order&quot;)]:::store
+    POR[(&quot;Parts portal suggestions&lt;br/&gt;fact_portal_event&quot;)]:::store
+    COR[(&quot;Service manuals and terms&lt;br/&gt;data/corpus&quot;)]:::store
+    API[&quot;Failure risk API&lt;br/&gt;[FastAPI, Azure Container Apps]&lt;br/&gt;Planned&quot;]:::planned
+    SCH[&quot;Technician schedule, phase 4&lt;br/&gt;[OR-Tools + independent checker]&lt;br/&gt;Planned&quot;]:::planned
+    REC[&quot;Parts recommendations, phase 5&lt;br/&gt;[Python]&lt;br/&gt;Planned&quot;]:::planned
+    AST[&quot;Service assistant, phase 6&lt;br/&gt;[RAG with the Claude API]&lt;br/&gt;Planned&quot;]:::planned
+    AGT[&quot;Service desk agent, phase 7&lt;br/&gt;[Claude API: read tools + create draft]&lt;br/&gt;Planned&quot;]:::planned
+    REV[&quot;Service Manager&lt;br/&gt;[Person]&lt;br/&gt;approves each draft once&quot;]:::person
+
+    RES -.-&gt;|&quot;scores, model card&quot;| API
+    RES -.-&gt;|&quot;daily risk list&quot;| SCH
+    ORD -.-&gt;|&quot;order history&quot;| REC
+    POR -.-&gt;|&quot;shown and clicked&quot;| REC
+    COR -.-&gt;|&quot;sections, version, date&quot;| AST
+    RES -.-&gt;|&quot;risk, forecast&quot;| AGT
+    SCH -.-&gt;|&quot;free slots&quot;| AGT
+    REC -.-&gt;|&quot;fitting parts&quot;| AGT
+    AST -.-&gt;|&quot;cited guidance&quot;| AGT
+    AGT -.-&gt;|&quot;drafts in outbox/ for&quot;| REV</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Grey dotted box</th><td>Component, Planned</td></tr><tr><th scope='row'>Pale blue cylinder</th><td>Data store</td></tr><tr><th scope='row'>Dark blue box</th><td>Person</td></tr><tr><th scope='row'>Dotted line</th><td>Does not run yet</td></tr><tr><th scope='row'>Abbreviations</th><td>RAG: retrieval-augmented generation. API: application programming interface</td></tr></table></details>
+        <p class="note">Last updated: 25 November 2026, commit <code>f5b1aef</code>.</p><p class="note">The answer key in <code>data/generator-truth/</code> is read only by the evaluation step, after the model is fixed, and never by a model, the connector or an agent (rule D10). The planned connector tools (asset health, parts forecast, part recommendations, manual search) read the committed results and stay read-only (rule A1).</p>
+      </figure>
+    </section>
+
+    <section class="doc">
+      <header class="dochead">
+        <h2>Data model</h2>
+        <p>The business things the data describes, where each table&#x27;s data comes from and who owns it, and the tables in three subject areas. <a class="path" href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md">docs/data-model.md</a></p>
+      </header>
+      
+      <figure class="fig" id="d5">
+        <figcaption>
+          <span class="num">Drawing 5</span>
+          <h3>Conceptual model: the business things Fjordvik&#x27;s data describes</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L22">docs/data-model.md, line 22</a>, under "Conceptual model"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+config:
+  flowchart:
+    nodeSpacing: 20
+    rankSpacing: 35
+title: &quot;Conceptual model: the business things Fjordvik&#x27;s data describes&quot;
+---
+flowchart TB
+    accTitle: Conceptual model of Fjordvik&#x27;s data
+    accDescr: Sites use energy from emission sources, buy from suppliers, hold energy contracts, and make and ship product models. Sources fall in scope 3 categories. Products belong to product groups, are sold to regions and are named by local item numbers; product groups are rated on scorecard criteria. Customers are in regions, own connected pumps, order spare parts and are shown parts on the portal. Each pump is a product model, sends daily readings and has service events, which technicians based at sites carry out and which use spare parts that fit product groups.
+    classDef thing fill:#ffffff,color:#17212b,stroke:#1168bd,stroke-width:2px
+
+    SITE[&quot;Site&quot;]:::thing -- &quot;uses energy from&quot; --&gt; SRC[&quot;Emission source&quot;]:::thing
+    SRC -- &quot;falls in&quot; --&gt; CAT[&quot;Scope 3 category&quot;]:::thing
+    SITE -- &quot;buys from&quot; --&gt; SUP[&quot;Supplier&quot;]:::thing
+    SITE -- &quot;holds&quot; --&gt; CON[&quot;Energy contract&quot;]:::thing
+    SITE -- &quot;makes and ships&quot; --&gt; PROD[&quot;Product model&quot;]:::thing
+    CODE[&quot;Local item number&quot;]:::thing -- &quot;maps to&quot; --&gt; PROD
+    PROD -- &quot;belongs to&quot; --&gt; GRP[&quot;Product group and family&quot;]:::thing
+    GRP -- &quot;is rated on&quot; --&gt; CRIT[&quot;Scorecard criterion&quot;]:::thing
+    PROD -- &quot;is sold to&quot; --&gt; REG[&quot;Sales region&quot;]:::thing
+    CUST[&quot;Customer&quot;]:::thing -- &quot;is in&quot; --&gt; REG
+    CUST -- &quot;owns&quot; --&gt; PUMP[&quot;Connected pump&quot;]:::thing
+    PUMP -- &quot;is a&quot; --&gt; PROD
+    PUMP -- &quot;sends daily&quot; --&gt; READ[&quot;Reading&quot;]:::thing
+    PUMP -- &quot;has&quot; --&gt; EVT[&quot;Service event&quot;]:::thing
+    TECH[&quot;Technician&quot;]:::thing -- &quot;carries out&quot; --&gt; EVT
+    TECH -- &quot;is based at&quot; --&gt; SITE
+    EVT -- &quot;uses&quot; --&gt; PART[&quot;Spare part&quot;]:::thing
+    PART -- &quot;fits&quot; --&gt; GRP
+    CUST -- &quot;orders&quot; --&gt; PART
+    CUST -- &quot;is shown, clicks&quot; --&gt; PART</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Box</th><td>A business thing Fjordvik's data describes</td></tr><tr><th scope='row'>Line</th><td>Reads as a sentence from box to box, in the direction of the arrow</td></tr></table></details>
+        <p class="note">Last updated: 25 November 2026, commit <code>f5b1aef</code>.</p>
+      </figure>
+      <figure class="fig" id="d6">
+        <figcaption>
+          <span class="num">Drawing 6</span>
+          <h3>Data flow, part 1 (level 1 data flow diagram): what the six sites send and where it lands</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L77">docs/data-model.md, line 77</a>, under "Data flow: where each table&#x27;s data comes from"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;Data flow, part 1 (level 1 data flow diagram): what the six sites send and where it lands&quot;
+---
+flowchart TB
+    accTitle: Data flow from the six sites into the governed tables
+    accDescr: Four owners at the sites send data through six processes. Site energy coordinators send monthly workbooks to the intake flow (designed), which writes the SharePoint emissions list; a load (gap) would move accepted rows into fact_emissions. Regional controllers send the monthly ERP sales extract to the SQL pipeline (built), which writes fact_sales and fact_data_issue. The Oulu and Tartu warehouses&#x27; order lines and the technicians&#x27; job records each need a load that is still a gap. A further process (gap; the generator today) works out the derived emissions tables from site energy and units sold.
+    classDef entity fill:#6b6b6b,color:#ffffff,stroke:#333333
+    classDef built fill:#1168bd,color:#ffffff,stroke:#0b4884
+    classDef designed fill:#ffffff,color:#0b4884,stroke:#1168bd,stroke-width:2px,stroke-dasharray:8 4
+    classDef gap fill:#ffffff,color:#8a1c1c,stroke:#8a1c1c,stroke-width:2px,stroke-dasharray:2 3
+    classDef store fill:#e3eef9,color:#0b2a4a,stroke:#1168bd
+
+    E1[&quot;Site Energy Coordinators, all six sites&lt;br/&gt;[External entity]&lt;br/&gt;activity data: fuel, energy, refrigerant,&lt;br/&gt;flights, waste; Excel workbook, monthly&quot;]:::entity
+    E2[&quot;Regional controllers, five business units&lt;br/&gt;[External entity]&lt;br/&gt;sales lines in EUR or SEK;&lt;br/&gt;ERP extract, monthly after the close&quot;]:::entity
+    E3[&quot;Oulu and Tartu warehouses&lt;br/&gt;[External entity]&lt;br/&gt;parts order lines;&lt;br/&gt;ERP order lines, daily&quot;]:::entity
+    E4[&quot;Technicians at all six sites,&lt;br/&gt;with the Service Manager&lt;br/&gt;[External entity]&lt;br/&gt;job records with notes; after each job&quot;]:::entity
+
+    P1([&quot;P1 Intake flow, rules R1 to R10&lt;br/&gt;[Power Automate]&lt;br/&gt;Designed&quot;]):::designed
+    P2([&quot;P2 SQL pipeline&lt;br/&gt;[DuckDB SQL]&lt;br/&gt;Built&quot;]):::built
+    P3([&quot;P3 Load accepted site rows&lt;br/&gt;Gap&quot;]):::gap
+    P4([&quot;P4 Load parts orders&lt;br/&gt;Gap&quot;]):::gap
+    P5([&quot;P5 Load service jobs&lt;br/&gt;Gap&quot;]):::gap
+    P6([&quot;P6 Work out derived tables&lt;br/&gt;[the data generator today]&lt;br/&gt;Gap&quot;]):::gap
+
+    D1[(&quot;Emissions list&lt;br/&gt;[SharePoint], Designed&quot;)]:::designed
+    T1[(&quot;Site emissions&lt;br/&gt;fact_emissions&quot;)]:::store
+    T2[(&quot;Product sales, ERP data issues&lt;br/&gt;fact_sales, fact_data_issue&quot;)]:::store
+    T3[(&quot;Spare part orders&lt;br/&gt;fact_parts_order&quot;)]:::store
+    T4[(&quot;Service jobs&lt;br/&gt;fact_service_event&quot;)]:::store
+    T5[(&quot;Upstream energy, product use and&lt;br/&gt;market-based electricity emissions&lt;br/&gt;fact_energy_upstream, fact_use_phase,&lt;br/&gt;fact_scope2_market&quot;)]:::store
+
+    E1 -.-&gt;|&quot;site workbook&quot;| P1
+    P1 -.-&gt;|&quot;accepted rows, factor, tCO2e&quot;| D1
+    D1 -.-&gt;|&quot;monthly rows&quot;| P3
+    P3 -.-&gt;|&quot;rows&quot;| T1
+    E2 --&gt;|&quot;extract and manifest&quot;| P2
+    P2 --&gt;|&quot;clean sales, issues&quot;| T2
+    E3 -.-&gt;|&quot;order lines&quot;| P4
+    P4 -.-&gt;|&quot;order lines&quot;| T3
+    E4 -.-&gt;|&quot;job records&quot;| P5
+    P5 -.-&gt;|&quot;jobs&quot;| T4
+    T1 -.-&gt;|&quot;fuel, kWh&quot;| P6
+    T2 -.-&gt;|&quot;units sold&quot;| P6
+    P6 -.-&gt;|&quot;derived rows&quot;| T5</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Grey box</th><td>External entity: who owns and sends the data, what kind it is, its format and how often</td></tr><tr><th scope='row'>Rounded box, P1 to P6</th><td>Process, with its status: Built, Designed or Gap</td></tr><tr><th scope='row'>Cylinder</th><td>Data store: pale blue for a governed table, white dashed for a designed store</td></tr><tr><th scope='row'>Solid line</th><td>Runs in this repository today</td></tr><tr><th scope='row'>Dotted line</th><td>Does not run yet</td></tr><tr><th scope='row'>Abbreviations</th><td>ERP: enterprise resource planning. SEK: Swedish kronor</td></tr></table></details>
+        <p class="note">Last updated: 25 November 2026, commit <code>f5b1aef</code>.</p><p class="note">The plants report eight sources a month, the warehouses seven and the head office five. Five business units ship sales; the head office books none. <code>fact_scope2_market</code> also needs the energy contracts from part 2.</p>
+      </figure>
+      <figure class="fig" id="d7">
+        <figcaption>
+          <span class="num">Drawing 7</span>
+          <h3>Data flow, part 2 (level 1 data flow diagram): what group functions, service systems and publishers send</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L139">docs/data-model.md, line 139</a>, under "Data flow: where each table&#x27;s data comes from"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;Data flow, part 2 (level 1 data flow diagram): what group functions, service systems and publishers send&quot;
+---
+flowchart LR
+    accTitle: Data flow from group functions, service systems and publishers
+    accDescr: Ten owners send data through five processes. Finance, HR, procurement and logistics send monthly exports to a load (gap) for the emissions, site and portfolio tables. The sustainability, portfolio and service owners send reference and master data to a load (gap). Daily pump readings and portal logs go to a load (gap) for the service tables. Manuals go to a document load (gap). Exchange rates and town coordinates are fetched by a script (built) into the reference files.
+    classDef entity fill:#6b6b6b,color:#ffffff,stroke:#333333
+    classDef built fill:#1168bd,color:#ffffff,stroke:#0b4884
+    classDef gap fill:#ffffff,color:#8a1c1c,stroke:#8a1c1c,stroke-width:2px,stroke-dasharray:2 3
+    classDef store fill:#e3eef9,color:#0b2a4a,stroke:#1168bd
+
+    GFC[&quot;Group Financial Controller [External entity]&lt;br/&gt;financial: revenue (monthly), sales plan (yearly)&quot;]:::entity
+    HRM[&quot;HR Manager [External entity]&lt;br/&gt;workforce: FTE per site, monthly&quot;]:::entity
+    PRM[&quot;Procurement Manager [External entity]&lt;br/&gt;financial: purchase ledger, monthly&quot;]:::entity
+    LGM[&quot;Logistics Manager [External entity]&lt;br/&gt;activity: freight and shipments, monthly&quot;]:::entity
+    GSM[&quot;Group Sustainability Manager [External entity]&lt;br/&gt;reference: sites, sources, factors,&lt;br/&gt;scope 3 list, energy contracts&quot;]:::entity
+    PFG[&quot;Portfolio governance, Product Managers&lt;br/&gt;[External entity]&lt;br/&gt;reference and ratings: classification,&lt;br/&gt;product and part specifications, scorecard&quot;]:::entity
+    SVM[&quot;Service Manager [External entity]&lt;br/&gt;master data: customers, pumps, technicians&lt;br/&gt;(personal data); sensor readings, daily&quot;]:::entity
+    ECO[&quot;E-commerce owner [External entity]&lt;br/&gt;event log: parts shown and clicked, daily&quot;]:::entity
+    TDT[&quot;Technical documentation team&lt;br/&gt;[External entity]&lt;br/&gt;documents: manuals, terms, warranty&quot;]:::entity
+    PUBS[&quot;ECB and GeoNames [External publishers]&lt;br/&gt;public reference: exchange rates, towns&quot;]:::entity
+
+    P7([&quot;P7 Load monthly exports&lt;br/&gt;Gap&quot;]):::gap
+    P8([&quot;P8 Load reference and master data&lt;br/&gt;Gap&quot;]):::gap
+    P9([&quot;P9 Load daily readings and portal logs&lt;br/&gt;Gap&quot;]):::gap
+    P10([&quot;P10 Fetch and cite published files&lt;br/&gt;[Python script]&lt;br/&gt;Built&quot;]):::built
+    P11([&quot;P11 Load documents&lt;br/&gt;Gap&quot;]):::gap
+
+    TS[(&quot;Emissions and site tables&lt;br/&gt;site revenue and headcount, purchased goods,&lt;br/&gt;suppliers, freight, sites, emission sources,&lt;br/&gt;scope 3 categories, energy contracts&quot;)]:::store
+    TP[(&quot;Portfolio tables&lt;br/&gt;local item numbers, product models,&lt;br/&gt;product groups, scorecard criteria and&lt;br/&gt;ratings, sales plan&quot;)]:::store
+    TV[(&quot;Service tables&lt;br/&gt;customers, connected pumps, technicians,&lt;br/&gt;spare parts and part fit, daily pump&lt;br/&gt;readings, parts portal suggestions&quot;)]:::store
+    TR[(&quot;Published reference files&lt;br/&gt;exchange rates, town coordinates&quot;)]:::store
+    TC[(&quot;Service manuals&lt;br/&gt;data/corpus, one per product group&quot;)]:::store
+
+    GFC -.-&gt;|&quot;revenue, plan&quot;| P7
+    HRM -.-&gt;|&quot;headcount&quot;| P7
+    PRM -.-&gt;|&quot;purchase ledger&quot;| P7
+    LGM -.-&gt;|&quot;freight&quot;| P7
+    GSM -.-&gt;|&quot;lists, contracts&quot;| P8
+    PFG -.-&gt;|&quot;classification, specs, ratings&quot;| P8
+    SVM -.-&gt;|&quot;customers, pumps, technicians&quot;| P8
+    SVM -.-&gt;|&quot;daily readings&quot;| P9
+    ECO -.-&gt;|&quot;portal logs&quot;| P9
+    TDT -.-&gt;|&quot;each edition&quot;| P11
+    PUBS --&gt;|&quot;rates, towns&quot;| P10
+    P7 -.-&gt;|&quot;site metrics, purchases, freight&quot;| TS
+    P7 -.-&gt;|&quot;sales plan&quot;| TP
+    P8 -.-&gt;|&quot;lists, contracts&quot;| TS
+    P8 -.-&gt;|&quot;classification, ratings&quot;| TP
+    P8 -.-&gt;|&quot;customers, pumps, technicians, parts&quot;| TV
+    P9 -.-&gt;|&quot;readings, events&quot;| TV
+    P10 --&gt;|&quot;with source, date read, checksum&quot;| TR
+    P11 -.-&gt;|&quot;manuals&quot;| TC</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Grey box</th><td>External entity: who owns and sends the data, what kind it is and how often</td></tr><tr><th scope='row'>Rounded box, P7 to P11</th><td>Process, with its status: Built or Gap</td></tr><tr><th scope='row'>Pale blue cylinder</th><td>Governed tables or files</td></tr><tr><th scope='row'>Solid line</th><td>Runs in this repository today</td></tr><tr><th scope='row'>Dotted line</th><td>Does not run yet</td></tr><tr><th scope='row'>Abbreviations</th><td>FTE: full-time equivalent employees. ECB: European Central Bank</td></tr></table></details>
+        <p class="note">Last updated: 25 November 2026, commit <code>f5b1aef</code>.</p><p class="note">The emission factors also feed the intake flow (P1 in part 1). The SQL pipeline (P2 in part 1) reads the exchange rates; the town coordinates place customers, pumps and technicians. Only P2 and P10 run today; every other process needs designing before production; a landing zone in Azure Data Lake Storage would be where their data lands first.</p>
+      </figure>
+      <figure class="fig" id="d8">
+        <figcaption>
+          <span class="num">Drawing 8</span>
+          <h3>Site emissions (fact_emissions): one row per month, site and source the site reports</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L260">docs/data-model.md, line 260</a>, under "Emissions facts"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;Site emissions (fact_emissions): one row per month, site and source the site reports&quot;
+---
+erDiagram
+    accTitle: Site emissions, table fact_emissions
+    accDescr: Site emissions holds one row per month, site and source the site reports. It joins calendar month by date_key; site by site_id; emission source by source_id.
+    dim_date ||--o{ fact_emissions : &quot;date_key&quot;
+    dim_site ||--o{ fact_emissions : &quot;site_id&quot;
+    dim_source ||--o{ fact_emissions : &quot;source_id&quot;
+    fact_emissions[&quot;Site emissions (fact_emissions)&quot;] {
+        int date_key FK
+        text site_id FK
+        text source_id FK
+    }
+    dim_date[&quot;Calendar month (dim_date)&quot;] {
+        int date_key PK
+    }
+    dim_site[&quot;Site (dim_site)&quot;] {
+        text site_id PK
+    }
+    dim_source[&quot;Emission source (dim_source)&quot;] {
+        text source_id PK
+    }</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Box</th><td>One table: its business name, with the table name in brackets</td></tr><tr><th scope='row'>First column in a box</th><td>The kind of value: <code>text</code>, <code>int</code> (a whole number) or <code>date</code></td></tr><tr><th scope='row'>PK</th><td>Primary key: the column, or columns together, that pick out exactly one row of the table</td></tr><tr><th scope='row'>FK</th><td>Foreign key: a column holding the key of a row in another table, so the two tables can be joined</td></tr><tr><th scope='row'>Blank key cell</th><td>The column is not a key; it is drawn only because it carries a note</td></tr><tr><th scope='row'>Last column</th><td>A note on that column; blank when there is nothing to add</td></tr><tr><th scope='row'>Two short bars at a line's end</th><td>Exactly one row at that end</td></tr><tr><th scope='row'>Circle and three prongs (a crow's foot) at a line's end</th><td>Zero, one or many rows at that end</td></tr><tr><th scope='row'>A whole line</th><td>Reads as: one row in the table at the bars matches any number of rows in the table at the crow's foot; the label names the column they are joined on</td></tr></table></details>
+        <p class="note"><strong>What it is.</strong> Each site's monthly energy, fuel, refrigerant, business flights and waste, with the emission factor and the tonnes of carbon dioxide equivalent (tCO2e). <strong>What it is for.</strong> Scope 1, location-based scope 2 and scope 3 categories 5 and 6 in the emissions report and the Claude connector.</p><p class="note">Other columns: <code>activity_amount</code>, <code>unit</code>, <code>emission_factor</code>, <code>tco2e</code>.</p>
+      </figure>
+      <figure class="fig" id="d9">
+        <figcaption>
+          <span class="num">Drawing 9</span>
+          <h3>Site revenue and headcount (fact_site_metrics): one row per month and site</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L302">docs/data-model.md, line 302</a>, under "Emissions facts"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;Site revenue and headcount (fact_site_metrics): one row per month and site&quot;
+---
+erDiagram
+    accTitle: Site revenue and headcount, table fact_site_metrics
+    accDescr: Site revenue and headcount holds one row per month and site. It joins calendar month by date_key; site by site_id.
+    dim_date ||--o{ fact_site_metrics : &quot;date_key&quot;
+    dim_site ||--o{ fact_site_metrics : &quot;site_id&quot;
+    fact_site_metrics[&quot;Site revenue and headcount (fact_site_metrics)&quot;] {
+        int date_key FK
+        text site_id FK
+    }
+    dim_date[&quot;Calendar month (dim_date)&quot;] {
+        int date_key PK
+    }
+    dim_site[&quot;Site (dim_site)&quot;] {
+        text site_id PK
+    }</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Box</th><td>One table: its business name, with the table name in brackets</td></tr><tr><th scope='row'>First column in a box</th><td>The kind of value: <code>text</code>, <code>int</code> (a whole number) or <code>date</code></td></tr><tr><th scope='row'>PK</th><td>Primary key: the column, or columns together, that pick out exactly one row of the table</td></tr><tr><th scope='row'>FK</th><td>Foreign key: a column holding the key of a row in another table, so the two tables can be joined</td></tr><tr><th scope='row'>Blank key cell</th><td>The column is not a key; it is drawn only because it carries a note</td></tr><tr><th scope='row'>Last column</th><td>A note on that column; blank when there is nothing to add</td></tr><tr><th scope='row'>Two short bars at a line's end</th><td>Exactly one row at that end</td></tr><tr><th scope='row'>Circle and three prongs (a crow's foot) at a line's end</th><td>Zero, one or many rows at that end</td></tr><tr><th scope='row'>A whole line</th><td>Reads as: one row in the table at the bars matches any number of rows in the table at the crow's foot; the label names the column they are joined on</td></tr></table></details>
+        <p class="note"><strong>What it is.</strong> Each site's revenue after the monthly close and its full-time equivalent employees (FTE). <strong>What it is for.</strong> Emissions per million euros of revenue and per employee, and revenue per employee.</p><p class="note">Other columns: <code>revenue_eur</code>, <code>fte</code>.</p>
+      </figure>
+      <figure class="fig" id="d10">
+        <figcaption>
+          <span class="num">Drawing 10</span>
+          <h3>Market-based electricity emissions (fact_scope2_market): one row per month, site, source and instrument</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L339">docs/data-model.md, line 339</a>, under "Emissions facts"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;Market-based electricity emissions (fact_scope2_market): one row per month, site, source and instrument&quot;
+---
+erDiagram
+    accTitle: Market-based electricity emissions, table fact_scope2_market
+    accDescr: Market-based electricity emissions holds one row per month, site, source and instrument. It joins calendar month by date_key; site by site_id; emission source by source_id; energy contract by contract_id.
+    dim_date ||--o{ fact_scope2_market : &quot;date_key&quot;
+    dim_site ||--o{ fact_scope2_market : &quot;site_id&quot;
+    dim_source ||--o{ fact_scope2_market : &quot;source_id&quot;
+    dim_contract ||--o{ fact_scope2_market : &quot;contract_id&quot;
+    fact_scope2_market[&quot;Market-based electricity emissions (fact_scope2_market)&quot;] {
+        int date_key FK
+        text site_id FK
+        text source_id FK
+        text contract_id FK &quot;blank where the residual mix applies&quot;
+    }
+    dim_date[&quot;Calendar month (dim_date)&quot;] {
+        int date_key PK
+    }
+    dim_site[&quot;Site (dim_site)&quot;] {
+        text site_id PK
+    }
+    dim_source[&quot;Emission source (dim_source)&quot;] {
+        text source_id PK
+    }
+    dim_contract[&quot;Energy contract (dim_contract)&quot;] {
+        text contract_id PK
+    }</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Box</th><td>One table: its business name, with the table name in brackets</td></tr><tr><th scope='row'>First column in a box</th><td>The kind of value: <code>text</code>, <code>int</code> (a whole number) or <code>date</code></td></tr><tr><th scope='row'>PK</th><td>Primary key: the column, or columns together, that pick out exactly one row of the table</td></tr><tr><th scope='row'>FK</th><td>Foreign key: a column holding the key of a row in another table, so the two tables can be joined</td></tr><tr><th scope='row'>Blank key cell</th><td>The column is not a key; it is drawn only because it carries a note</td></tr><tr><th scope='row'>Last column</th><td>A note on that column; blank when there is nothing to add</td></tr><tr><th scope='row'>Two short bars at a line's end</th><td>Exactly one row at that end</td></tr><tr><th scope='row'>Circle and three prongs (a crow's foot) at a line's end</th><td>Zero, one or many rows at that end</td></tr><tr><th scope='row'>A whole line</th><td>Reads as: one row in the table at the bars matches any number of rows in the table at the crow's foot; the label names the column they are joined on</td></tr></table></details>
+        <p class="note"><strong>What it is.</strong> The same electricity the sites report, worked out with contract factors (guarantees of origin) or each country's residual mix. <strong>What it is for.</strong> Market-based scope 2, reported beside the location-based total and never added to it.</p><p class="note">Other columns: <code>instrument</code>, <code>activity_amount</code>, <code>unit</code>, <code>emission_factor</code>, <code>tco2e</code>.</p>
+      </figure>
+      <figure class="fig" id="d11">
+        <figcaption>
+          <span class="num">Drawing 11</span>
+          <h3>Upstream energy emissions (fact_energy_upstream): one row per month, site and the source it is worked out from</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L386">docs/data-model.md, line 386</a>, under "Emissions facts"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;Upstream energy emissions (fact_energy_upstream): one row per month, site and the source it is worked out from&quot;
+---
+erDiagram
+    accTitle: Upstream energy emissions, table fact_energy_upstream
+    accDescr: Upstream energy emissions holds one row per month, site and the source it is worked out from. It joins calendar month by date_key; site by site_id; emission source by source_id; emission source by based_on_source_id.
+    dim_date ||--o{ fact_energy_upstream : &quot;date_key&quot;
+    dim_site ||--o{ fact_energy_upstream : &quot;site_id&quot;
+    dim_source ||--o{ fact_energy_upstream : &quot;source_id&quot;
+    dim_source ||--o{ fact_energy_upstream : &quot;based_on_source_id&quot;
+    fact_energy_upstream[&quot;Upstream energy emissions (fact_energy_upstream)&quot;] {
+        int date_key FK
+        text site_id FK
+        text source_id FK
+        text based_on_source_id FK
+    }
+    dim_date[&quot;Calendar month (dim_date)&quot;] {
+        int date_key PK
+    }
+    dim_site[&quot;Site (dim_site)&quot;] {
+        text site_id PK
+    }
+    dim_source[&quot;Emission source (dim_source)&quot;] {
+        text source_id PK
+    }</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Box</th><td>One table: its business name, with the table name in brackets</td></tr><tr><th scope='row'>First column in a box</th><td>The kind of value: <code>text</code>, <code>int</code> (a whole number) or <code>date</code></td></tr><tr><th scope='row'>PK</th><td>Primary key: the column, or columns together, that pick out exactly one row of the table</td></tr><tr><th scope='row'>FK</th><td>Foreign key: a column holding the key of a row in another table, so the two tables can be joined</td></tr><tr><th scope='row'>Blank key cell</th><td>The column is not a key; it is drawn only because it carries a note</td></tr><tr><th scope='row'>Last column</th><td>A note on that column; blank when there is nothing to add</td></tr><tr><th scope='row'>Two short bars at a line's end</th><td>Exactly one row at that end</td></tr><tr><th scope='row'>Circle and three prongs (a crow's foot) at a line's end</th><td>Zero, one or many rows at that end</td></tr><tr><th scope='row'>A whole line</th><td>Reads as: one row in the table at the bars matches any number of rows in the table at the crow's foot; the label names the column they are joined on</td></tr></table></details>
+        <p class="note"><strong>What it is.</strong> Emissions from producing the fuels and electricity the sites use, including grid losses, worked out from site emissions. <strong>What it is for.</strong> Scope 3 category 3.</p><p class="note">Other columns: <code>activity_amount</code>, <code>unit</code>, <code>emission_factor</code>, <code>tco2e</code>.</p>
+      </figure>
+      <figure class="fig" id="d12">
+        <figcaption>
+          <span class="num">Drawing 12</span>
+          <h3>Purchased goods emissions (fact_purchases): one row per month, site and supplier</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L430">docs/data-model.md, line 430</a>, under "Emissions facts"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;Purchased goods emissions (fact_purchases): one row per month, site and supplier&quot;
+---
+erDiagram
+    accTitle: Purchased goods emissions, table fact_purchases
+    accDescr: Purchased goods emissions holds one row per month, site and supplier. It joins calendar month by date_key; site by site_id; emission source by source_id; supplier by supplier_id.
+    dim_date ||--o{ fact_purchases : &quot;date_key&quot;
+    dim_site ||--o{ fact_purchases : &quot;site_id&quot;
+    dim_source ||--o{ fact_purchases : &quot;source_id&quot;
+    dim_supplier ||--o{ fact_purchases : &quot;supplier_id&quot;
+    fact_purchases[&quot;Purchased goods emissions (fact_purchases)&quot;] {
+        int date_key FK
+        text site_id FK
+        text source_id FK
+        text supplier_id FK
+    }
+    dim_date[&quot;Calendar month (dim_date)&quot;] {
+        int date_key PK
+    }
+    dim_site[&quot;Site (dim_site)&quot;] {
+        text site_id PK
+    }
+    dim_source[&quot;Emission source (dim_source)&quot;] {
+        text source_id PK
+    }
+    dim_supplier[&quot;Supplier (dim_supplier)&quot;] {
+        text supplier_id PK
+    }</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Box</th><td>One table: its business name, with the table name in brackets</td></tr><tr><th scope='row'>First column in a box</th><td>The kind of value: <code>text</code>, <code>int</code> (a whole number) or <code>date</code></td></tr><tr><th scope='row'>PK</th><td>Primary key: the column, or columns together, that pick out exactly one row of the table</td></tr><tr><th scope='row'>FK</th><td>Foreign key: a column holding the key of a row in another table, so the two tables can be joined</td></tr><tr><th scope='row'>Blank key cell</th><td>The column is not a key; it is drawn only because it carries a note</td></tr><tr><th scope='row'>Last column</th><td>A note on that column; blank when there is nothing to add</td></tr><tr><th scope='row'>Two short bars at a line's end</th><td>Exactly one row at that end</td></tr><tr><th scope='row'>Circle and three prongs (a crow's foot) at a line's end</th><td>Zero, one or many rows at that end</td></tr><tr><th scope='row'>A whole line</th><td>Reads as: one row in the table at the bars matches any number of rows in the table at the crow's foot; the label names the column they are joined on</td></tr></table></details>
+        <p class="note"><strong>What it is.</strong> Spend with each supplier by spend category, with a spend-based emission factor. <strong>What it is for.</strong> Scope 3 category 1, purchased goods and services.</p><p class="note">Other columns: <code>spend_category</code>, <code>method</code>, <code>activity_amount</code>, <code>unit</code>, <code>emission_factor</code>, <code>tco2e</code>.</p>
+      </figure>
+      <figure class="fig" id="d13">
+        <figcaption>
+          <span class="num">Drawing 13</span>
+          <h3>Freight emissions (fact_freight): one row per month, site, direction, mode and payer</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L477">docs/data-model.md, line 477</a>, under "Emissions facts"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;Freight emissions (fact_freight): one row per month, site, direction, mode and payer&quot;
+---
+erDiagram
+    accTitle: Freight emissions, table fact_freight
+    accDescr: Freight emissions holds one row per month, site, direction, mode and payer. It joins calendar month by date_key; site by site_id; emission source by source_id.
+    dim_date ||--o{ fact_freight : &quot;date_key&quot;
+    dim_site ||--o{ fact_freight : &quot;site_id&quot;
+    dim_source ||--o{ fact_freight : &quot;source_id&quot;
+    fact_freight[&quot;Freight emissions (fact_freight)&quot;] {
+        int date_key FK
+        text site_id FK
+        text source_id FK
+    }
+    dim_date[&quot;Calendar month (dim_date)&quot;] {
+        int date_key PK
+    }
+    dim_site[&quot;Site (dim_site)&quot;] {
+        text site_id PK
+    }
+    dim_source[&quot;Emission source (dim_source)&quot;] {
+        text source_id PK
+    }</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Box</th><td>One table: its business name, with the table name in brackets</td></tr><tr><th scope='row'>First column in a box</th><td>The kind of value: <code>text</code>, <code>int</code> (a whole number) or <code>date</code></td></tr><tr><th scope='row'>PK</th><td>Primary key: the column, or columns together, that pick out exactly one row of the table</td></tr><tr><th scope='row'>FK</th><td>Foreign key: a column holding the key of a row in another table, so the two tables can be joined</td></tr><tr><th scope='row'>Blank key cell</th><td>The column is not a key; it is drawn only because it carries a note</td></tr><tr><th scope='row'>Last column</th><td>A note on that column; blank when there is nothing to add</td></tr><tr><th scope='row'>Two short bars at a line's end</th><td>Exactly one row at that end</td></tr><tr><th scope='row'>Circle and three prongs (a crow's foot) at a line's end</th><td>Zero, one or many rows at that end</td></tr><tr><th scope='row'>A whole line</th><td>Reads as: one row in the table at the bars matches any number of rows in the table at the crow's foot; the label names the column they are joined on</td></tr></table></details>
+        <p class="note"><strong>What it is.</strong> Tonnes moved, distance and transport mode, and who paid for the freight. <strong>What it is for.</strong> Scope 3 categories 4 (freight Fjordvik pays for) and 9 (freight customers pay for).</p><p class="note">Other columns: <code>direction</code>, <code>mode</code>, <code>paid_by</code>, <code>tonnes</code>, <code>distance_km</code>, <code>activity_amount</code>, <code>unit</code>, <code>emission_factor</code>, <code>tco2e</code>.</p>
+      </figure>
+      <figure class="fig" id="d14">
+        <figcaption>
+          <span class="num">Drawing 14</span>
+          <h3>Product sales (fact_sales): one row per month, shipping site, product and region</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L521">docs/data-model.md, line 521</a>, under "Portfolio facts"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;Product sales (fact_sales): one row per month, shipping site, product and region&quot;
+---
+erDiagram
+    accTitle: Product sales, table fact_sales
+    accDescr: Product sales holds one row per month, shipping site, product and region. It joins calendar month by date_key; site by site_id; product model by product_id; sales region by region_id.
+    dim_date ||--o{ fact_sales : &quot;date_key&quot;
+    dim_site ||--o{ fact_sales : &quot;site_id&quot;
+    dim_product ||--o{ fact_sales : &quot;product_id&quot;
+    dim_region ||--o{ fact_sales : &quot;region_id&quot;
+    fact_sales[&quot;Product sales (fact_sales)&quot;] {
+        int date_key FK
+        text site_id FK
+        text product_id FK
+        text region_id FK
+    }
+    dim_date[&quot;Calendar month (dim_date)&quot;] {
+        int date_key PK
+    }
+    dim_site[&quot;Site (dim_site)&quot;] {
+        text site_id PK
+    }
+    dim_product[&quot;Product model (dim_product)&quot;] {
+        text product_id PK
+    }
+    dim_region[&quot;Sales region (dim_region)&quot;] {
+        text region_id PK
+    }</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Box</th><td>One table: its business name, with the table name in brackets</td></tr><tr><th scope='row'>First column in a box</th><td>The kind of value: <code>text</code>, <code>int</code> (a whole number) or <code>date</code></td></tr><tr><th scope='row'>PK</th><td>Primary key: the column, or columns together, that pick out exactly one row of the table</td></tr><tr><th scope='row'>FK</th><td>Foreign key: a column holding the key of a row in another table, so the two tables can be joined</td></tr><tr><th scope='row'>Blank key cell</th><td>The column is not a key; it is drawn only because it carries a note</td></tr><tr><th scope='row'>Last column</th><td>A note on that column; blank when there is nothing to add</td></tr><tr><th scope='row'>Two short bars at a line's end</th><td>Exactly one row at that end</td></tr><tr><th scope='row'>Circle and three prongs (a crow's foot) at a line's end</th><td>Zero, one or many rows at that end</td></tr><tr><th scope='row'>A whole line</th><td>Reads as: one row in the table at the bars matches any number of rows in the table at the crow's foot; the label names the column they are joined on</td></tr></table></details>
+        <p class="note"><strong>What it is.</strong> Invoiced units, net sales, cost of sales and margin, cleaned by SQL from the ERP extract. <strong>What it is for.</strong> The portfolio report (price, volume and mix; portfolio balance) and the connector's sales tool; it reconciles to finance revenue to the cent.</p><p class="note">Other columns: <code>units</code>, <code>net_sales_eur</code>, <code>cost_of_sales_eur</code>, <code>margin_eur</code>.</p>
+      </figure>
+      <figure class="fig" id="d15">
+        <figcaption>
+          <span class="num">Drawing 15</span>
+          <h3>ERP data issues (fact_data_issue): one row per problem the SQL found in the ERP extract</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L568">docs/data-model.md, line 568</a>, under "Portfolio facts"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;ERP data issues (fact_data_issue): one row per problem the SQL found in the ERP extract&quot;
+---
+erDiagram
+    accTitle: ERP data issues, table fact_data_issue
+    accDescr: ERP data issues holds one row per problem the SQL found in the ERP extract. It joins calendar month by date_key; site by site_id.
+    dim_date ||--o{ fact_data_issue : &quot;date_key&quot;
+    dim_site ||--o{ fact_data_issue : &quot;site_id&quot;
+    fact_data_issue[&quot;ERP data issues (fact_data_issue)&quot;] {
+        int issue_id PK
+        int date_key FK
+        text site_id FK
+    }
+    dim_date[&quot;Calendar month (dim_date)&quot;] {
+        int date_key PK
+    }
+    dim_site[&quot;Site (dim_site)&quot;] {
+        text site_id PK
+    }</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Box</th><td>One table: its business name, with the table name in brackets</td></tr><tr><th scope='row'>First column in a box</th><td>The kind of value: <code>text</code>, <code>int</code> (a whole number) or <code>date</code></td></tr><tr><th scope='row'>PK</th><td>Primary key: the column, or columns together, that pick out exactly one row of the table</td></tr><tr><th scope='row'>FK</th><td>Foreign key: a column holding the key of a row in another table, so the two tables can be joined</td></tr><tr><th scope='row'>Blank key cell</th><td>The column is not a key; it is drawn only because it carries a note</td></tr><tr><th scope='row'>Last column</th><td>A note on that column; blank when there is nothing to add</td></tr><tr><th scope='row'>Two short bars at a line's end</th><td>Exactly one row at that end</td></tr><tr><th scope='row'>Circle and three prongs (a crow's foot) at a line's end</th><td>Zero, one or many rows at that end</td></tr><tr><th scope='row'>A whole line</th><td>Reads as: one row in the table at the bars matches any number of rows in the table at the crow's foot; the label names the column they are joined on</td></tr></table></details>
+        <p class="note"><strong>What it is.</strong> Each problem the SQL found in the ERP extract (duplicates, a missing currency, unmapped item numbers), with the value held back and the action for its owner. <strong>What it is for.</strong> The data quality page and the reconciliation to finance.</p><p class="note">Other columns: <code>business_unit</code>, <code>issue_type</code>, <code>detail</code>, <code>line_count</code>, <code>amount_eur</code>, <code>status</code>, <code>action</code>.</p>
+      </figure>
+      <figure class="fig" id="d16">
+        <figcaption>
+          <span class="num">Drawing 16</span>
+          <h3>Product use emissions (fact_use_phase): one row per month, shipping site, product and region of use</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L606">docs/data-model.md, line 606</a>, under "Portfolio facts"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;Product use emissions (fact_use_phase): one row per month, shipping site, product and region of use&quot;
+---
+erDiagram
+    accTitle: Product use emissions, table fact_use_phase
+    accDescr: Product use emissions holds one row per month, shipping site, product and region of use. It joins calendar month by date_key; site by site_id; emission source by source_id; product model by product_id; sales region by region_id.
+    dim_date ||--o{ fact_use_phase : &quot;date_key&quot;
+    dim_site ||--o{ fact_use_phase : &quot;site_id&quot;
+    dim_source ||--o{ fact_use_phase : &quot;source_id&quot;
+    dim_product ||--o{ fact_use_phase : &quot;product_id&quot;
+    dim_region ||--o{ fact_use_phase : &quot;region_id&quot;
+    fact_use_phase[&quot;Product use emissions (fact_use_phase)&quot;] {
+        int date_key FK
+        text site_id FK
+        text source_id FK
+        text product_id FK
+        text region_id FK
+    }
+    dim_date[&quot;Calendar month (dim_date)&quot;] {
+        int date_key PK
+    }
+    dim_site[&quot;Site (dim_site)&quot;] {
+        text site_id PK
+    }
+    dim_source[&quot;Emission source (dim_source)&quot;] {
+        text source_id PK
+    }
+    dim_product[&quot;Product model (dim_product)&quot;] {
+        text product_id PK
+    }
+    dim_region[&quot;Sales region (dim_region)&quot;] {
+        text region_id PK
+    }</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Box</th><td>One table: its business name, with the table name in brackets</td></tr><tr><th scope='row'>First column in a box</th><td>The kind of value: <code>text</code>, <code>int</code> (a whole number) or <code>date</code></td></tr><tr><th scope='row'>PK</th><td>Primary key: the column, or columns together, that pick out exactly one row of the table</td></tr><tr><th scope='row'>FK</th><td>Foreign key: a column holding the key of a row in another table, so the two tables can be joined</td></tr><tr><th scope='row'>Blank key cell</th><td>The column is not a key; it is drawn only because it carries a note</td></tr><tr><th scope='row'>Last column</th><td>A note on that column; blank when there is nothing to add</td></tr><tr><th scope='row'>Two short bars at a line's end</th><td>Exactly one row at that end</td></tr><tr><th scope='row'>Circle and three prongs (a crow's foot) at a line's end</th><td>Zero, one or many rows at that end</td></tr><tr><th scope='row'>A whole line</th><td>Reads as: one row in the table at the bars matches any number of rows in the table at the crow's foot; the label names the column they are joined on</td></tr></table></details>
+        <p class="note"><strong>What it is.</strong> The lifetime electricity of the pumps sold, times the grid factor of the region where they are used. <strong>What it is for.</strong> Scope 3 category 11, use of sold products, by product and region.</p><p class="note">Other columns: <code>units</code>, <code>net_sales_eur</code>, <code>activity_amount</code>, <code>unit</code>, <code>emission_factor</code>, <code>tco2e</code>.</p>
+      </figure>
+      <figure class="fig" id="d17">
+        <figcaption>
+          <span class="num">Drawing 17</span>
+          <h3>Scorecard ratings (fact_product_rating): one row per quarter, product group and criterion</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L658">docs/data-model.md, line 658</a>, under "Portfolio facts"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;Scorecard ratings (fact_product_rating): one row per quarter, product group and criterion&quot;
+---
+erDiagram
+    accTitle: Scorecard ratings, table fact_product_rating
+    accDescr: Scorecard ratings holds one row per quarter, product group and criterion. It joins calendar month by date_key; product group by product_group; scorecard criterion by criterion_id.
+    dim_date ||--o{ fact_product_rating : &quot;date_key&quot;
+    dim_product_group ||--o{ fact_product_rating : &quot;product_group&quot;
+    dim_score_criterion ||--o{ fact_product_rating : &quot;criterion_id&quot;
+    fact_product_rating[&quot;Scorecard ratings (fact_product_rating)&quot;] {
+        int date_key FK
+        text product_group FK
+        text criterion_id FK
+    }
+    dim_date[&quot;Calendar month (dim_date)&quot;] {
+        int date_key PK
+    }
+    dim_product_group[&quot;Product group (dim_product_group)&quot;] {
+        text product_group PK
+    }
+    dim_score_criterion[&quot;Scorecard criterion (dim_score_criterion)&quot;] {
+        text criterion_id PK
+    }</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Box</th><td>One table: its business name, with the table name in brackets</td></tr><tr><th scope='row'>First column in a box</th><td>The kind of value: <code>text</code>, <code>int</code> (a whole number) or <code>date</code></td></tr><tr><th scope='row'>PK</th><td>Primary key: the column, or columns together, that pick out exactly one row of the table</td></tr><tr><th scope='row'>FK</th><td>Foreign key: a column holding the key of a row in another table, so the two tables can be joined</td></tr><tr><th scope='row'>Blank key cell</th><td>The column is not a key; it is drawn only because it carries a note</td></tr><tr><th scope='row'>Last column</th><td>A note on that column; blank when there is nothing to add</td></tr><tr><th scope='row'>Two short bars at a line's end</th><td>Exactly one row at that end</td></tr><tr><th scope='row'>Circle and three prongs (a crow's foot) at a line's end</th><td>Zero, one or many rows at that end</td></tr><tr><th scope='row'>A whole line</th><td>Reads as: one row in the table at the bars matches any number of rows in the table at the crow's foot; the label names the column they are joined on</td></tr></table></details>
+        <p class="note"><strong>What it is.</strong> Each quarter's 1 to 10 rating for every product group on every scorecard criterion. <strong>What it is for.</strong> The quarterly portfolio scorecard.</p><p class="note">Other columns: <code>rating</code>.</p>
+      </figure>
+      <figure class="fig" id="d18">
+        <figcaption>
+          <span class="num">Drawing 18</span>
+          <h3>Sales plan (fact_budget): one row per month, shipping site, product group and region</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L700">docs/data-model.md, line 700</a>, under "Portfolio facts"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;Sales plan (fact_budget): one row per month, shipping site, product group and region&quot;
+---
+erDiagram
+    accTitle: Sales plan, table fact_budget
+    accDescr: Sales plan holds one row per month, shipping site, product group and region. It joins calendar month by date_key; site by site_id; product group by product_group; sales region by region_id.
+    dim_date ||--o{ fact_budget : &quot;date_key&quot;
+    dim_site ||--o{ fact_budget : &quot;site_id&quot;
+    dim_product_group ||--o{ fact_budget : &quot;product_group&quot;
+    dim_region ||--o{ fact_budget : &quot;region_id&quot;
+    fact_budget[&quot;Sales plan (fact_budget)&quot;] {
+        int date_key FK
+        text site_id FK
+        text product_group FK
+        text region_id FK
+    }
+    dim_date[&quot;Calendar month (dim_date)&quot;] {
+        int date_key PK
+    }
+    dim_site[&quot;Site (dim_site)&quot;] {
+        text site_id PK
+    }
+    dim_product_group[&quot;Product group (dim_product_group)&quot;] {
+        text product_group PK
+    }
+    dim_region[&quot;Sales region (dim_region)&quot;] {
+        text region_id PK
+    }</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Box</th><td>One table: its business name, with the table name in brackets</td></tr><tr><th scope='row'>First column in a box</th><td>The kind of value: <code>text</code>, <code>int</code> (a whole number) or <code>date</code></td></tr><tr><th scope='row'>PK</th><td>Primary key: the column, or columns together, that pick out exactly one row of the table</td></tr><tr><th scope='row'>FK</th><td>Foreign key: a column holding the key of a row in another table, so the two tables can be joined</td></tr><tr><th scope='row'>Blank key cell</th><td>The column is not a key; it is drawn only because it carries a note</td></tr><tr><th scope='row'>Last column</th><td>A note on that column; blank when there is nothing to add</td></tr><tr><th scope='row'>Two short bars at a line's end</th><td>Exactly one row at that end</td></tr><tr><th scope='row'>Circle and three prongs (a crow's foot) at a line's end</th><td>Zero, one or many rows at that end</td></tr><tr><th scope='row'>A whole line</th><td>Reads as: one row in the table at the bars matches any number of rows in the table at the crow's foot; the label names the column they are joined on</td></tr></table></details>
+        <p class="note"><strong>What it is.</strong> Planned units, net sales and margin from the yearly sales plan. <strong>What it is for.</strong> Sales against budget in the portfolio report.</p><p class="note">Other columns: <code>budget_units</code>, <code>budget_net_sales_eur</code>, <code>budget_margin_eur</code>.</p>
+      </figure>
+      <figure class="fig" id="d19">
+        <figcaption>
+          <span class="num">Drawing 19</span>
+          <h3>Daily pump readings (fact_asset_telemetry): one row per pump and day</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L749">docs/data-model.md, line 749</a>, under "After-sales service facts"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;Daily pump readings (fact_asset_telemetry): one row per pump and day&quot;
+---
+erDiagram
+    accTitle: Daily pump readings, table fact_asset_telemetry
+    accDescr: Daily pump readings holds one row per pump and day. It joins connected pump by asset_id.
+    dim_asset ||--o{ fact_asset_telemetry : &quot;asset_id&quot;
+    fact_asset_telemetry[&quot;Daily pump readings (fact_asset_telemetry)&quot;] {
+        int date_key PK &quot;a day; no daily date table yet (ADR-029)&quot;
+        text asset_id FK
+    }
+    dim_asset[&quot;Connected pump (dim_asset)&quot;] {
+        text asset_id PK
+    }</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Box</th><td>One table: its business name, with the table name in brackets</td></tr><tr><th scope='row'>First column in a box</th><td>The kind of value: <code>text</code>, <code>int</code> (a whole number) or <code>date</code></td></tr><tr><th scope='row'>PK</th><td>Primary key: the column, or columns together, that pick out exactly one row of the table</td></tr><tr><th scope='row'>FK</th><td>Foreign key: a column holding the key of a row in another table, so the two tables can be joined</td></tr><tr><th scope='row'>Blank key cell</th><td>The column is not a key; it is drawn only because it carries a note</td></tr><tr><th scope='row'>Last column</th><td>A note on that column; blank when there is nothing to add</td></tr><tr><th scope='row'>Two short bars at a line's end</th><td>Exactly one row at that end</td></tr><tr><th scope='row'>Circle and three prongs (a crow's foot) at a line's end</th><td>Zero, one or many rows at that end</td></tr><tr><th scope='row'>A whole line</th><td>Reads as: one row in the table at the bars matches any number of rows in the table at the crow's foot; the label names the column they are joined on</td></tr></table></details>
+        <p class="note"><strong>What it is.</strong> Running hours, vibration, bearing temperature and power reported once a day by each connected pump's drive. <strong>What it is for.</strong> The failure risk model's features and the parts forecast's drivers.</p><p class="note">Other columns: <code>running_hours</code>, <code>vibration_mm_s</code>, <code>bearing_temp_c</code>, <code>power_kw</code>.</p>
+      </figure>
+      <figure class="fig" id="d20">
+        <figcaption>
+          <span class="num">Drawing 20</span>
+          <h3>Service jobs (fact_service_event): one row per failure, preventive visit or inspection</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L782">docs/data-model.md, line 782</a>, under "After-sales service facts"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;Service jobs (fact_service_event): one row per failure, preventive visit or inspection&quot;
+---
+erDiagram
+    accTitle: Service jobs, table fact_service_event
+    accDescr: Service jobs holds one row per failure, preventive visit or inspection. It joins connected pump by asset_id; technician by technician_id.
+    dim_asset ||--o{ fact_service_event : &quot;asset_id&quot;
+    dim_technician ||--o{ fact_service_event : &quot;technician_id&quot;
+    fact_service_event[&quot;Service jobs (fact_service_event)&quot;] {
+        text event_id PK
+        text asset_id FK
+        date reported_date &quot;a date, no date key&quot;
+        text technician_id FK
+    }
+    dim_asset[&quot;Connected pump (dim_asset)&quot;] {
+        text asset_id PK
+    }
+    dim_technician[&quot;Technician (dim_technician)&quot;] {
+        text technician_id PK
+    }</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Box</th><td>One table: its business name, with the table name in brackets</td></tr><tr><th scope='row'>First column in a box</th><td>The kind of value: <code>text</code>, <code>int</code> (a whole number) or <code>date</code></td></tr><tr><th scope='row'>PK</th><td>Primary key: the column, or columns together, that pick out exactly one row of the table</td></tr><tr><th scope='row'>FK</th><td>Foreign key: a column holding the key of a row in another table, so the two tables can be joined</td></tr><tr><th scope='row'>Blank key cell</th><td>The column is not a key; it is drawn only because it carries a note</td></tr><tr><th scope='row'>Last column</th><td>A note on that column; blank when there is nothing to add</td></tr><tr><th scope='row'>Two short bars at a line's end</th><td>Exactly one row at that end</td></tr><tr><th scope='row'>Circle and three prongs (a crow's foot) at a line's end</th><td>Zero, one or many rows at that end</td></tr><tr><th scope='row'>A whole line</th><td>Reads as: one row in the table at the bars matches any number of rows in the table at the crow's foot; the label names the column they are joined on</td></tr></table></details>
+        <p class="note"><strong>What it is.</strong> Each failure, preventive visit and inspection, with downtime, labour, parts used and the technician's note. <strong>What it is for.</strong> The failure model's labels and the service measures (failure share, downtime); later the visit schedule.</p><p class="note">Other columns: <code>event_type</code>, <code>failure_mode</code>, <code>completed_date</code>, <code>downtime_hours</code>, <code>labour_hours</code>, <code>parts_used</code>, <code>technician_note</code>.</p>
+      </figure>
+      <figure class="fig" id="d21">
+        <figcaption>
+          <span class="num">Drawing 21</span>
+          <h3>Spare part orders (fact_parts_order): one row per order line</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L821">docs/data-model.md, line 821</a>, under "After-sales service facts"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;Spare part orders (fact_parts_order): one row per order line&quot;
+---
+erDiagram
+    accTitle: Spare part orders, table fact_parts_order
+    accDescr: Spare part orders holds one row per order line. It joins calendar month by date_key; site by site_id; sales region by region_id; customer by customer_id; spare part by part_id; product model by sales_product_id; service jobs by service_event_id; connected pump by asset_id.
+    dim_date ||--o{ fact_parts_order : &quot;date_key&quot;
+    dim_site ||--o{ fact_parts_order : &quot;site_id&quot;
+    dim_region ||--o{ fact_parts_order : &quot;region_id&quot;
+    dim_customer ||--o{ fact_parts_order : &quot;customer_id&quot;
+    dim_part ||--o{ fact_parts_order : &quot;part_id&quot;
+    dim_product ||--o{ fact_parts_order : &quot;sales_product_id&quot;
+    fact_service_event ||--o{ fact_parts_order : &quot;service_event_id&quot;
+    dim_asset ||--o{ fact_parts_order : &quot;asset_id&quot;
+    fact_parts_order[&quot;Spare part orders (fact_parts_order)&quot;] {
+        text order_id PK
+        int order_line PK
+        date order_date &quot;the day; date_key is its month&quot;
+        int date_key FK
+        text site_id FK
+        text region_id FK
+        text customer_id FK
+        text part_id FK
+        text sales_product_id FK
+        text service_event_id FK &quot;blank unless the order was for a service job&quot;
+        text asset_id FK &quot;blank unless the order was for a service job&quot;
+    }
+    dim_date[&quot;Calendar month (dim_date)&quot;] {
+        int date_key PK
+    }
+    dim_site[&quot;Site (dim_site)&quot;] {
+        text site_id PK
+    }
+    dim_region[&quot;Sales region (dim_region)&quot;] {
+        text region_id PK
+    }
+    dim_customer[&quot;Customer (dim_customer)&quot;] {
+        text customer_id PK
+    }
+    dim_part[&quot;Spare part (dim_part)&quot;] {
+        text part_id PK
+    }
+    dim_product[&quot;Product model (dim_product)&quot;] {
+        text product_id PK
+    }
+    fact_service_event[&quot;Service jobs (fact_service_event)&quot;] {
+        text event_id PK
+    }
+    dim_asset[&quot;Connected pump (dim_asset)&quot;] {
+        text asset_id PK
+    }</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Box</th><td>One table: its business name, with the table name in brackets</td></tr><tr><th scope='row'>First column in a box</th><td>The kind of value: <code>text</code>, <code>int</code> (a whole number) or <code>date</code></td></tr><tr><th scope='row'>PK</th><td>Primary key: the column, or columns together, that pick out exactly one row of the table</td></tr><tr><th scope='row'>FK</th><td>Foreign key: a column holding the key of a row in another table, so the two tables can be joined</td></tr><tr><th scope='row'>Blank key cell</th><td>The column is not a key; it is drawn only because it carries a note</td></tr><tr><th scope='row'>Last column</th><td>A note on that column; blank when there is nothing to add</td></tr><tr><th scope='row'>Two short bars at a line's end</th><td>Exactly one row at that end</td></tr><tr><th scope='row'>Circle and three prongs (a crow's foot) at a line's end</th><td>Zero, one or many rows at that end</td></tr><tr><th scope='row'>A whole line</th><td>Reads as: one row in the table at the bars matches any number of rows in the table at the crow's foot; the label names the column they are joined on</td></tr></table></details>
+        <p class="note"><strong>What it is.</strong> Every order line for spare parts and service kits from the Oulu and Tartu warehouses; the lines add up to product sales for parts and kits. <strong>What it is for.</strong> The parts demand forecast and, later, parts recommendations.</p><p class="note">Other columns: <code>quantity</code>, <code>net_amount_eur</code>, <code>channel</code>.</p>
+      </figure>
+      <figure class="fig" id="d22">
+        <figcaption>
+          <span class="num">Drawing 22</span>
+          <h3>Parts portal suggestions (fact_portal_event): one row per part shown in a portal session</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L891">docs/data-model.md, line 891</a>, under "After-sales service facts"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;Parts portal suggestions (fact_portal_event): one row per part shown in a portal session&quot;
+---
+erDiagram
+    accTitle: Parts portal suggestions, table fact_portal_event
+    accDescr: Parts portal suggestions holds one row per part shown in a portal session. It joins customer by customer_id; product model by product_id; spare part by part_id.
+    dim_customer ||--o{ fact_portal_event : &quot;customer_id&quot;
+    dim_product ||--o{ fact_portal_event : &quot;product_id&quot;
+    dim_part ||--o{ fact_portal_event : &quot;part_id&quot;
+    fact_portal_event[&quot;Parts portal suggestions (fact_portal_event)&quot;] {
+        int event_id PK
+        date event_date &quot;a date, no date key&quot;
+        text customer_id FK
+        text product_id FK
+        text part_id FK
+    }
+    dim_customer[&quot;Customer (dim_customer)&quot;] {
+        text customer_id PK
+    }
+    dim_product[&quot;Product model (dim_product)&quot;] {
+        text product_id PK
+    }
+    dim_part[&quot;Spare part (dim_part)&quot;] {
+        text part_id PK
+    }</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Box</th><td>One table: its business name, with the table name in brackets</td></tr><tr><th scope='row'>First column in a box</th><td>The kind of value: <code>text</code>, <code>int</code> (a whole number) or <code>date</code></td></tr><tr><th scope='row'>PK</th><td>Primary key: the column, or columns together, that pick out exactly one row of the table</td></tr><tr><th scope='row'>FK</th><td>Foreign key: a column holding the key of a row in another table, so the two tables can be joined</td></tr><tr><th scope='row'>Blank key cell</th><td>The column is not a key; it is drawn only because it carries a note</td></tr><tr><th scope='row'>Last column</th><td>A note on that column; blank when there is nothing to add</td></tr><tr><th scope='row'>Two short bars at a line's end</th><td>Exactly one row at that end</td></tr><tr><th scope='row'>Circle and three prongs (a crow's foot) at a line's end</th><td>Zero, one or many rows at that end</td></tr><tr><th scope='row'>A whole line</th><td>Reads as: one row in the table at the bars matches any number of rows in the table at the crow's foot; the label names the column they are joined on</td></tr></table></details>
+        <p class="note"><strong>What it is.</strong> Each part the parts portal showed a customer, and whether the customer clicked it. <strong>What it is for.</strong> Training and testing parts recommendations.</p><p class="note">Other columns: <code>session_id</code>, <code>rank</code>, <code>clicked</code>.</p>
+      </figure>
+      <figure class="fig" id="d23">
+        <figcaption>
+          <span class="num">Drawing 23</span>
+          <h3>How the dimensions link to each other: products, sites, customers, pumps and parts</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/data-model.md?plain=1#L937">docs/data-model.md, line 937</a>, under "How the dimensions link"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;How the dimensions link to each other: products, sites, customers, pumps and parts&quot;
+---
+erDiagram
+    accTitle: Links between the Fjordvik dimension tables
+    accDescr: Dimensions that point to other dimensions: sources to scope 3 categories; products to product groups and the site that makes them; local item numbers to products; energy contracts to sites and sources; customers to regions; pumps to customers and products; parts to the product they are sold as; the parts bridge to parts and product groups; technicians to their home site. Contract start and end dates are plain dates, not joins.
+    dim_scope3_category ||--o{ dim_source : &quot;scope3_category&quot;
+    dim_product_group ||--o{ dim_product : &quot;product_group&quot;
+    dim_site ||--o{ dim_product : &quot;made_at_site_id&quot;
+    dim_product ||--o{ dim_product_code : &quot;product_id&quot;
+    dim_site ||--o{ dim_contract : &quot;site_id&quot;
+    dim_source ||--o{ dim_contract : &quot;source_id&quot;
+    dim_region ||--o{ dim_customer : &quot;region_id&quot;
+    dim_customer ||--o{ dim_asset : &quot;customer_id&quot;
+    dim_product ||--o{ dim_asset : &quot;product_id&quot;
+    dim_product ||--o{ dim_part : &quot;sales_product_id&quot;
+    dim_part ||--o{ bridge_part_compatibility : &quot;part_id&quot;
+    dim_product_group ||--o{ bridge_part_compatibility : &quot;product_group&quot;
+    dim_site ||--o{ dim_technician : &quot;home_site_id&quot;
+    dim_source[&quot;Emission source (dim_source)&quot;] {
+        text source_id PK
+        int scope3_category FK
+    }
+    dim_scope3_category[&quot;Scope 3 category (dim_scope3_category)&quot;] {
+        int scope3_category PK
+    }
+    dim_product[&quot;Product model (dim_product)&quot;] {
+        text product_id PK
+        text product_group FK
+        text made_at_site_id FK
+    }
+    dim_product_group[&quot;Product group (dim_product_group)&quot;] {
+        text product_group PK
+    }
+    dim_site[&quot;Site (dim_site)&quot;] {
+        text site_id PK
+    }
+    dim_product_code[&quot;Local item number (dim_product_code)&quot;] {
+        text business_unit PK
+        text local_item_number PK
+        text product_id FK
+    }
+    dim_contract[&quot;Energy contract (dim_contract)&quot;] {
+        text contract_id PK
+        text site_id FK
+        text source_id FK
+        int start_date_key &quot;a date, not a join&quot;
+        int end_date_key &quot;a date past the calendar, not a join&quot;
+    }
+    dim_customer[&quot;Customer (dim_customer)&quot;] {
+        text customer_id PK
+        text region_id FK
+    }
+    dim_region[&quot;Sales region (dim_region)&quot;] {
+        text region_id PK
+    }
+    dim_asset[&quot;Connected pump (dim_asset)&quot;] {
+        text asset_id PK
+        text product_id FK
+        text customer_id FK
+    }
+    dim_part[&quot;Spare part (dim_part)&quot;] {
+        text part_id PK
+        text sales_product_id FK
+    }
+    bridge_part_compatibility[&quot;Part fit (bridge_part_compatibility)&quot;] {
+        text part_id PK
+        text product_group PK
+    }
+    dim_technician[&quot;Technician (dim_technician)&quot;] {
+        text technician_id PK
+        text home_site_id FK
+    }</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Box</th><td>One table: its business name, with the table name in brackets</td></tr><tr><th scope='row'>First column in a box</th><td>The kind of value: <code>text</code>, <code>int</code> (a whole number) or <code>date</code></td></tr><tr><th scope='row'>PK</th><td>Primary key: the column, or columns together, that pick out exactly one row of the table</td></tr><tr><th scope='row'>FK</th><td>Foreign key: a column holding the key of a row in another table, so the two tables can be joined</td></tr><tr><th scope='row'>Blank key cell</th><td>The column is not a key; it is drawn only because it carries a note</td></tr><tr><th scope='row'>Last column</th><td>A note on that column; blank when there is nothing to add</td></tr><tr><th scope='row'>Two short bars at a line's end</th><td>Exactly one row at that end</td></tr><tr><th scope='row'>Circle and three prongs (a crow's foot) at a line's end</th><td>Zero, one or many rows at that end</td></tr><tr><th scope='row'>A whole line</th><td>Reads as: one row in the table at the bars matches any number of rows in the table at the crow's foot; the label names the column they are joined on</td></tr></table></details><div class='tablewrap'><table class='key wide'><thead><tr><th scope='col'>Business name</th><th scope='col'>Table</th><th scope='col'>What it is</th><th scope='col'>What it is for</th></tr></thead><tbody><tr><td>Calendar month</td><td><code>dim_date</code></td><td>Each reporting month, January 2023 to December 2025.</td><td>Groups every monthly figure by month, quarter and year.</td></tr><tr><td>Site</td><td><code>dim_site</code></td><td>The six sites: three plants, two warehouses and the head office.</td><td>Filters figures by site and country; the country security roles act on it.</td></tr><tr><td>Emission source</td><td><code>dim_source</code></td><td>Each emission source with its scope and category.</td><td>Groups emissions by scope, source and scope 3 category.</td></tr><tr><td>Scope 3 category</td><td><code>dim_scope3_category</code></td><td>All 15 Greenhouse Gas Protocol scope 3 categories, each with a status and reason.</td><td>Shows which categories are counted and why the others are not.</td></tr><tr><td>Supplier</td><td><code>dim_supplier</code></td><td>Each supplier with its country and spend category.</td><td>Groups purchased goods emissions by supplier.</td></tr><tr><td>Energy contract</td><td><code>dim_contract</code></td><td>Each electricity contract with its guarantees of origin, dates and share of electricity covered.</td><td>Works out market-based electricity emissions.</td></tr><tr><td>Product model</td><td><code>dim_product</code></td><td>The 24 product models with rated power, yearly electricity use, lifetime, list price and standard cost.</td><td>Groups sales; its specification drives product use emissions.</td></tr><tr><td>Product group</td><td><code>dim_product_group</code></td><td>The 10 product groups and the family each belongs to.</td><td>The level the scorecard, the sales plan and parts fit work at.</td></tr><tr><td>Sales region</td><td><code>dim_region</code></td><td>The four sales regions: Nordics, Baltics, Western Europe and Rest of world.</td><td>Filters sales; the region security roles act on it.</td></tr><tr><td>Local item number</td><td><code>dim_product_code</code></td><td>Each business unit's local item number, mapped to one global product.</td><td>Lets the SQL map ERP sales to products; unmapped numbers are held back.</td></tr><tr><td>Scorecard criterion</td><td><code>dim_score_criterion</code></td><td>The six scorecard criteria and the weight Fjordvik gives each.</td><td>Weights the quarterly ratings into one score.</td></tr><tr><td>Customer</td><td><code>dim_customer</code></td><td>The 150 customers with segment, location and service contract.</td><td>Groups service jobs, orders and portal activity by customer.</td></tr><tr><td>Connected pump</td><td><code>dim_asset</code></td><td>The 600 connected pumps with model, owner, location and install date.</td><td>Links readings and service jobs to a pump, its model and its customer.</td></tr><tr><td>Spare part</td><td><code>dim_part</code></td><td>The 52 spare parts and kits with family, list price and lead time.</td><td>Groups parts orders and portal suggestions.</td></tr><tr><td>Technician</td><td><code>dim_technician</code></td><td>The 12 technicians with home base, countries, skills and weekly hours.</td><td>Shows who did each job; the scheduler's capacity.</td></tr><tr><td>Part fit</td><td><code>bridge_part_compatibility</code></td><td>Which spare parts fit which product groups.</td><td>Stops the portal suggesting a part that does not fit.</td></tr></tbody></table></div>
+        <p class="note">Last updated: 25 November 2026, commit <code>f5b1aef</code>.</p><p class="note">These are the reference tables every set of facts above is filtered and grouped by.</p>
+      </figure>
+    </section>
+
+    <section class="doc">
+      <header class="dochead">
+        <h2>Requirements</h2>
+        <p>Who supplies the data and who uses the results. <a class="path" href="https://github.com/voneeci/fjordvik/blob/main/docs/requirements.md">docs/requirements.md</a></p>
+      </header>
+      
+      <figure class="fig" id="d24">
+        <figcaption>
+          <span class="num">Drawing 24</span>
+          <h3>Stakeholder map: who supplies the data and who uses the results</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/requirements.md?plain=1#L20">docs/requirements.md, line 20</a>, under "Stakeholder map"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+title: &quot;Stakeholder map: who supplies the data and who uses the results&quot;
+config:
+  flowchart:
+    wrappingWidth: 440
+---
+flowchart TB
+    accTitle: Stakeholder map of the Fjordvik data and AI platform
+    accDescr: Nine roles supply data to the platform, from the site energy coordinators&#x27; monthly workbooks to the technical documentation team&#x27;s manuals. The ERP team at IT runs the extract and hosts staging. Seven roles use the results, each limited to what their role may see, from the Group Sustainability Manager to customers on the parts portal.
+    classDef person fill:#08427b,color:#ffffff,stroke:#052e56
+    classDef system fill:#1168bd,color:#ffffff,stroke:#0b4884
+
+    SUP[&quot;Supply the data [People, by job title]&lt;br/&gt;Site Energy Coordinators: monthly workbook&lt;br/&gt;Group Financial Controller: revenue after the close&lt;br/&gt;HR Manager: headcount&lt;br/&gt;Procurement Manager: purchase ledger&lt;br/&gt;Logistics Manager: freight&lt;br/&gt;Regional controllers: ERP sales&lt;br/&gt;Service Manager: customers, pumps, service records&lt;br/&gt;Technicians: job notes and parts used&lt;br/&gt;Technical documentation team: manuals&quot;]:::person
+    IT[&quot;IT, ERP team [People]&lt;br/&gt;runs the extract, hosts staging&quot;]:::person
+    P([&quot;Fjordvik data and AI platform&lt;br/&gt;[Software system]&quot;]):::system
+    USE[&quot;Use the results [People, by job title]&lt;br/&gt;Group Sustainability Manager: emissions figures&lt;br/&gt;Head of Portfolio, Product Managers: portfolio, scorecard&lt;br/&gt;Country managers: their own sites only&lt;br/&gt;Sales region managers: their own region only&lt;br/&gt;Service Manager: risk list, plans, forecasts&lt;br/&gt;Technicians: alerts, schedule, assistant&lt;br/&gt;Customers: parts suggestions on the portal&quot;]:::person
+
+    SUP --&gt;|&quot;supply their data to&quot;| P
+    IT --&gt;|&quot;runs the extract, hosts staging for&quot;| P
+    P --&gt;|&quot;serves figures, scores, plans and answers to&quot;| USE</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Dark blue box</th><td>People, by job title</td></tr><tr><th scope='row'>Blue rounded box</th><td>The platform</td></tr><tr><th scope='row'>Solid line</th><td>Part of the design</td></tr><tr><th scope='row'>Abbreviations</th><td>ERP: enterprise resource planning</td></tr></table></details>
+        <p class="note">Last updated: 25 November 2026, commit <code>a997951</code>.</p><p class="note">The table below gives each role's interest, influence and needs.</p>
+      </figure>
+    </section>
+
+    <section class="doc">
+      <header class="dochead">
+        <h2>Threat model</h2>
+        <p>Where data or control changes hands, boundary by boundary. <a class="path" href="https://github.com/voneeci/fjordvik/blob/main/docs/threat-model.md">docs/threat-model.md</a></p>
+      </header>
+      
+      <figure class="fig" id="d25">
+        <figcaption>
+          <span class="num">Drawing 25</span>
+          <h3>Trust boundaries (threat model): zones of trust and the crossings B1 to B8</h3>
+          <p class="src"><a href="https://github.com/voneeci/fjordvik/blob/main/docs/threat-model.md?plain=1#L22">docs/threat-model.md, line 22</a>, under "Method"</p>
+        </figcaption>
+        <div class="sheet"><pre class="mermaid">---
+config:
+  flowchart:
+    nodeSpacing: 20
+    rankSpacing: 35
+title: &quot;Trust boundaries (threat model): zones of trust and the crossings B1 to B8&quot;
+---
+flowchart LR
+    accTitle: Trust boundaries of the Fjordvik platform
+    accDescr: Four zones, each enclosed by a dashed red trust boundary: outside sources of untrusted input, the Fjordvik platform, signed-in readers limited by role, and the people and chats who change the public repository. Lines crossing a zone edge are the boundaries B1 to B8: files and extracts into intake, checked rows into the dataset, figures out to Power BI users, Claude&#x27;s tool calls into the connector, untrusted text into the service AI, the human approval of drafts, and commits to the repository.
+    classDef inside fill:#1168bd,color:#ffffff,stroke:#0b4884
+    classDef store fill:#e3eef9,color:#0b2a4a,stroke:#1168bd
+    classDef party fill:#6b6b6b,color:#ffffff,stroke:#333333
+
+    subgraph OUTSIDE[&quot;Outside: untrusted input&quot;]
+        direction TB
+        S[&quot;Sites and source systems&lt;br/&gt;[files, extracts, readings]&quot;]:::party
+        TXT[&quot;Emails, technician notes,&lt;br/&gt;manuals, portal text&quot;]:::party
+    end
+    subgraph PLATFORM[&quot;Fjordvik platform&quot;]
+        direction TB
+        IN[&quot;Intake flows and SQL pipeline&lt;br/&gt;[Power Automate, DuckDB SQL]&quot;]:::inside
+        DS[(&quot;Governed dataset&lt;br/&gt;[CSV + manifest]&quot;)]:::store
+        MCP[&quot;Claude connector&lt;br/&gt;[MCP server]&quot;]:::inside
+        SAI[&quot;Service AI&lt;br/&gt;[Python, Claude API]&quot;]:::inside
+        DRAFT[(&quot;Drafts awaiting approval&lt;br/&gt;[outbox/]&quot;)]:::store
+    end
+    subgraph READERS[&quot;Readers: signed in, limited by role&quot;]
+        direction TB
+        PBI[&quot;Power BI users&lt;br/&gt;[row-level security]&quot;]:::party
+        CL[&quot;Claude and its users&lt;br/&gt;[MCP client]&quot;]:::party
+        APPR[&quot;Service Manager&lt;br/&gt;[approve command]&quot;]:::party
+    end
+    subgraph CONTRIB[&quot;Contributors to the public repository&quot;]
+        direction TB
+        PPL[&quot;Chats and people working in git&quot;]:::party
+        REPO[&quot;Public repository&lt;br/&gt;[GitHub]&quot;]:::inside
+    end
+
+    S --&gt;|&quot;B1, B2: files, extracts&quot;| IN
+    IN --&gt;|&quot;B3: checked rows&quot;| DS
+    DS --&gt;|&quot;B4: figures by role&quot;| PBI
+    CL --&gt;|&quot;B5: read-only tool calls&quot;| MCP
+    MCP --&gt;|&quot;reads&quot;| DS
+    DS --&gt;|&quot;read in place&quot;| SAI
+    TXT --&gt;|&quot;B6: labelled data, never instructions&quot;| SAI
+    SAI --&gt;|&quot;drafts only&quot;| DRAFT
+    APPR --&gt;|&quot;B7: approves each draft once&quot;| DRAFT
+    PPL --&gt;|&quot;B8: commits&quot;| REPO
+
+    style OUTSIDE fill:#ffffff,stroke:#b42318,stroke-width:2px,stroke-dasharray:8 4,color:#8a1c1c
+    style PLATFORM fill:#f7f9fb,stroke:#b42318,stroke-width:2px,stroke-dasharray:8 4,color:#8a1c1c
+    style READERS fill:#ffffff,stroke:#b42318,stroke-width:2px,stroke-dasharray:8 4,color:#8a1c1c
+    style CONTRIB fill:#ffffff,stroke:#b42318,stroke-width:2px,stroke-dasharray:8 4,color:#8a1c1c</pre></div>
+        <details class='keybox'><summary>Key</summary><table class='key'><tr><th scope='row'>Dashed red outline</th><td>A trust boundary around a zone of the same trust</td></tr><tr><th scope='row'>B1 to B8 on a line</th><td>A line that crosses a trust boundary; each has its own section below</td></tr><tr><th scope='row'>Blue box</th><td>Part of the Fjordvik platform or repository</td></tr><tr><th scope='row'>Pale blue cylinder</th><td>Data store</td></tr><tr><th scope='row'>Grey box</th><td>A person, party or source outside the platform's trust</td></tr><tr><th scope='row'>Abbreviations</th><td>MCP: Model Context Protocol</td></tr></table></details>
+        <p class="note">Last updated: 25 November 2026, commit <code>f5b1aef</code>.</p><p class="note">B3 sits inside the platform zone: it is the step from checked intake to the governed dataset, which only the generator or the checked load may cross (rule D3).</p>
+      </figure>
+    </section>
+    </main>
+  </div>
+  <footer class="foot">
+    <p>Generated from the Markdown in <a href="https://github.com/voneeci/fjordvik">the Fjordvik repository</a> by <code>docs/site/drawings/build.py</code>; edit the docs, not this page. Synthetic data; emission factors illustrative, not cited.</p>
+  </footer>
+</div>
+
+<div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-labelledby="vtitle" hidden>
+  <div class="vbar">
+    <div class="grp">
+      <button type="button" class="btn" id="vprev" aria-label="Previous drawing">&#8592;</button>
+      <button type="button" class="btn" id="vnext" aria-label="Next drawing">&#8594;</button>
+    </div>
+    <label for="vpick" class="sr" id="vtitle" style="position:absolute;left:-9999px">Drawing</label>
+    <select id="vpick"></select>
+    <div class="grp" role="group" aria-label="Zoom">
+      <button type="button" class="btn" id="zout" aria-label="Zoom out">&minus;</button>
+      <span class="zoomval" id="zval" aria-live="polite">100%</span>
+      <button type="button" class="btn" id="zin" aria-label="Zoom in">+</button>
+      <button type="button" class="btn" id="zfit">Fit</button>
+      <button type="button" class="btn" id="zwide">Fit width</button>
+      <button type="button" class="btn" id="z100">100%</button>
+    </div>
+    <span class="spacer"></span>
+    <button type="button" class="btn primary" id="vclose">Close</button>
+  </div>
+  <div class="vcap" id="vcap"></div>
+  <div class="stage" id="stage" tabindex="0" aria-label="Drawing; drag or scroll to move around"><div class="inner" id="inner"></div></div>
+</div>
+
+<script>
+(function () {
+  var figs = Array.prototype.slice.call(document.querySelectorAll('.fig'));
+  var pick = document.getElementById('pick'), vpick = document.getElementById('vpick');
+  var viewer = document.getElementById('viewer'), stage = document.getElementById('stage'), inner = document.getElementById('inner');
+  var zval = document.getElementById('zval'), vcap = document.getElementById('vcap');
+  var current = -1, svg = null, nat = null, scale = 1, opener = null, tries = 0;
+
+  figs.forEach(function (f, i) {
+    var title = f.querySelector('h3').textContent;
+    pick.add(new Option((i + 1) + '. ' + title, String(i)));
+    vpick.add(new Option((i + 1) + '. ' + title, String(i)));
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'btn expand'; b.textContent = 'Expand';
+    b.setAttribute('aria-label', 'Expand drawing ' + (i + 1));
+    b.addEventListener('click', function () { open(i, b); });
+    f.querySelector('figcaption').appendChild(b);
+    f.querySelector('.sheet').addEventListener('click', function () { open(i, b); });
+  });
+
+  document.getElementById('pickgo').addEventListener('click', function () {
+    if (pick.value !== '') open(Number(pick.value), this);
+  });
+  pick.addEventListener('change', function () { if (pick.value !== '') open(Number(pick.value), pick); });
+  vpick.addEventListener('change', function () { show(Number(vpick.value)); });
+
+  function open(i, from) {
+    opener = from || null;
+    viewer.hidden = false;
+    document.documentElement.style.overflow = 'hidden';
+    show(i);
+    document.getElementById('vclose').focus();
+  }
+  function close() {
+    viewer.hidden = true;
+    document.documentElement.style.overflow = '';
+    inner.innerHTML = ''; svg = null;
+    if (opener && opener.focus) opener.focus();
+  }
+
+  function show(i) {
+    current = (i + figs.length) % figs.length;
+    vpick.value = String(current);
+    var f = figs[current];
+    vcap.textContent = 'Drawing ' + (current + 1) + ' of ' + figs.length + ' · ' + f.querySelector('.src').textContent;
+    var src = f.querySelector('.sheet svg');
+    inner.innerHTML = '';
+    if (!src) {
+      inner.innerHTML = '<p class="waiting">This drawing is still being drawn. It will appear in a moment.</p>';
+      if (tries++ < 20) setTimeout(function () { if (!viewer.hidden && current === i) show(i); }, 300);
+      return;
+    }
+    tries = 0;
+    svg = src.cloneNode(true);
+    var vb = src.viewBox && src.viewBox.baseVal;
+    if (vb && vb.width) { nat = { w: vb.width, h: vb.height }; }
+    else { var r = src.getBoundingClientRect(); nat = { w: r.width || 800, h: r.height || 600 }; }
+    svg.removeAttribute('style');
+    svg.style.maxWidth = 'none';
+    inner.appendChild(svg);
+    stage.scrollTop = 0; stage.scrollLeft = 0;
+    fit('both');
+  }
+
+  function setScale(s, keepCentre) {
+    var cx = 0.5, cy = 0.5;
+    if (keepCentre && svg) {
+      cx = (stage.scrollLeft + stage.clientWidth / 2) / Math.max(stage.scrollWidth, 1);
+      cy = (stage.scrollTop + stage.clientHeight / 2) / Math.max(stage.scrollHeight, 1);
+    }
+    scale = Math.min(6, Math.max(0.1, s));
+    if (!svg) return;
+    svg.setAttribute('width', Math.round(nat.w * scale));
+    svg.setAttribute('height', Math.round(nat.h * scale));
+    zval.textContent = Math.round(scale * 100) + '%';
+    if (keepCentre) {
+      stage.scrollLeft = cx * stage.scrollWidth - stage.clientWidth / 2;
+      stage.scrollTop = cy * stage.scrollHeight - stage.clientHeight / 2;
+    }
+  }
+  function fit(mode) {
+    if (!nat) return;
+    var w = stage.clientWidth - 34, h = stage.clientHeight - 34;
+    var s = mode === 'width' ? w / nat.w : Math.min(w / nat.w, h / nat.h);
+    setScale(s, false);
+  }
+
+  document.getElementById('zin').addEventListener('click', function () { setScale(scale * 1.25, true); });
+  document.getElementById('zout').addEventListener('click', function () { setScale(scale / 1.25, true); });
+  document.getElementById('zfit').addEventListener('click', function () { fit('both'); });
+  document.getElementById('zwide').addEventListener('click', function () { fit('width'); });
+  document.getElementById('z100').addEventListener('click', function () { setScale(1, true); });
+  document.getElementById('vprev').addEventListener('click', function () { show(current - 1); });
+  document.getElementById('vnext').addEventListener('click', function () { show(current + 1); });
+  document.getElementById('vclose').addEventListener('click', close);
+
+  document.addEventListener('keydown', function (e) {
+    if (viewer.hidden) return;
+    if (e.target && e.target.tagName === 'SELECT' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) return;
+    if (e.key === 'Escape') { e.preventDefault(); close(); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); show(current + 1); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); show(current - 1); }
+    else if (e.key === '+' || e.key === '=') { e.preventDefault(); setScale(scale * 1.25, true); }
+    else if (e.key === '-') { e.preventDefault(); setScale(scale / 1.25, true); }
+    else if (e.key === '0') { e.preventDefault(); fit('both'); }
+  });
+
+  stage.addEventListener('wheel', function (e) {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    setScale(scale * (e.deltaY < 0 ? 1.1 : 1 / 1.1), true);
+  }, { passive: false });
+
+  var drag = null;
+  stage.addEventListener('pointerdown', function (e) {
+    if (e.button !== 0 || e.pointerType === 'touch') return;
+    drag = { x: e.clientX, y: e.clientY, l: stage.scrollLeft, t: stage.scrollTop };
+    stage.classList.add('dragging');
+    stage.setPointerCapture(e.pointerId);
+  });
+  stage.addEventListener('pointermove', function (e) {
+    if (!drag) return;
+    stage.scrollLeft = drag.l - (e.clientX - drag.x);
+    stage.scrollTop = drag.t - (e.clientY - drag.y);
+  });
+  function endDrag() { drag = null; stage.classList.remove('dragging'); }
+  stage.addEventListener('pointerup', endDrag);
+  stage.addEventListener('pointercancel', endDrag);
+
+  window.addEventListener('resize', function () { if (!viewer.hidden && svg) fit('both'); });
+})();
+</script>
+<script type="module">
+  // The page draws its own diagrams, so it does not depend on the host rendering Mermaid.
+  // Light theme in both modes: the sheets are paper.
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'strict' });
+  try {
+    await mermaid.run({ querySelector: 'pre.mermaid:not([data-processed])', suppressErrors: true });
+  } catch (e) {
+    console.error('Mermaid could not draw a diagram', e);
+  }
+</script>
+</body>
+</html>

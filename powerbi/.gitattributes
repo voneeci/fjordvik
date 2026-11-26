@@ -1,4 +1,5 @@
 # Power BI Desktop writes CRLF; let git normalise everything else.
 *           text=auto
-# The data dictionary is generated with LF and its test compares bytes.
+# The data dictionary and the measure guide are generated with LF and their tests compare bytes.
 docs/data-dictionary.md text eol=lf
+docs/measure-guide.md text eol=lf

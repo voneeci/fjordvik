@@ -107,11 +107,11 @@ The full monthly process, step by step with owners and checks, is in the
 - **Parts orders add up to sales.** The order lines for spare parts and service kits are
   made by splitting each `fact_sales` row, so they match it in units and to the cent. No
   earlier table changed when the service data was added; a test pins all 22 checksums.
-- **Tested.** 120 automated tests check the schema, the data quality rules, the
+- **Tested.** 140 automated tests check the schema, the data quality rules, the
   value-chain, portfolio and service rules, that each planted extract problem is caught,
   that the business events below show in the data, the service manuals, the project's
-  guardrails, the failure prediction scenarios and planning costs, and that the files
-  match their manifest.
+  guardrails, the failure prediction scenarios and planning costs, the generated data
+  dictionary and architecture drawings page, and that the files match their manifest.
 
 ### What happened in the period
 
@@ -399,7 +399,7 @@ them against the SHA-256 checksums in `tables/manifest.json`.
 
 ```
 python -m pytest -q
-120 passed
+140 passed
 ```
 
 (11 November 2026; raw output in `evidence/pytest-phase3-inputs-2026-11-11.txt`. The 24

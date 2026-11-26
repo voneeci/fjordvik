@@ -1,0 +1,16 @@
+Measured on synthetic data with planted signals: Fjordvik Manufacturing Oy is fictional, and these are not results on real pumps or a real service team.
+rows scored 88274, positive share 1.5463%
+average precision: classifier 0.4037, dummy 0.0155, ratio 26.11; pump facts 0.0300, z alone 0.3233, forest alone 0.2365
+alerts 38: caught 28, wasted 2, neither 8; failures 55 (warned 38, unwarned 17); recall of warned 0.7368421052631579
+cost EUR: model 24476.56, visit none 49084.20, visit every pump 693162.56
+verdict: {'average_precision': 'pass', 'recall_of_warned_failures': 'pass', 'cost_below_visit_none': 'pass', 'cost_below_visit_every_pump': 'pass', 'unwarned_failures_reported_apart': 'pass', 'leakage_test': 'pass', 'shuffled_labels': 'miss', 'control_telemetry_validation': 'pass', 'control_telemetry_test': 'miss', 'drift_detection': 'miss', 'drift_false_flags': 'pass'}
+all pass marks met: False
+control (E2) test: {'classifier': 1.613406672973788, 'robust_z_alone': 0.9683756714795859, 'isolation_forest_alone': 1.0477584773635686}; drift: {'level': 5.80062053149869, 'detection_share': {'drift_recalibration': 0.0, 'drift_unit_change': 1.0}, 'detection_limit': 0.9, 'within_days': 14, 'not_monitored_changed_pumps': 0, 'false_flag_share': 0.008997828110456097, 'false_flag_limit': 0.01, 'pump_months_monitored': 3223, 'false_flags_measured_on': 'July to December 2025', 'pumps_not_monitored_in_window': 50}
+leakage: {'pump_days_checked': 20, 'point_in_time_changes': [], 'answer_key_named_in': ['src/fjordvik_service/ml/evaluate.py'], 'pass': True}
+risk list: {'date': '2025-12-31', 'pumps_scored': 590, 'at_or_above_threshold': 0, 'no_complete_label_window': '2025-12-02 to 2025-12-31'}
+test run 1 logged in C:\Users\reece\Projects\fjordvik\service-ai\eval\ml\test_runs.jsonl; wrote 9 files to C:\Users\reece\Projects\fjordvik\service-ai\results\ml
+
+real	2m11.278s
+user	0m0.000s
+sys	0m0.046s
+exit 0

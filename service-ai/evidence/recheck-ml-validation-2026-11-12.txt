@@ -1,0 +1,20 @@
+Recheck of results\ml\validation (validation); synthetic data with planted signals
+metric                                        saved             recomputed  result
+classifier_ap                    0.4208446628386783     0.4208446628386777  match
+dummy_ap                       0.020521075538067132   0.020521075538067132  match
+ap_ratio                           20.5079242585507     20.507924258550673  match
+model_cost                                 23072.36               23072.36  match
+visit_none_cost                             62470.8                62470.8  match
+visit_every_cost                          664886.28              664886.28  match
+recall_of_warned_failures                    0.9375                 0.9375  match
+alerts                                           52                     52  match
+caught                                           45                     45  match
+wasted                                            4                      4  match
+neither                                           3                      3  match
+failures                                         70                     70  match
+warned_failures                                  48                     48  match
+unwarned_failures                                22                     22  match
+missed                                           25                     25  match
+at-risk rows rebuilt: 100113; scored rows 83865, positive 1721
+OK: every headline metric matches the independent recomputation
+exit 0

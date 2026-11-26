@@ -1,0 +1,54 @@
+{
+  "data_sha256": "379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68",
+  "commit": "42d73397fd66fd99763c38b977fe27214052a930",
+  "model_version": "ml-1.0.0",
+  "data_basis": "synthetic data with planted signals",
+  "environment": {
+    "python": "3.14.7",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.1",
+    "joblib": "1.6.0",
+    "threadpoolctl": "3.8.0"
+  },
+  "files": {
+    "scores.csv": {
+      "rows": 100113,
+      "sha256": "5765d4233e59dae5d5791314e2364a845127c050702f1015c60b1f2dfbe59c25"
+    },
+    "alerts.csv": {
+      "rows": 52,
+      "sha256": "f4c0dc7e59187ad4b26131558ae687278c5a719a19dd208fc88394432c1e3659"
+    },
+    "reliability.csv": {
+      "rows": 10,
+      "sha256": "b4a82d89fef397f271dd7c2de37ae9a726ef5a5ba9b6dfa8a477c3b76a7cecf8"
+    },
+    "grid.csv": {
+      "rows": 8,
+      "sha256": "922e74c728fb28ff4486c12961dfdb9383f5519bcdb161ec80f27fb3e8d6774d"
+    },
+    "metrics.csv": {
+      "rows": 27,
+      "sha256": "879942067b2c37854ae3db83475982cc14e2d5d202abe49496e224df6aea8006"
+    },
+    "summary.json": {
+      "sha256": "ca9ccc01898c6078d2654c798db76228ab1f81a24f1714a9992113490ee60be3"
+    },
+    "model_card.json": {
+      "sha256": "563e59315c93012b8a2ce08269a9bdea57286094eb7af240361802df47dd749e"
+    },
+    "README.md": {
+      "sha256": "e447b113fc0f9ad21aed35a2053e5833346645be3338c333809730857d6e60c2"
+    }
+  },
+  "stamp_ids": {
+    "f137d5709bcc": {
+      "data_sha256": "379e6075034a605fc5dac6806d5f6367079ea4dee4083180167bfbc34bfb5b68",
+      "commit": "42d73397fd66fd99763c38b977fe27214052a930",
+      "model_version": "ml-1.0.0",
+      "data_basis": "synthetic data with planted signals"
+    }
+  }
+}

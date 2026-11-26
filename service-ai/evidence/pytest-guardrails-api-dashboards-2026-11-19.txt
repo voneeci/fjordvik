@@ -1,0 +1,151 @@
+
+=================================== ERRORS ====================================
+_________________ ERROR collecting tests/test_ml_features.py __________________
+ImportError while importing test module 'C:\Users\reece\Projects\fjordvik\service-ai\tests\test_ml_features.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\AppData\Local\Python\pythoncore-3.14-64\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_ml_features.py:8: in <module>
+    from fjordvik_service.ml import anomaly, features, pipeline
+src\fjordvik_service\ml\anomaly.py:11: in <module>
+    from sklearn.ensemble import IsolationForest
+.venv\Lib\site-packages\sklearn\__init__.py:70: in <module>
+    from sklearn.base import clone  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sklearn\base.py:20: in <module>
+    from sklearn.utils._metadata_requests import _MetadataRequester, _routing_enabled
+.venv\Lib\site-packages\sklearn\utils\__init__.py:34: in <module>
+    from sklearn.utils.murmurhash import murmurhash3_32
+E   ImportError: DLL load failed while importing murmurhash: An Application Control policy has blocked this file.
+__________________ ERROR collecting tests/test_ml_labels.py ___________________
+ImportError while importing test module 'C:\Users\reece\Projects\fjordvik\service-ai\tests\test_ml_labels.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\AppData\Local\Python\pythoncore-3.14-64\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_ml_labels.py:6: in <module>
+    from fjordvik_service.ml import labels, pipeline
+src\fjordvik_service\ml\pipeline.py:16: in <module>
+    from . import alerts, anomaly, drift, evaluate, features, labels, model
+src\fjordvik_service\ml\anomaly.py:11: in <module>
+    from sklearn.ensemble import IsolationForest
+.venv\Lib\site-packages\sklearn\ensemble\__init__.py:6: in <module>
+    from sklearn.ensemble._bagging import BaggingClassifier, BaggingRegressor
+.venv\Lib\site-packages\sklearn\ensemble\_bagging.py:19: in <module>
+    from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+.venv\Lib\site-packages\sklearn\tree\__init__.py:6: in <module>
+    from sklearn.tree._classes import (
+.venv\Lib\site-packages\sklearn\tree\_classes.py:28: in <module>
+    from sklearn.tree import _criterion, _splitter
+sklearn/tree/_criterion.pyx:1: in init sklearn.tree._criterion
+    # Authors: The scikit-learn developers
+sklearn/tree/_splitter.pyx:1: in init sklearn.tree._splitter
+    """Splitting algorithms in the construction of a tree.
+sklearn/tree/_tree.pyx:1: in init sklearn.tree._tree
+    # Authors: The scikit-learn developers
+.venv\Lib\site-packages\sklearn\neighbors\__init__.py:25: in <module>
+    from sklearn.neighbors._nca import NeighborhoodComponentsAnalysis
+.venv\Lib\site-packages\sklearn\neighbors\_nca.py:22: in <module>
+    from sklearn.decomposition import PCA
+.venv\Lib\site-packages\sklearn\decomposition\__init__.py:22: in <module>
+    from sklearn.decomposition._lda import LatentDirichletAllocation
+.venv\Lib\site-packages\sklearn\decomposition\_lda.py:27: in <module>
+    from sklearn.decomposition._online_lda_fast import (
+E   ImportError: DLL load failed while importing _online_lda_fast: An Application Control policy has blocked this file.
+__________________ ERROR collecting tests/test_ml_leakage.py __________________
+ImportError while importing test module 'C:\Users\reece\Projects\fjordvik\service-ai\tests\test_ml_leakage.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\AppData\Local\Python\pythoncore-3.14-64\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_ml_leakage.py:10: in <module>
+    from fjordvik_service.ml import features, model, pipeline
+src\fjordvik_service\ml\model.py:13: in <module>
+    from sklearn.ensemble import HistGradientBoostingClassifier
+.venv\Lib\site-packages\sklearn\ensemble\__init__.py:6: in <module>
+    from sklearn.ensemble._bagging import BaggingClassifier, BaggingRegressor
+.venv\Lib\site-packages\sklearn\ensemble\_bagging.py:19: in <module>
+    from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+.venv\Lib\site-packages\sklearn\tree\__init__.py:6: in <module>
+    from sklearn.tree._classes import (
+.venv\Lib\site-packages\sklearn\tree\_classes.py:28: in <module>
+    from sklearn.tree import _criterion, _splitter
+sklearn/tree/_criterion.pyx:1: in init sklearn.tree._criterion
+    # Authors: The scikit-learn developers
+sklearn/tree/_splitter.pyx:1: in init sklearn.tree._splitter
+    """Splitting algorithms in the construction of a tree.
+sklearn/tree/_tree.pyx:1: in init sklearn.tree._tree
+    # Authors: The scikit-learn developers
+sklearn/neighbors/_quad_tree.pyx:1: in init sklearn.neighbors._quad_tree
+    # Authors: The scikit-learn developers
+E   ImportError: DLL load failed while importing _utils: An Application Control policy has blocked this file.
+___________________ ERROR collecting tests/test_ml_model.py ___________________
+ImportError while importing test module 'C:\Users\reece\Projects\fjordvik\service-ai\tests\test_ml_model.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\AppData\Local\Python\pythoncore-3.14-64\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_ml_model.py:8: in <module>
+    from fjordvik_service.ml import alerts, features, labels, model
+src\fjordvik_service\ml\model.py:13: in <module>
+    from sklearn.ensemble import HistGradientBoostingClassifier
+.venv\Lib\site-packages\sklearn\ensemble\__init__.py:6: in <module>
+    from sklearn.ensemble._bagging import BaggingClassifier, BaggingRegressor
+.venv\Lib\site-packages\sklearn\ensemble\_bagging.py:19: in <module>
+    from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+.venv\Lib\site-packages\sklearn\tree\__init__.py:6: in <module>
+    from sklearn.tree._classes import (
+.venv\Lib\site-packages\sklearn\tree\_classes.py:28: in <module>
+    from sklearn.tree import _criterion, _splitter
+sklearn/tree/_criterion.pyx:1: in init sklearn.tree._criterion
+    # Authors: The scikit-learn developers
+sklearn/tree/_splitter.pyx:1: in init sklearn.tree._splitter
+    """Splitting algorithms in the construction of a tree.
+sklearn/tree/_tree.pyx:1: in init sklearn.tree._tree
+    # Authors: The scikit-learn developers
+sklearn/neighbors/_quad_tree.pyx:1: in init sklearn.neighbors._quad_tree
+    # Authors: The scikit-learn developers
+E   ImportError: DLL load failed while importing _utils: An Application Control policy has blocked this file.
+__________________ ERROR collecting tests/test_ml_results.py __________________
+ImportError while importing test module 'C:\Users\reece\Projects\fjordvik\service-ai\tests\test_ml_results.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\AppData\Local\Python\pythoncore-3.14-64\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_ml_results.py:17: in <module>
+    from fjordvik_service.ml import DATA_BASIS, LIBRARIES, MODEL_VERSION, pipeline, report
+src\fjordvik_service\ml\pipeline.py:16: in <module>
+    from . import alerts, anomaly, drift, evaluate, features, labels, model
+src\fjordvik_service\ml\anomaly.py:11: in <module>
+    from sklearn.ensemble import IsolationForest
+.venv\Lib\site-packages\sklearn\ensemble\__init__.py:6: in <module>
+    from sklearn.ensemble._bagging import BaggingClassifier, BaggingRegressor
+.venv\Lib\site-packages\sklearn\ensemble\_bagging.py:19: in <module>
+    from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+.venv\Lib\site-packages\sklearn\tree\__init__.py:6: in <module>
+    from sklearn.tree._classes import (
+.venv\Lib\site-packages\sklearn\tree\_classes.py:28: in <module>
+    from sklearn.tree import _criterion, _splitter
+sklearn/tree/_criterion.pyx:1: in init sklearn.tree._criterion
+    # Authors: The scikit-learn developers
+sklearn/tree/_splitter.pyx:1: in init sklearn.tree._splitter
+    """Splitting algorithms in the construction of a tree.
+sklearn/tree/_tree.pyx:1: in init sklearn.tree._tree
+    # Authors: The scikit-learn developers
+sklearn/neighbors/_quad_tree.pyx:1: in init sklearn.neighbors._quad_tree
+    # Authors: The scikit-learn developers
+E   ImportError: DLL load failed while importing _utils: An Application Control policy has blocked this file.
+=========================== short test summary info ===========================
+ERROR tests/test_ml_features.py
+ERROR tests/test_ml_labels.py
+ERROR tests/test_ml_leakage.py
+ERROR tests/test_ml_model.py
+ERROR tests/test_ml_results.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 5 errors during collection !!!!!!!!!!!!!!!!!!!
+5 errors in 80.45s (0:01:20)

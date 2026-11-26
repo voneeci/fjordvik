@@ -24,7 +24,12 @@
       "Edit(/guardrails/.gitattributes)",
       "Edit(/guardrails/evidence/**)",
       "Edit(/.claude/**)",
-      "Edit(/*/tests/test_guardrails.py)"
+      "Edit(/*/tests/test_guardrails.py)",
+      "Edit(/.github/workflows/**)",
+      "Edit(/.github/actions/**)",
+      "Edit(/.github/CODEOWNERS)",
+      "Edit(/CODEOWNERS)",
+      "Edit(/docs/CODEOWNERS)"
     ]
   },
   "hooks": {

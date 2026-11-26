@@ -27,6 +27,39 @@ Claude connector and, being built now, seven AI capabilities for after-sales ser
   service is reactive: a pump fails, the customer calls, parts are ordered after the
   failure, and technicians are planned in a spreadsheet.
 
+## Architecture drawings
+
+All 25 architecture drawings are on one page, which opens in any browser with no sign-in:
+**[open the architecture drawings](https://voneeci.github.io/fjordvik/docs/architecture-drawings.html)**.
+They run from the people and systems around the platform down to each data table:
+
+- **Solution architecture:** the C4 model (context, containers, components and code)
+  levels 1 to 3: who uses the platform, its applications and data stores, and the service
+  AI pipeline.
+- **Data model:** the business things the data describes, how data flows from each plant,
+  what kind of data it is and who owns it, and one star schema per fact table.
+- **Requirements:** who supplies the data and who uses the results.
+- **Threat model:** the trust boundaries, where data or control changes hands.
+
+How to view them:
+
+- If C4, data flow diagrams or star schemas are new to you, start with **Concepts and
+  methods** at the top of the page. It explains each kind of drawing, the box and line
+  styles and the status words (built, designed, planned, gap).
+- Pick a drawing from the contents list, or choose one under **Open a drawing
+  full screen**.
+- **Expand** opens a drawing full screen. Zoom with the buttons, the + and - keys, or Ctrl
+  and the mouse wheel; drag to move around; the arrow keys go to the next or previous
+  drawing; Escape closes it.
+- Under each drawing, **Key** explains its boxes, lines and abbreviations, and the source
+  link opens the line in the document it comes from.
+
+GitHub also draws the same diagrams inside each document:
+[solution architecture](docs/architecture.md), [data model](docs/data-model.md),
+[requirements](docs/requirements.md) and [threat model](docs/threat-model.md). The page is
+generated from these documents by `docs/site/drawings/build.py`, and a test fails if it
+falls out of step with them.
+
 ## What the project does
 
 ### Reporting and automation (in place)
@@ -67,26 +100,39 @@ forecast, part recommendations and manual search. Each capability comes with a
 plain-English note on its method, how the code applies it, its result against the pass
 mark, and what would change with live data.
 
-**Status, 3 November 2026:** the service data is generated and tested (phase 1), and the
+**Status, 12 November 2026:** the service data is generated and tested (phase 1), and the
 demand forecast (capability 1, phase 2) meets its pass marks at Oulu on synthetic data
-([learning notes](docs/learning/service-ai.md#phase-2-forecasting-spare-parts-demand)). The
+([learning notes](docs/learning/service-ai.md#phase-2-forecasting-spare-parts-demand)).
+Anomaly detection and failure prediction (capabilities 2 and 3, phase 3) meet their three
+main pass marks on the test period, measured on synthetic data with planted signals:
+average precision 26 times a dummy model's, 74% of warned failures caught 7 to 30 days
+ahead, and a lower cost than visiting every pump or none. Three control checks missed
+their limits and are reported as they fell
+([learning notes](docs/learning/service-ai.md#phase-3-predicting-pump-failures)). The
 other capabilities follow in the order of the table.
 
 ## The parts
 
 | Folder | What it holds | Tests |
 | --- | --- | --- |
-| [`data`](data) | The governed dataset: 31 tables with fixed names, checksums and quality tests, the SQL that cleans the simulated ERP extract, and the after-sales service data (600 connected pumps, their daily readings, service events, parts orders, portal activity) with service manuals | 120 |
+| [`data`](data) | The governed dataset: 31 tables with fixed names, checksums and quality tests, the SQL that cleans the simulated ERP extract, and the after-sales service data (600 connected pumps, their daily readings, service events, parts orders, portal activity) with service manuals | 140 |
 | [`mcp`](mcp) | A Model Context Protocol (MCP) server that gives Claude read-only tools over the data (Python, DuckDB), in Claude Desktop or over HTTP with sign-in and per-role access | 83 |
 | [`powerbi`](powerbi) | A Power BI Project: one semantic model in Tabular Model Definition Language (TMDL), 134 Data Analysis Expressions (DAX) measures, seven row-level security roles, and two reports on it (emissions, 10 pages; portfolio, 7 pages) | 733 (154 need Power BI Desktop open) |
 | [`power-automate`](power-automate) | Power Automate intake and reminder flows with ten written rules, designed and tested offline | 30 |
-| [`service-ai`](service-ai) | The seven AI capabilities above, each with its test set, results and pass mark (Python); being built, phase by phase | 27 |
+| [`service-ai`](service-ai) | The seven AI capabilities above, each with its test set, results and pass mark (Python); being built, phase by phase | 61 |
 
 Every part also runs the project's guardrail checks. The master rules are in
 [GUARDRAILS.md](GUARDRAILS.md): synthetic data only, data changed only through the
 generator, no secrets, a read-only data server, agents that draft and never act, and
 evaluation sets fixed before building. Tests and a Claude Code hook enforce them
 ([guardrails/](guardrails)).
+
+The architecture of the whole platform is set out in six documents: the
+[business case](docs/business-case.md), [requirements](docs/requirements.md), the
+[solution architecture](docs/architecture.md) with its C4 diagrams, the
+[threat model](docs/threat-model.md), the [decision log](docs/decision-log.md) and the
+[data model](docs/data-model.md). Their drawings are all on one page: see
+[Architecture drawings](#architecture-drawings).
 
 Each folder has its own README with the problem, approach, architecture, test evidence
 and limitations. The [project guide](docs/learning-guide.md) sets out the business need
@@ -224,8 +270,8 @@ python -m venv .venv
 .venv\Scripts\python -m pytest -q
 ```
 
-Each should end with a line such as `120 passed`: 120 for data, 83 for mcp, 30 for
-power-automate, 27 for service-ai, and 579 for powerbi (with 154 skipped until
+Each should end with a line such as `140 passed`: 140 for data, 83 for mcp, 30 for
+power-automate, 61 for service-ai, and 579 for powerbi (with 154 skipped until
 Power BI Desktop is open).
 On macOS or Linux, use `.venv/bin/python` in place of `.venv\Scripts\python`.
 

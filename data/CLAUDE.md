@@ -51,5 +51,5 @@ then this file.
 python -m fjordvik_data --out tables   # regenerate (after pip install -e ".[dev]")
 python -m fjordvik_data.scenarios --out ..\service-ai\build\ml-scenarios   # build and check the scenarios
 python -m fjordvik_data.scenarios --out <folder outside data> --record scenarios   # also rewrite scenarios\
-python -m pytest -q                  # 120 tests
+python -m pytest -q                  # 140 tests
 ```
