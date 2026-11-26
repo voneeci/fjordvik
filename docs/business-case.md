@@ -24,8 +24,8 @@ not started, so this page is the case for continuing it.
 | --- | --- |
 | Gate | The sponsor approves the business case (delivery map station 00) |
 | Sponsors | Group Sustainability Manager (emissions), Head of Portfolio (portfolio, as in the [portfolio project plan](portfolio-project-plan.md)), Service Manager (service AI) |
-| Asked of the sponsors | Confirm the case for the built reporting side; approve continuing service AI phases 4 to 7, with the kill criteria below |
-| Status, 19 November 2026 | **Not yet signed.** Reece signs as the stand-in for the three sponsors |
+| Asked of the sponsors | Confirm the case for the built reporting side; approve continuing service AI phases 4 to 7, with the kill criteria below; approve the four additions to the [scope](#scope) |
+| Status, 26 November 2026 | **Signed.** Reece approved this second edition as the stand-in for the three sponsors, with the [open questions](#open-questions) recorded as known gaps |
 
 ## The problems
 
@@ -68,7 +68,7 @@ technicians work 457.5 contracted hours a week in total (`dim_asset`, `dim_custo
 | --- | --- | --- | --- |
 | A. Stay reactive | No change | On the phase 3 test period (July to December 2025) visiting no pump cost EUR 49,084 in missed failures, with 55 failures missed ([learning notes](learning/service-ai.md#the-result-1)) | No |
 | B. Visit every pump every 30 days | Simple to plan | EUR 693,163 for 3,600 visits over the same period, against EUR 24,477 for the model's alerts | No |
-| C. Buy a field service management product with predictive maintenance | Scheduling and a technician app included | Not priced in this project; its models would need the same test against Fjordvik's own pumps | Not assessed; see open questions |
+| C. Buy a field service management product with predictive maintenance | Scheduling and a technician app included | Not priced in this project; its models would need the same test against Fjordvik's own pumps | No. Set aside without pricing or testing: this project exists to build each capability and test it against a simple rule (Reece, 26 November 2026) |
 | D. Build condition-based service on Fjordvik's own readings, orders and manuals | Uses data Fjordvik already holds; each capability must beat a simple rule before it is used | Fjordvik owns the models and must monitor them; results so far are on planted signals | **Yes, being built** |
 
 The phase 3 costs use Fjordvik's planning inputs (EUR 190.34 for a wasted visit, EUR
@@ -87,21 +87,28 @@ the customer's downtime.
 | Parts in stock before the failure | Forecast error against simple rules | Driver model mean absolute scaled error (MASE) 0.98 (3 months) against 1.06 for the best simple rule, Oulu, 2025 | [Phase 2 result](learning/service-ai.md#the-result) |
 | More parts revenue through self-service | Portal share of parts order value | EUR 1,627,977 of 14,785,418 in 2024; EUR 2,236,530 of 20,043,332 in 2025 | `fact_parts_order.channel` |
 
-No target is set for the business measures yet. Each needs a figure from its sponsor
-before the first quarterly review (station 10); until then the measure and its baseline
-are recorded and nothing is claimed.
+No target is set for the business measures yet. Each sponsor sets its target before
+go-live, as a line on the go-live checklist of station 07, which is not written yet
+(Reece, 26 November 2026). Until then the measure and its baseline are recorded and
+nothing is claimed.
 
 ## Costs
 
 | Cost | Status |
 | --- | --- |
 | Build effort (Data and AI Specialist) | Recorded per block in the handover notes; not summed |
-| Licences: Microsoft 365 with Power Automate, Power BI Pro per viewer, Claude usage for phases 6 and 7 | **Not priced.** No quote or price list was opened for this project |
+| Licence: Power BI Pro, one for each report viewer | EUR 12.10 a user a month, paid yearly, before value added tax (VAT). [Microsoft's Finnish price list](https://www.microsoft.com/fi-fi/power-platform/products/power-bi/pricing), read 26 November 2026. The number of viewers is not set |
+| Licence: Power Automate Premium | EUR 13.00 a user a month, paid yearly, before VAT. [Microsoft's Finnish price list](https://www.microsoft.com/fi-fi/power-platform/products/power-automate/pricing), read 26 November 2026. Needed only if a flow uses a premium connector, which the landing zone's design decides |
+| Licence: Microsoft 365, with Power Automate's standard connectors | **Not priced.** The plan is not chosen |
+| Claude usage for phases 6 and 7 | **Not priced.** No price list was opened |
+| Running: the failure risk API's container registry | Azure Container Registry Basic, Reece's choice of 26 November 2026: EUR 0.1496 a day, so EUR 4.49 for a 30-day month (0.1496 x 30). [Azure Retail Prices](https://prices.azure.com/api/retail/prices), Sweden Central, read 26 November 2026 |
+| Running: the rest of the failure risk API | Expected to stay inside Azure Container Apps' monthly free allowance at demonstration volumes. This is the estimate in Jasila's research note of 19 November 2026, not re-read for this edition. Rule C1 caps the budget at EUR 5 |
+| Running: the landing zone | Under EUR 1 a month in the same research note; not re-read for this edition |
 | Running: technician visits from alerts | Modelled in phase 3 (EUR 24,477 for the test half-year at the planning inputs above) |
 | Running: model monitoring and retraining | Not estimated |
 
-Costs are the weakest part of this case. A price for each licence, read at its publisher,
-is needed before the sponsor signs.
+Costs are still the weakest part of this case: Microsoft 365 and Claude usage are not
+priced, the number of licences is not set, and the build effort is not totalled.
 
 ## Risks
 
@@ -125,11 +132,27 @@ from the [README](../README.md#after-sales-service-with-ai-being-built).
 | # | Hypothesis | Test | Kill criterion | Status |
 | --- | --- | --- | --- | --- |
 | H1 | A forecast that uses fleet running hours and age predicts parts demand better than a planner's simple rules | MASE below seasonal naive and the best simple forecast; 80% ranges hold 70 to 90% of actuals | Fails either pass mark on the test origins: use the best simple forecast instead | Met at Oulu, 3 November 2026; Tartu too new to test |
-| H2 | Daily readings warn of most failures early enough to plan a visit | Average precision at least 3 times a dummy model's; at least 60% of warned failures caught; cheaper than visiting all or none | Fails any of the three: stay with the current visit plan | Met, 12 November 2026; three control checks missed and reported |
+| H2 | Daily readings warn of most failures early enough to plan a visit | Average precision at least 3 times a dummy model's; at least 60% of warned failures caught; cheaper than visiting all or none | Fails any of the three: stay with the current visit plan | Met, 12 November 2026; three control checks missed and reported. Phase 4 goes ahead on these scores, with the three misses carried as stated limits (Reece, 26 November 2026) |
 | H3 | A solver plans visits more cheaply than "highest risk first, nearest technician" | Breaks no constraint; cheaper in at least 9 of 10 test weeks | Any broken constraint, or fails the 9 of 10: keep the simple rule | Not started |
 | H4 | Suggestions from order history beat a most-popular list | Hit rate at 5 above most-popular, overall and for low-history models; never an unfit part | Fails either, or suggests one unfit part: keep most-popular | Not started |
 | H5 | Technicians get cited answers from the manuals | Right section in the top 5 for 90% of answerable questions; 90% correct citations; "not found" for every unanswerable one | Fails any: no assistant | Not started |
 | H6 | A service desk agent drafts correct work orders that a person approves | 57 of 60 scenario runs correct; nothing applied without approval; no planted instruction followed | Any planted instruction followed, or any write outside the drafts folder: stop phase 7 | Not started |
+
+Reece widened two phases on 3 November 2026, and H3 and H6 above cover only the original
+scope:
+
+- **Phase 4** also re-plans the week when a same-day urgent job arrives, and says which
+  visits move.
+- **Phase 7** also takes call transcripts beside alerts and emails, and sorts each contact
+  as urgent or routine. An urgent one alerts an on-call person at once, with a drafted
+  emergency work order, parts reservation and same-day slot. The customer is offered
+  pickup or delivery of the parts through an invented logistics company: the agent reads
+  that company's availability and quotes, and only drafts the booking. One approval by the
+  on-call person covers the work order and the booking, and nothing is booked without it.
+
+The pass marks for these additions are set before each phase is built (rule A9). The
+synthetic contact log, the logistics company's figures and the part sizes they need are
+not generated yet.
 
 A business kill criterion sits above these: if, at the first quarterly review after go-live,
 failures as a share of service events and median downtime per failure have not fallen
@@ -142,19 +165,39 @@ below their 2025 baselines, the sponsor decides whether to persevere, change or 
 | --- | --- |
 | Monthly emissions intake, the governed dataset, the Power BI model and its two reports, the read-only Claude connector | Statutory reporting under the EU's Corporate Sustainability Reporting Directive (CSRD): Fjordvik is below the thresholds ([company profile](company-profile.md#size)) |
 | Portfolio figures from the ERP extract, the quarterly scorecard | Changes to the ERP system itself |
-| The seven service AI capabilities in the [README](../README.md#after-sales-service-with-ai-being-built) | A technician mobile app; customer-facing changes beyond the parts portal suggestions |
-| | Any action an agent applies without a person's approval |
+| The seven service AI capabilities in the [README](../README.md#after-sales-service-with-ai-being-built), with the two phases widened as above | A technician mobile app; customer-facing changes beyond the parts portal suggestions |
+| A read-only failure risk API on Microsoft Azure that serves the phase 3 scores (added 26 November 2026) | Any action an agent applies without a person's approval |
+| Static HTML dashboards for public readers, showing group-level figures only (rule P1); plant screens wait for a signed-in host (added 26 November 2026) | A live phone line or a live link to a logistics provider |
+| A small landing zone in Azure storage, with raw, clean and curated folders (added 26 November 2026) | A bought field service management product (set aside 26 November 2026) |
+| Fjordvik's own front end for its architecture documents, starting from the [architecture drawings page](../README.md#architecture-drawings) (added 26 November 2026) | |
+
+The four additions have no use case, decision record, interface contract or threat model
+boundary yet. Each gets them before it is built, the API first.
+
+**Order of work** (Reece, 26 November 2026): continuous integration first; then one
+screen or tool that shows the phase 2 and 3 results to the Service Manager; then the
+phase 4 data step and phase 4, with the API built beside phase 4. The landing zone and the
+front end follow; their dates are not set.
 
 The project is internal and not priced: there is no statement of work with a supplier.
 
 ## Open questions
 
-- Licence prices for Microsoft 365, Power BI Pro and Claude usage, each read at its
-  publisher.
-- Whether a field service management product (option C for service) should be priced and
-  tested before phase 4.
-- Targets for the business measures, from each sponsor.
+- Prices for Microsoft 365 and Claude usage, each read at its publisher, and the number
+  of Power BI Pro licences.
+- A target for each business measure, from its sponsor, before go-live.
+- A use case, decision record, interface contract and threat model boundary for each of
+  the four additions to the scope.
+- When the landing zone and the front end are built.
 
 ## Change history
 
 - 19 November 2026: first edition, during the architecture pause (Reece asked).
+- 26 November 2026: second edition, after a review against all eleven stations of the
+  delivery map. Reece decided each change in question boxes: four additions to the scope,
+  the bought-product option set aside, targets tied to go-live, the three missed phase 3
+  controls carried as stated limits, the order of work, and the API's container registry.
+  Two licence prices and the registry price were read at their publishers. The phase 4
+  and phase 7 additions of 3 November 2026 are written in.
+- 26 November 2026: signed by Reece as the stand-in for the three sponsors, after reading
+  the second edition. The open questions stand as known gaps.

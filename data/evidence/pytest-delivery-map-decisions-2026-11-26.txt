@@ -1,0 +1,4 @@
+# .venv\Scripts\python -m pytest -q, from data/, Python 3.14.7, 2026-11-26, working tree on 915dd4d, branch docs/delivery-map-decisions, with the three sign-offs
+........................................................................ [ 51%]
+....................................................................     [100%]
+140 passed in 66.93s (0:01:06)

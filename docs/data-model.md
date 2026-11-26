@@ -1186,8 +1186,10 @@ many are found in the target table, and blanks.
    sources.
 2. **Telemetry has no calendar.** `fact_asset_telemetry.date_key` holds 1,096 days;
    `dim_date` holds 36 months, so only first-of-month days match. `fact_service_event`
-   and `fact_portal_event` have dates and no key. Proposal: a new daily date table
-   ([ADR-029](decision-log.md#adr-029-a-daily-date-table-for-the-service-data)).
+   and `fact_portal_event` have dates and no key. A new daily date table will fix this:
+   Reece accepted it on 26 November 2026
+   ([ADR-029](decision-log.md#adr-029-a-daily-date-table-for-the-service-data)), and it
+   is not built yet.
 3. **Contract end dates sit past the calendar.** Both contracts end on 1 December 2027
    (`end_date_key` 20271201), after the last month in `dim_date`. That is right for a
    contract; the keys are dates, not joins, and the dimension diagram shows them as plain
@@ -1202,7 +1204,7 @@ Every dimension is overwritten in place today (slowly changing dimension type 1)
 rewrites the past. That is right for names and codes, and wrong for a few attributes past
 figures depend on:
 
-| Attribute | Why history matters | Proposed handling |
+| Attribute | Why history matters | Handling (ADR-027) |
 | --- | --- | --- |
 | `dim_customer.service_contract` | A customer moving from Basic to Premium changes how many preventive visits were due | Type 2: a row per contract period with valid-from and valid-to dates |
 | `dim_technician.skills`, `weekly_hours` | Phase 4 must plan from data as it stood ("as at" dates, rule D16) | Type 2 |
@@ -1210,9 +1212,11 @@ figures depend on:
 | Emission factors | One factor per source for the whole period; a new factor would rewrite past emissions | Yearly factor versions, already a [next step](learning-guide.md#next-steps) |
 | Product specification, prices | Stable in the data | Type 1 |
 
-This is a proposal, [ADR-027](decision-log.md#adr-027-history-handling-for-dimensions),
-for Reece to decide. Any change is a new column or table (names never change, rule D4)
-made through the generator, and moving an existing checksum needs Reece's yes (rule D5).
+Reece accepted this on 26 November 2026
+([ADR-027](decision-log.md#adr-027-history-handling-for-dimensions)). It is not built yet.
+Each change is a new column or table (names never change, rule D4) made through the
+generator, and moving an existing checksum needs Reece's yes (rule D5). Phase 4 needs the
+technician and customer history first (rule D16).
 
 ## Gate G2
 
@@ -1222,9 +1226,9 @@ made through the generator, and moving an existing checksum needs Reece's yes (r
 | Logical and physical model | Built and tested |
 | Data dictionary and grain statements | Power BI dictionary generated; grain for every table, now including the portfolio tables |
 | Bus matrix | Above |
-| History handling decided | Proposed (ADR-027) |
+| History handling decided | Accepted on 26 November 2026 (ADR-027); not built yet |
 | Wireframes approved | The 17 report pages exist ([report pages](../powerbi/docs/report-pages.md)); review with users is open (portfolio milestone M5) |
-| Business approval | **Not given.** Reece approves as the stand-in for the data owners |
+| Business approval | **Given on 26 November 2026** by Reece, as the stand-in for the data owners, with the gaps in this table recorded: the conceptual model and the report pages have not been reviewed with users, and the history handling and daily date table are accepted but not built |
 
 ## Change history
 
@@ -1235,3 +1239,7 @@ made through the generator, and moving an existing checksum needs Reece's yes (r
   became one keys-only star per fact table plus a dimension diagram; the data flow drawings use
   data flow diagram notation (every flow through a numbered process); keys moved into tables;
   text descriptions added for screen readers (Reece asked).
+- 26 November 2026: history handling (ADR-027) and the daily date table (ADR-029) accepted by
+  Reece; neither is built yet.
+- 26 November 2026: gate G2 given by Reece as the stand-in for the data owners, with its gaps
+  recorded in the gate table.

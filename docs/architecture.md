@@ -285,7 +285,7 @@ Last updated: 25 November 2026, commit `f5b1aef`.
 | Data generator | Python | Built | data | Demo only: it stands in for every source |
 | Governed dataset | CSV files with a SHA-256 manifest | Built | data | The contract every reader depends on |
 | Guardrails and tests | Python, pytest, a Claude Code hook, a pre-commit check | Built | guardrails, every part | [GUARDRAILS.md](../GUARDRAILS.md) |
-| Semantic model and reports | Power BI Project (TMDL and PBIR), 134 measures, 7 RLS roles | Built; not published | powerbi | Desktop reads the CSV files |
+| Semantic model and reports | Power BI Project (TMDL and PBIR), 139 measures, 7 RLS roles | Built; not published | powerbi | Desktop reads the CSV files |
 | Claude connector | Python, MCP SDK 2.x, DuckDB | Built; local only | mcp | Stdio, or Streamable HTTP on 127.0.0.1 with OAuth 2.1 sign-in |
 | Service AI jobs and results | Python (pandas, statsmodels, scikit-learn) | Built (phases 2 and 3) | service-ai | Each result stamped with data checksum, commit and model version |
 | Failure risk API | FastAPI in a container on Azure Container Apps | Planned | service-ai | Read-only (rule A1), cost-capped (C1), deployed from `main` only (G12) |
@@ -426,7 +426,7 @@ learning system needs. Each is shown or ruled out here:
 | Part | In Fjordvik today | Status |
 | --- | --- | --- |
 | Source code repository | One git repository; every result names the commit it ran on | Built |
-| Continuous integration and delivery | None: tests run by hand | Gap; [ADR-028](decision-log.md#adr-028-continuous-integration-on-every-push) proposed |
+| Continuous integration and delivery | None: tests run by hand | Gap; [ADR-028](decision-log.md#adr-028-continuous-integration-on-every-push) accepted on 26 November 2026, not built yet |
 | Workflow orchestration | Scripts run by hand (`scripts/run_forecast.py`, `scripts/run_ml.py`) | Not needed for one-off phase runs; needed once a deployed model retrains on a schedule |
 | Feature store | Features rebuilt from the governed dataset on each run, point-in-time tested (rule D11) | Not needed: one model family, small data |
 | Model training infrastructure | The laptop, Python with pinned libraries and seeded generators (rule G10) | Built |
@@ -457,7 +457,7 @@ Today there is one environment: a Windows laptop with synthetic data. Power BI D
 reads the CSV files, the connector listens on 127.0.0.1 only, and every part's tests run
 without keys or network. Nothing is published.
 
-Proposed target (decision [ADR-026](decision-log.md#adr-026-four-environments-with-separate-credentials), awaiting Reece):
+Target, accepted by Reece on 26 November 2026 ([ADR-026](decision-log.md#adr-026-four-environments-with-separate-credentials)). Only the first row exists today:
 
 | Environment | Where | Data | Credentials | Purpose |
 | --- | --- | --- | --- | --- |
@@ -498,15 +498,15 @@ version; a backup and a tested restore. These belong to stations 06 and 09.
 ## Where Fjordvik stands on the delivery map
 
 The map has eleven stations, from the business case (00) to continuous improvement (10).
-Status on 26 November 2026, at commit `fcf611f`:
+Status on 26 November 2026, at commit `915dd4d`:
 
 | Station | Status | Evidence or gap |
 | --- | --- | --- |
-| 00 Business case | First edition, not signed | [business-case.md](business-case.md); licence prices missing |
-| 01 Discovery and requirements | First edition, G1 not taken | [requirements.md](requirements.md); no workshops; transition requirements new |
-| 02 Solution architecture | This page; code-reviewed by Jinny on 26 November 2026, not signed off | Drawings redrawn on 25 November and published as one page ([README](../README.md#architecture-drawings)); environment strategy proposed; production load route not designed |
-| 03 Data modelling | Model built; G2 partly met | [data-model.md](data-model.md); generated [data dictionary](data-dictionary.xlsx); history handling proposed |
-| 04 Build in slices | Strong, two gaps | Locked pass marks, independent review, saved evidence; no continuous integration, no user demos |
+| 00 Business case | Second edition, signed by Reece as stand-in on 26 November 2026 | [business-case.md](business-case.md); Microsoft 365 and Claude usage not priced; targets wait for go-live |
+| 01 Discovery and requirements | First edition; G1 taken by Reece as stand-in on 26 November 2026, with its gaps recorded | [requirements.md](requirements.md); no workshops; transition requirements new; no use cases yet for the four additions to the scope |
+| 02 Solution architecture | This page; code-reviewed by Jinny on 26 November 2026, not signed off | Drawings redrawn on 25 November and published as one page ([README](../README.md#architecture-drawings)); environment strategy accepted (ADR-026), not built; production load route not designed; no decision record or threat model boundary yet for the API, the dashboards, the landing zone or the front end |
+| 03 Data modelling | Model built; G2 given by Reece as stand-in on 26 November 2026, with its gaps recorded | [data-model.md](data-model.md); generated [data dictionary](data-dictionary.xlsx); history handling and a daily date table accepted (ADR-027, ADR-029), not built |
+| 04 Build in slices | Strong, three gaps | Locked pass marks, independent review, saved evidence; no continuous integration yet (ADR-028 accepted), no user demos, and the service AI results are not yet shown on any screen |
 | 05 Migration and cutover | Not started | Reconciliation strong; no runbook, rehearsal, rollback or communication plan |
 | 06 Testing stages | Component and system tests only | No user or operational acceptance; nothing published to test |
 | 07 Go-live | Not started | Release package and go/no-go not written |
@@ -516,21 +516,29 @@ Status on 26 November 2026, at commit `fcf611f`:
 
 ### Next steps for stations 04 and 05
 
-These start once this architecture is agreed:
+Reece set the order of the first three on 26 November 2026. The rest are not scheduled:
 
-1. **Continuous integration.** A GitHub Actions workflow that runs every part's tests and
-   `guardrails/check.py` on every push, keyless (the 154 live Power BI tests stay manual).
-   The layout map has had `.github/workflows/` since 19 November 2026; each workflow edit
-   needs Reece's approval (rules G9 and G12).
-2. **Demos.** Hold the open portfolio milestone M5: each page reviewed with two Product
+1. **Continuous integration** ([ADR-028](decision-log.md#adr-028-continuous-integration-on-every-push)).
+   A GitHub Actions workflow that runs every part's tests and `guardrails/check.py` on every
+   push, keyless (the 154 live Power BI tests stay manual). The layout map has had
+   `.github/workflows/` since 19 November 2026; each workflow edit needs Reece's approval
+   (rules G9 and G12).
+2. **Show phases 2 and 3 to a user.** One screen or connector tool that shows the parts
+   forecast and the failure risk list, demoed to the Service Manager's stand-in and saved
+   as acceptance evidence for use cases U8 and U9.
+3. **The phase 4 data step, then phase 4.** Customer time windows, technician leave and
+   "as at" dates do not exist in the dataset yet (rule D16, ADR-027). The failure risk API
+   is built beside phase 4, once it has a use case, a decision record, an interface
+   contract and a threat model boundary.
+4. **Demos.** Hold the open portfolio milestone M5: each page reviewed with two Product
    Managers, recorded as acceptance evidence.
-3. **Cutover runbook.** One runbook for the move from the central spreadsheet and the
+5. **Cutover runbook.** One runbook for the move from the central spreadsheet and the
    service planning spreadsheet: steps, owners, timings against the monthly close, and
    go/no-go criteria (transition requirements TR1 to TR6).
-4. **Rehearsal.** A clean-room rebuild from a tagged release in an empty folder, which
+6. **Rehearsal.** A clean-room rebuild from a tagged release in an empty folder, which
    the delivery map accepts as the lean cutover rehearsal, with reconciliation to the
    finance totals.
-5. **Rollback plan and communication plan.** What happens if the first live close fails,
+7. **Rollback plan and communication plan.** What happens if the first live close fails,
    and who tells the sites, controllers and technicians, when.
 
 ## Change history
@@ -540,3 +548,7 @@ These start once this architecture is agreed:
   one set of status words (Built, Designed, Planned, Gap) and line meanings, text descriptions
   for screen readers, the containers drawing laid out top to bottom with the planned API (Reece
   asked).
+- 26 November 2026: ADR-026 and ADR-028 accepted; the station table and next steps follow the
+  order of work Reece set after a review against all eleven stations; the measure count
+  corrected from 134 to 139. The station table records Reece's sign-off of the business
+  case, G1 and G2 the same day; the architecture review gate of station 02 is still open.
