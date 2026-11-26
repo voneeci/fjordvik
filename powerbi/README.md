@@ -42,7 +42,7 @@ check.
   relationships, plus two small calculated tables that hold no figures (`dim_bridge_step`,
   the steps of the margin waterfall, and `dim_refresh`, the time of the last refresh).
   `dim_scope3_category` filters `dim_source`, which filters every emission table.
-- **134 measures** in one `_Measures` table, grouped in display folders (Emissions,
+- **139 measures** in one `_Measures` table, grouped in display folders (Emissions,
   Market-based scope 2, Value chain, Sales, Budget, Price, volume and mix, Bridge, Portfolio
   balance, Product sustainability, Scorecard, Intensity, Activity, Time comparison, Data
   quality, Text), each with a description; every number measure has a format string.

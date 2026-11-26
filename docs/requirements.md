@@ -84,10 +84,11 @@ held: the needs below were written from those documents, so G1 records that gap.
 | U7 | Group analyst | to ask Claude a plain-language question about the data | I get an answer without writing SQL | Every tool reconciles with an independent calculation (`mcp/tests/test_queries.py`) |
 | U8 | Service Manager | a monthly parts forecast with a range per family and warehouse | stock is held before failures | Phase 2 pass marks ([learning notes](learning/service-ai.md#phase-2-forecasting-spare-parts-demand)) |
 | U9 | Service Manager | a daily list of pumps likely to fail within 30 days | a technician goes first | Phase 3 pass marks ([learning notes](learning/service-ai.md#phase-3-predicting-pump-failures)) |
-| U10 | Service Manager | a weekly visit plan within skills, hours and time windows | travel is lowest and nothing is broken | Phase 4 pass mark (not started) |
+| U10 | Service Manager | a weekly visit plan within skills, hours and time windows, re-planned when a same-day urgent job arrives | travel is lowest, nothing is broken, and I see which visits moved | Phase 4 pass mark; the re-plan's pass mark is set before phase 4 is built (not started) |
 | U11 | Customer | parts suggestions that fit my pump | I order the right part | Phase 5 pass mark (not started) |
 | U12 | Technician | an answer from the manual with its section | I fix the pump without phoning a colleague | Phase 6 pass mark (not started) |
-| U13 | Service desk | a drafted work order, parts reservation and email from an alert or email | I approve instead of typing | Phase 7 pass mark (not started) |
+| U13 | Service desk | a drafted work order, parts reservation and email from an alert, an email or a call transcript, with each contact sorted urgent or routine | I approve instead of typing | Phase 7 pass mark (not started) |
+| U14 | Service desk, on call | an urgent contact sent to me at once, with a drafted emergency work order, parts reservation, same-day slot and a drafted pickup or delivery booking | one approval gets a technician and the parts moving, and nothing is booked without it | Phase 7 pass marks for urgent contacts and delivery options, set before phase 7 is built (not started) |
 
 ## Requirements
 
@@ -125,7 +126,7 @@ functions:
 | FR3 | Prove the dataset unedited with SHA-256 checksums before any part relies on it | every part | Built (`tests/test_data.py`) |
 | FR4 | Two Power BI reports on one model, seven row-level security roles | powerbi | Built; not published |
 | FR5 | Read-only Claude tools, with role checks over HTTP | mcp | Built; local only |
-| FR6 to FR12 | The seven service AI capabilities | service-ai | 2 of 7 built (forecast, failure risk) |
+| FR6 to FR12 | The seven service AI capabilities | service-ai | 3 of 7 built (forecast, anomaly detection, failure risk) |
 
 ### Non-functional requirements
 
@@ -177,7 +178,7 @@ figures. No record of one was found in the repository.
 ## Metric dictionary
 
 - **Reporting measures:** the [Power BI data dictionary](../powerbi/docs/data-dictionary.md)
-  and the [measure guide](../powerbi/docs/measure-guide.md) define all 134 measures.
+  and the [measure guide](../powerbi/docs/measure-guide.md) define all 139 measures.
 - **Service measures**, defined here for the business case and the quarterly review:
 
 | Measure | Definition | Unit |
@@ -261,12 +262,18 @@ how a technician reports a false alert. These belong in the cutover plan (statio
 
 | Check | Status |
 | --- | --- |
-| Signed metric dictionary | Reporting: generated and tested. Service measures: first edition above, not signed |
-| Success measures and kill criteria | In the [business case](business-case.md#hypotheses-and-kill-criteria) |
+| Signed metric dictionary | Reporting: generated and tested. Service measures: first edition above, accepted with this gate |
+| Success measures and kill criteria | In the [business case](business-case.md#hypotheses-and-kill-criteria); targets are set before go-live |
+| Use cases for the four additions to the scope (the failure risk API, the HTML dashboards, the landing zone, the front end) | Not written yet. Each is written before that piece is built |
 | Discovery workshops held | No. Needs written from the company profile and plans |
-| Decision to go on to design | **Not yet taken.** Reece decides |
+| Decision to go on to design | **Taken on 26 November 2026.** Reece decided to go on, as the stand-in for the sponsors, with the gaps in this table recorded: no workshops were held, change readiness is not assessed, and the use cases for the four additions are still to write |
 
 ## Change history
 
 - 19 November 2026: first edition, during the architecture pause (Reece asked).
 - 19 November 2026: metric catalogue for plants and the business added (Reece asked).
+- 26 November 2026: use cases U10 and U13 widened and U14 added, from Reece's decisions of
+  3 November 2026 on urgent calls and parts delivery; gate G1 names the use cases still to
+  write; the capability and measure counts corrected (3 of 7; 139).
+- 26 November 2026: gate G1 taken by Reece as the stand-in for the sponsors, with its gaps
+  recorded in the gate table.

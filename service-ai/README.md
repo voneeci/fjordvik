@@ -43,10 +43,10 @@ how the code does it, the result, and what would change with live data.
 | --- | --- | --- | --- |
 | 2 | Spare parts demand forecast | Beats seasonal naive and the best simple forecast on mean absolute scaled error (MASE); 80% ranges hold 70 to 90% of actuals | Met at Oulu, 3 November 2026 (below); Tartu too new to test |
 | 3 | Anomaly detection and failure prediction | At least 3 times a dummy model's average precision; catches at least 60% of warned failures; cheaper than visiting all pumps or none | Met, 12 November 2026 (below); three control limits missed |
-| 4 | Technician scheduling | Breaks no constraint; cheaper than the simple rule in at least 9 of 10 weeks | Not started |
+| 4 | Technician scheduling, with a re-plan when a same-day urgent job arrives | Breaks no constraint; cheaper than the simple rule in at least 9 of 10 weeks; the re-plan's pass mark is set before building | Not started |
 | 5 | Parts recommendations | Beats most-popular on hit rate at 5; never suggests a part that does not fit | Not started |
 | 6 | Service assistant (retrieval-augmented generation) | Right section in the top 5 for 90% of answerable questions; "not found" for every unanswerable one | Not started |
-| 7 | Service desk agent | At least 57 of 60 scenario runs correct; nothing applied without approval; planted instructions never followed | Not started |
+| 7 | Service desk agent, from alerts, emails and call transcripts, with urgent contacts sent to an on-call person and parts pickup or delivery offered | At least 57 of 60 scenario runs correct; nothing applied without approval; planted instructions never followed; pass marks for urgent contacts and delivery options are set before building | Not started |
 
 ## Phase 2: the spare parts demand forecast
 

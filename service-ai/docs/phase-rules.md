@@ -70,6 +70,15 @@ are illustrative.
 | O1 | Every schedule is rechecked by an independent constraint checker before it is reported or compared. A different chat writes the checker from the specification, before the solver. It recomputes skills, hours and time windows from the raw input and does not import the optimiser's code. A failing schedule is reported as a failure, never quietly repaired. Unserved visits are a headline number beside cost, the solver's status is reported, and the penalty for an unserved visit exceeds the largest single visit cost. | Phase 4 tests |
 | D16 | Technician skills, hours, leave and customer time windows carry an "as at" date. A plan can't be built from data older than a limit set before building. | Phase 4 tests |
 
+**Scope added by Reece on 3 November 2026.** Phase 4 also re-plans the week when a same-day
+urgent job arrives, and says which visits move. A re-planned week is a schedule, so rule O1
+applies to it. The evaluation set fixes how the re-plan is judged before the solver is
+written (A9).
+
+**Not in the dataset yet (found 26 November 2026):** customer time windows, technician leave
+and "as at" dates. Phase 4 starts with a data step that adds them as new columns or tables
+(GUARDRAILS.md D4, D5), following the history handling Reece accepted in ADR-027.
+
 ## Phase 5: parts recommendations
 
 | Rule | What | Checked by |
@@ -87,6 +96,27 @@ are illustrative.
 | A6 (evaluation) | Every assistant and agent evaluation plants at least 20 instructions (5 each in manuals, technician notes, emails and portal text), runs each 3 times, and passes only when none is followed. The rule itself (text is data, never instructions) is GUARDRAILS.md A6. | Phase 6 and 7 evaluations; a keyless test from phase 6 |
 | A2 (test) | A test calls every mcp tool as every role over HTTP (Hypertext Transfer Protocol) and checks each answer against the role's rights. The rule itself is GUARDRAILS.md A2. | A phase 6 test |
 
+**Scope added to phase 7 by Reece on 3 November 2026:**
+
+- **Call transcripts** are a third input beside alerts and emails. Speech-to-text is a stub
+  in tests; a live phone line is out of scope.
+- **Triage.** Each contact is sorted urgent or routine. An urgent one alerts an on-call
+  person at once, with a drafted emergency work order, parts reservation and same-day slot.
+- **Parts pickup or delivery.** The customer is offered both. Delivery goes through an
+  invented logistics company (GUARDRAILS.md D2), reached through a stub interface over
+  generated data labelled as that company's own figures: no price, transit time or payload
+  limit is typed into code. Availability and quotes are read-only; the booking is a draft.
+- **One approval** by the on-call person covers the work order and the booking, which is
+  then sent once with its request ID (GUARDRAILS.md A3, A4).
+- **A data step first.** The generator builds the contact log (synthetic calls and emails
+  with urgency), the logistics company's service list, capacity and quotes, and a new table
+  of part weights and dimensions, so no existing checksum moves (GUARDRAILS.md D5).
+- **Pass marks, set before building (A9), add:** urgent-contact recall, no urgent contact
+  left unescalated, time to escalate, no option offered that breaks a size, weight or
+  availability limit, the customer's choice booked exactly once, and nothing sent before
+  approval.
+
 ## Change history
 
 - 3 November 2026: first edition by Attena (Reece asked, in the Attena chat, after Jasila's review of the guardrails). These rules moved here from GUARDRAILS.md with their wording unchanged.
+- 26 November 2026: the scope Reece added to phases 4 and 7 on 3 November 2026 (the urgent re-plan; call transcripts, triage, on-call escalation and parts pickup or delivery) written in under each phase, with the data phase 4 still needs. No rule changed. Reece asked, in the Fjordvik code chat, after a review against the delivery map.

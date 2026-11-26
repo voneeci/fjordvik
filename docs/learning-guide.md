@@ -262,7 +262,7 @@ emissions per FTE twelve times too small.
 
 **What it is.** A Power BI Project (PBIP): the model in Tabular Model Definition Language
 (TMDL) and the report in the Power BI enhanced report format (PBIR), all as text files in
-git. It has 134 measures, seven row-level security (RLS) roles (three countries, four
+git. It has 139 measures, seven row-level security (RLS) roles (three countries, four
 sales regions) and two reports on the one model: emissions (10 pages) and portfolio
 (7 pages), each page
 opening on an Introduction page that explains the company and what each page answers.

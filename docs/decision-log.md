@@ -10,9 +10,10 @@ format (PBIR).
 
 Records 001 to 025 and 030 to 032 were taken during the build and are written up here from the
 [project guide](learning-guide.md), the [learning notes](learning/service-ai.md), the
-handovers and the repository's `CLAUDE.md` files. Records 026 to 029 are proposals
-and wait for Reece's decision. A decision is never edited after it
-is accepted: a later record supersedes it and says so.
+handovers and the repository's `CLAUDE.md` files. Records 026 to 029 were proposed on
+19 November 2026 and accepted by Reece on 26 November 2026; none of the four is built
+yet. A decision is never edited after it is accepted: a later record supersedes it and
+says so.
 
 > **Synthetic data only.** Fjordvik Manufacturing Oy is a fictional company, and this is a
 > portfolio project. No real company, client or person is described. The emission factors
@@ -45,13 +46,13 @@ is accepted: a later record supersedes it and says so.
 | 023 | Parts forecast: a driver model that must beat simple rules | Accepted | 3 November 2026 |
 | 024 | Failure risk: fleet-adjusted z-scores, boosted trees, cost-based alerts | Accepted | 12 November 2026 |
 | 025 | Agents draft, never act | Accepted | 2 November 2026 |
+| 026 | Four environments with separate credentials | Accepted | 26 November 2026 |
+| 027 | History handling for dimensions | Accepted | 26 November 2026 |
+| 028 | Continuous integration on every push | Accepted | 26 November 2026 |
+| 029 | A daily date table for the service data | Accepted | 26 November 2026 |
 | 030 | The guardrail hook is frozen | Accepted | 3 November 2026 |
 | 031 | Power Automate flows designed and tested offline, not built in a tenant | Accepted | By 16 October 2026 |
 | 032 | Wide drawings split and redrawn, not laid out with ELK | Accepted | 25 November 2026 |
-| 026 | Four environments with separate credentials | Proposed | 19 November 2026 |
-| 027 | History handling for dimensions | Proposed | 19 November 2026 |
-| 028 | Continuous integration on every push | Proposed | 19 November 2026 |
-| 029 | A daily date table for the service data | Proposed | 19 November 2026 |
 
 "By 16 October 2026" means the decision was built into one of the four original
 repositories, which were built from 12 to 16 October 2026 ([README](../README.md#history)).
@@ -331,6 +332,57 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 - **Consequences:** A planted instruction can at worst produce a draft a person rejects.
 - **Source:** [GUARDRAILS.md](../GUARDRAILS.md) A3, A4, A11, A12.
 
+### ADR-026: Four environments with separate credentials
+
+- **Status:** Accepted, 26 November 2026 (proposed 19 November 2026). Not built yet.
+- **Context:** Everything runs on one laptop. The delivery map asks for environments chosen
+  at architecture, and ISO/IEC 27001:2022 control 8.31 asks for development, test and
+  production to be kept apart.
+- **Decision:** Development (the laptop), continuous integration (keyless), test (a
+  Microsoft 365 trial tenant and a Power BI test workspace, synthetic data) and production
+  (Fjordvik's own, out of scope here), each with its own credentials.
+- **Consequences:** Publishing the model and building the flows happen in test, never
+  against a live system; credentials never cross environments.
+- **Detail:** [architecture.md](architecture.md#environments).
+
+### ADR-027: History handling for dimensions
+
+- **Status:** Accepted, 26 November 2026 (proposed 19 November 2026). Not built yet.
+- **Context:** Every dimension today is overwritten in place (slowly changing dimension
+  type 1). Some attributes change and matter to past figures: a customer's service
+  contract, a technician's skills and weekly hours (phase 4 needs them "as at" a date, rule
+  D16), a pump's location, and emission factors (one per source for the whole period).
+- **Decision:** Type 2 history (a row per version with valid-from and valid-to dates) for
+  `dim_customer.service_contract`, the technician's skills and hours, and yearly factor
+  versions; type 1 elsewhere. New columns or tables only, so no name changes (ADR-003).
+- **Consequences:** Phase 4 can build plans from data as it stood; a factor change no
+  longer rewrites past emissions. Needs generator changes in `data` and Reece's yes for
+  any checksum change (rule D5).
+- **Detail:** [data-model.md](data-model.md#history-handling).
+
+### ADR-028: Continuous integration on every push
+
+- **Status:** Accepted, 26 November 2026 (proposed 19 November 2026). Not built yet.
+- **Context:** Tests run only by hand; the delivery map's build station expects automated
+  tests on every push.
+- **Decision:** A GitHub Actions workflow running every part's tests and the guardrail
+  checks on every push and pull request, without keys or network; the live Power BI tests
+  stay manual.
+- **Consequences:** The layout map has had `.github/workflows/` since 19 November 2026,
+  and each workflow edit needs Reece's approval (rules G9 and G12).
+
+### ADR-029: A daily date table for the service data
+
+- **Status:** Accepted, 26 November 2026 (proposed 19 November 2026). Not built yet.
+- **Context:** `fact_asset_telemetry.date_key` is a day (1,096 values), but `dim_date` holds
+  months (36 values), so telemetry cannot join the calendar. `fact_service_event` and
+  `fact_portal_event` carry dates with no date key at all.
+- **Decision:** Add a new `dim_day` table (one row per day, with its month's `date_key`)
+  rather than changing `dim_date` (ADR-003).
+- **Consequences:** Service data can be sliced by month and year with the rest; Power BI
+  could mark it as a date table.
+- **Detail:** [data-model.md](data-model.md#findings).
+
 ### ADR-030: The guardrail hook is frozen
 
 - **Status:** Accepted, 3 November 2026 (Reece).
@@ -381,59 +433,9 @@ repositories, which were built from 12 to 16 October 2026 ([README](../README.md
 
 ## Proposed
 
-Each waits for Reece's decision. Accepting one changes its status here and starts its
-follow-up task in [architecture.md](architecture.md#next-steps-for-stations-04-and-05).
-
-### ADR-026: Four environments with separate credentials
-
-- **Status:** Proposed, 19 November 2026.
-- **Context:** Everything runs on one laptop. The delivery map asks for environments chosen
-  at architecture, and ISO/IEC 27001:2022 control 8.31 asks for development, test and
-  production to be kept apart.
-- **Proposal:** Development (the laptop), continuous integration (keyless), test (a
-  Microsoft 365 trial tenant and a Power BI test workspace, synthetic data) and production
-  (Fjordvik's own, out of scope here), each with its own credentials.
-- **Consequences:** Publishing the model and building the flows happen in test, never
-  against a live system; credentials never cross environments.
-- **Detail:** [architecture.md](architecture.md#environments).
-
-### ADR-027: History handling for dimensions
-
-- **Status:** Proposed, 19 November 2026.
-- **Context:** Every dimension today is overwritten in place (slowly changing dimension
-  type 1). Some attributes change and matter to past figures: a customer's service
-  contract, a technician's skills and weekly hours (phase 4 needs them "as at" a date, rule
-  D16), a pump's location, and emission factors (one per source for the whole period).
-- **Proposal:** Type 2 history (a row per version with valid-from and valid-to dates) for
-  `dim_customer.service_contract`, the technician's skills and hours, and yearly factor
-  versions; type 1 elsewhere. New columns or tables only, so no name changes (ADR-003).
-- **Consequences:** Phase 4 can build plans from data as it stood; a factor change no
-  longer rewrites past emissions. Needs generator changes in `data` and Reece's yes for
-  any checksum change (rule D5).
-- **Detail:** [data-model.md](data-model.md#history-handling).
-
-### ADR-028: Continuous integration on every push
-
-- **Status:** Proposed, 19 November 2026.
-- **Context:** Tests run only by hand; the delivery map's build station expects automated
-  tests on every push.
-- **Proposal:** A GitHub Actions workflow running every part's tests and the guardrail
-  checks on every push and pull request, without keys or network; the live Power BI tests
-  stay manual.
-- **Consequences:** The layout map has had `.github/workflows/` since 19 November 2026,
-  and each workflow edit needs Reece's approval (rules G9 and G12).
-
-### ADR-029: A daily date table for the service data
-
-- **Status:** Proposed, 19 November 2026.
-- **Context:** `fact_asset_telemetry.date_key` is a day (1,096 values), but `dim_date` holds
-  months (36 values), so telemetry cannot join the calendar. `fact_service_event` and
-  `fact_portal_event` carry dates with no date key at all.
-- **Proposal:** Add a new `dim_day` table (one row per day, with its month's `date_key`)
-  rather than changing `dim_date` (ADR-003).
-- **Consequences:** Service data can be sliced by month and year with the rest; Power BI
-  could mark it as a date table.
-- **Detail:** [data-model.md](data-model.md#findings).
+None at present. A proposal is added here and waits for Reece's decision; accepting it
+moves it up and starts its follow-up task in
+[architecture.md](architecture.md#next-steps-for-stations-04-and-05).
 
 ## Change history
 
@@ -445,3 +447,7 @@ follow-up task in [architecture.md](architecture.md#next-steps-for-stations-04-a
 - 26 November 2026: ADR-032 written up (a choice made in the 25 November redraw), and
   ADR-028's note on the layout map brought up to date, after Jinny's review of pull
   request 4.
+- 26 November 2026: ADR-026 to 029 accepted by Reece, in question boxes, after a review
+  against all eleven stations of the delivery map. The four records moved from
+  "Proposed" to their place among the accepted records; their wording is unchanged apart
+  from the status line and "Proposal" becoming "Decision".
