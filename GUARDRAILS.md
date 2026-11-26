@@ -28,7 +28,8 @@ First edition, 2 November 2026. Slimmed on 3 November 2026 after Jasila's review
 - **Permission rules.** `.claude/settings.json` also holds Claude Code permission rules,
   applied in every mode: deny rules for reading `.env` files and the private list's
   folder, and for editing the generated folders and `.git/hooks/`, and ask rules for
-  editing the guardrail files.
+  editing the guardrail files, the GitHub Actions workflows, the local actions in
+  `.github/actions/` and the `CODEOWNERS` files.
 - **Pre-commit.** `guardrails/pre-commit` runs the checks before each commit. Reece
   installed it by hand on 2 November 2026.
 - **Phase rules.** D13 to D17, E2, E3, F1, F2, M1 to M5, O1, RS1, RS2, G10, W8, A7, A13
@@ -54,7 +55,7 @@ First edition, 2 November 2026. Slimmed on 3 November 2026 after Jasila's review
 | D10 | `data/generator-truth/` is an answer key for evaluation only: never a model feature, and never read by mcp or an agent while it runs. | Review; service-ai tests from phase 3 |
 | D11 | A feature or driver for day t uses only data recorded on or before day t. A feature that fails the point-in-time test is not used: rebuilding it with every row after day t deleted must not change it. | service-ai tests from phase 2 |
 | D12 | Models read only columns on a written feature allowlist. Repair dates, downtime, failure mode, technician notes and the answer key are never on it, and no allowlisted column is computed from them. A model trained on shuffled labels scores no better than the dummy model. | service-ai tests from phase 3 |
-| D18 | A log line from any deployed service holds only an allowlisted set of fields: time, endpoint, status, latency, synthetic pump ID, model version, data checksum, commit, score and alert flag. Never a client IP address, request headers or user agent. Evidence from a live run is checked for IP addresses before it is committed. | service-ai tests from the API build (the log formatter); `check.py` (public IPv4 addresses in `evidence/` files) |
+| D18 | A log line from any deployed service holds only an allowlisted set of fields: time, endpoint, status, latency, synthetic pump ID, model version, data checksum, commit, score and alert flag. Never a client IP address, request headers or user agent. Evidence from a live run is checked for IP addresses before it is committed. | service-ai tests from the API build (the log formatter); `check.py` (public IPv4 and IPv6 addresses in `evidence/` files, including `.log` and `.har` files; dotted version numbers such as `numpy==2.5.4.1` are not read as addresses) |
 
 ## 2. AI and agent safety
 
@@ -86,9 +87,9 @@ First edition, 2 November 2026. Slimmed on 3 November 2026 after Jasila's review
 | G6 | Each phase ends with a handover note in `docs/handover/` and a new note in the knowledge folder's `raw/inbox/`. Never run git in the knowledge folder. | Review |
 | G7 | Close Power BI Desktop (Don't save) before regenerating the model or report files, then restore generated files whose content did not change. | Review |
 | G8 | Never commit the local `old historical folders/`. | `.git/info/exclude`; `check.py` |
-| G9 | Only Attena edits `GUARDRAILS.md`, `GUARDRAILS.sha256`, `guardrails/` (files in `guardrails/proposals/` excepted: any chat writes a proposal there), every file in `.claude/` and each part's `tests/test_guardrails.py`. The hook asks Reece to approve each such change, and Reece approves only in Attena. Edits to `.github/workflows/` also need Reece's approval: a workflow runs with deploy rights. He approves them in the chat that makes them. | Hook (asks Reece); permission rules (ask before edits); the fingerprint test |
+| G9 | Only Attena edits `GUARDRAILS.md`, `GUARDRAILS.sha256`, `guardrails/` (files in `guardrails/proposals/` excepted: any chat writes a proposal there), every file in `.claude/` and each part's `tests/test_guardrails.py`. The hook asks Reece to approve each such change, and Reece approves only in Attena. Edits to `.github/workflows/`, `.github/actions/` (local actions a workflow runs) and any `CODEOWNERS` file also need Reece's approval: workflows run with deploy rights, and CODEOWNERS decides who reviews them. He approves them in the chat that makes them. | Hook (asks Reece); permission rules (ask before edits); the fingerprint test |
 | G11 | Every Claude Code chat in this repository starts with the repository root as its folder and works in a part with `cd`. A chat started in a part folder loads no project settings, so the guardrail hook doesn't run for it. | Review |
-| G12 | The API deploy and the GitHub Pages publish run only from `main`, through the GitHub environment `production`, with Reece as its required reviewer; the federated credential's subject is `repo:voneeci/fjordvik:environment:production`. Every deploy job needs a test job first. No workflow uses `pull_request_target`, and `id-token: write` is granted only to a deploy job, never to the whole workflow. | `check.py` (reads each workflow); the GitHub environment settings (Reece) |
+| G12 | The API deploy and the GitHub Pages publish run only from `main`, through the GitHub environment `production`, with Reece as its required reviewer; the federated credential's subject is `repo:voneeci/fjordvik:environment:production`. Every deploy job needs a test job first. No workflow uses `pull_request_target`, and `id-token: write` is granted only to a deploy job, never to the whole workflow. | `check.py` (reads each workflow job by job, with comments removed; a deploy job is one with a deploy step, such as any `azure/` action, a GitHub Pages action, `docker push`, `az webapp` or `az acr`, or a local action in `.github/actions/` that holds one); the GitHub environment settings (Reece) |
 
 ## 4. Writing and docs
 
@@ -115,7 +116,7 @@ First edition, 2 November 2026. Slimmed on 3 November 2026 after Jasila's review
 
 | Rule | What | Checked by |
 | --- | --- | --- |
-| C1 | Bicep keeps a demo's cost capped: `minReplicas: 0`, `maxReplicas` at most 2, the smallest CPU and memory pair, a Log Analytics daily cap of at most 0.2 GB, a budget of at most EUR 5 with alerts at 50% and 100%, and no private endpoint. Budgets only alert; the caps are the design. | `check.py` (reads every `.bicep` file; the values must be literals) |
+| C1 | Bicep keeps a demo's cost capped: `minReplicas: 0`, `maxReplicas` at most 2, the smallest CPU and memory pair (`cpu: json('0.25')`, `memory: '0.5Gi'`), a Log Analytics daily cap of at most 0.2 GB (`dailyQuotaGb: json('0.2')`, since Bicep has no decimal literals), a budget of at most EUR 5 with alerts at 50% and 100%, and no private endpoint. Budgets only alert; the caps are the design. | `check.py` (reads every `.bicep` file, comments removed, resource types in any case; the values must be literals, bare or in `json('...')`) |
 | P1 | Public pages (GitHub Pages) show group-level synthetic totals only: nothing a Power BI row-level security role restricts, so no site or region breakdowns. Each page says the data is synthetic and the emission factors illustrative. Plant screens need a signed-in host. | Dashboard build tests (generated page data holds no `site_id` or `region_id`) |
 | P2 | Each chart has a written spec (metric, chart type, sort, units, axis start) before its code. A test checks each chart's options against its spec and its data against the parity reference, with screen reader text (`aria`) on. Reece's dashboard design rules (the dashboard-check skill) apply before a page is published. | Dashboard build tests |
 
@@ -130,7 +131,20 @@ follow:
   variables, `subprocess`, `node -e`, a path passed through a function or loop);
 - writers other than `open`, `Path` methods, pandas, `shutil` and `os`;
 - unusual paths (junctions, admin shares by computer name) and commands over 20,000
-  characters, which it asks about instead.
+  characters, which it asks about instead;
+- the paths inside a patch: `git apply`, `git am` and `patch` can change a guardrail file,
+  a workflow, a local action or `CODEOWNERS` without an ask. The fingerprints catch a
+  changed guardrail file and `check.py` a workflow that breaks G12; only review catches the
+  rest, including any `CODEOWNERS` change;
+- a copy, move or extract into a folder above a protected path, where the file name comes
+  from the source: `cp -r ../template/.github .`, `cp CODEOWNERS .github/`,
+  `git mv actions .github/`, `unzip x.zip -d .github`, `tar -xf x.tar -C .github`,
+  `Expand-Archive -DestinationPath .github`, and the same into `data/tests/` or `.claude`
+  (found by Jinny on 26 November 2026; a fix waits for Reece's yes under the freeze);
+- git commands that bring in other commits: `git stash pop`, `git cherry-pick` and
+  `git merge` give no ask;
+- an output path given through combined short options, such as `curl -sSo <path>`
+  (`curl -o <path>` asks).
 
 It also blocks a few safe forms it can't tell apart: `generate.py` run as a file (run
 `python -m fjordvik_data` instead), one variable reused for a table read and a results
@@ -143,7 +157,29 @@ commit; and Reece's own guard covers git hook settings (G2).
 
 The workflow (G12) and Bicep (C1) checks in `check.py` read text patterns, not YAML or
 Bicep meaning: a value they check must be a literal, and an unusual layout can slip past
-them. Review covers the rest.
+them. The workflow check splits jobs by indentation, so it doesn't read `jobs:` written
+in flow style (`{...}`), YAML anchors, or the jobs of a reusable workflow called from
+another repository; a reusable workflow in this repository (`on: workflow_call`) that
+deploys is flagged, because it has no push to `main` of its own. A deploy step it doesn't
+know by name makes no deploy job: a script that deploys, `docker/build-push-action`,
+`azd`, `swa deploy`, `az login` in a `run:` step, `npx gh-pages`, or a local action that
+wraps another local action. In a deploy job, `environment: production` and `needs:` count
+wherever they appear (even as an `env:` value or a step input), and `needs:` may name any
+job, not only a test job. A `#` after a space inside a quoted `run:` string is read as a
+comment. `workflow_dispatch` beside a push to `main` passes, so the `production`
+environment's branch rule in GitHub (Reece's setting) is what stops a manual deploy from
+another branch.
+
+The Bicep check counts a resource declared `existing` as one being built (a false alarm),
+and doesn't read resources built through modules, such as Azure Verified Modules.
+
+The D18 evidence check skips a dotted version number when a letter, `_`, `-`, `==`, `<=`,
+`>=`, `~=`, `!=`, `@` or the word "version" comes straight before it. So an address after
+one of these (`ssh azureuser@203.0.113.7`, `host-203.0.113.7`) is missed, and a version
+alone in a column (as `pip list` prints it) is read as an address. It counts IPv6 only in
+the global unicast range (`2000::/3`), so slices such as `[::10]` pass. Besides the usual
+text types it reads `.log` and `.har` evidence files, not `.jsonl`, `.ndjson`, `.xml` or
+`.out`. Review covers the rest.
 
 **The hook is frozen.** It changes only after a recorded incident (a chat hits a gap or a
 false block in normal work), or when a rule changes. Each fix comes with its hook case in
@@ -174,3 +210,5 @@ agrees, updates the fingerprint, and adds a line below.
 - 19 November 2026: rules for the failure risk API on Azure, the landing zone and public HTML dashboards (Reece approved all 12 gaps from Attena's check of the same day, `knowledge/raw/inbox/2026-11-19-attena-fjordvik-api-guardrail-check.md`). D8 adds OIDC-only sign-in, Azure IDs in GitHub environment secrets and Application Insights connection strings; new D18 (log fields, no client IP addresses); A1 covers the API; new A14 (synthetic notice in API responses); G5 adds the dashboard parity test; G9 adds `.github/workflows/` (hook asks Reece); new G12 (deploy and publish from `main` through `production`); new section 6 with C1 (cost caps), P1 (public pages group-level only) and P2 (chart specs before code). `check.py` scans `.js`, `.css` and `.bicep` files and reads workflows, Bicep and evidence; the layout map adds `docs/architecture/`, `docs/site/`, `.github/workflows/`, `service-ai/Dockerfile` and `service-ai/infra/` (proposal `2026-11-19-fjordvik-code-architecture-folder.md`). The hook change is a rule change under the freeze, with its hook cases in `shared_tests.py`.
 - 25 November 2026: the layout map adds `docs/data-dictionary.xlsx`, the generated data dictionary workbook (Reece chose this home in the question box).
 - 25 November 2026: the layout map adds `docs/architecture-drawings.html`, the generated architecture drawings page on GitHub Pages, built from `docs/site/drawings/` (Reece chose a Pages page reached through a pull request into `main`, in the question box).
+- 25 November 2026: fixes from Jinny's review of the 19 November change (Reece passed on her findings, in this chat; report `Project Grow\docs\checks\2026-11-25\2026-11-25-jinny-fjordvik-guardrail-review.md`). C1 reads `json('0.2')` and other Bicep decimals, ignores comments, matches resource types in any case, and now checks the smallest CPU and memory pair and the budget's alerts at 50% and 100%. G12 reads workflows job by job with comments removed: more deploy actions (every `azure/` action, the GitHub Pages actions, `docker push`, `az webapp`, `az acr`, `git push` to `gh-pages`, local actions that hold one), `id-token: write` or `write-all` at any indent, in flow style, or in a job that doesn't deploy. D18 reads IPv6 and `.log` and `.har` evidence files and skips dotted version numbers. G9 and the hook's G12 ask cover `.github/actions/` and `CODEOWNERS`, and the hook asks for `git mv` into a protected folder; `git apply` is listed under what the hook doesn't catch. Planted and normal cases for each in `shared_tests.py`.
+- 26 November 2026: follow-ups from Jinny's recheck of the 25 November fixes (verdict merge; Reece chose to fix two and list the rest, in the question box; report `Project Grow\docs\checks\2026-11-25\2026-11-25-jinny-fjordvik-guardrail-recheck.md`). `check.py` leaves untracked Python caches out, so the fast suite passes with bytecode writing on, and counts IPv6 only in the global unicast range, so slices such as `[::10]` in a saved run pass. The permission rules bullet names every ask rule, the note on patches no longer overstates the backstops, and "What the hook doesn't catch" lists parent-folder copies and extracts, `git stash pop`, `git cherry-pick`, `git merge`, combined `curl` options, and the workflow, Bicep and D18 limits she found. Must-pass cases for the slices and the cache in `shared_tests.py`.

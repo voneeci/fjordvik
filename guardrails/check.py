@@ -18,6 +18,7 @@ guardrails/proposals/ instead of editing this file.
 
 import datetime
 import hashlib
+import ipaddress
 import os
 import re
 import subprocess
@@ -79,20 +80,45 @@ DOCUMENT_NAMES = {
     "guardrails/proposals": re.compile(r"^(\d{4}-\d{2}-\d{2}-[a-z0-9]+-[a-z0-9-]+|README)\.md$"),
     "docs/architecture/adr": re.compile(r"^\d{4}-[a-z0-9-]+\.md$"),
 }
-# G12: GitHub Actions workflows. A workflow with a deploy step must run from main through
-# the production environment, after a test job; none may use pull_request_target or grant
-# id-token: write to the whole workflow.
+# G12: GitHub Actions workflows. A deploy job must run from main through the production
+# environment, after a test job; no workflow may use pull_request_target, and only a deploy
+# job may hold id-token: write. Read job by job, with comments removed.
 WORKFLOWS = ".github/workflows/"
-DEPLOY_STEP = re.compile(r"(?i)azure/login|containerapp|deploy-pages|upload-pages-artifact"
-                         r"|az deployment|azure/arm-deploy")
+LOCAL_ACTIONS = ".github/actions/"
+DEPLOY_STEP = re.compile(
+    r"(?i)\buses\s*:\s*['\"]?azure/"  # every Azure action: login, arm-deploy, webapps-deploy,
+                                      # container-apps-deploy-action, static-web-apps-deploy
+    r"|containerapp|deploy-pages|upload-pages-artifact"
+    r"|peaceiris/actions-gh-pages|jamesives/github-pages-deploy-action"
+    r"|\baz\s+(?:deployment|webapp|acr|staticwebapp|functionapp)\b"
+    r"|\bdocker\s+push\b|\bgit\s+push\b[^\n]*\bgh-pages\b")
+LOCAL_ACTION_USE = re.compile(r"(?i)\buses\s*:\s*['\"]?\./(\.github/actions/[^\s'\"@]+)")
+# id-token: write in any layout (block at any indent, or flow style {id-token: write}),
+# or permissions: write-all.
+GRANT = re.compile(r"(?i)\bid-token['\"]?\s*:\s*['\"]?write\b|\bpermissions\s*:\s*['\"]?write-all\b")
 PRODUCTION = re.compile(r"(?m)environment\s*:\s*['\"]?production['\"]?\s*$"
-                        r"|environment\s*:\s*\n\s+name\s*:\s*['\"]?production")
+                        r"|environment\s*:\s*\n\s+name\s*:\s*['\"]?production"
+                        r"|environment\s*:\s*\{[^}]*\bname\s*:\s*['\"]?production")
 MAIN_ONLY = re.compile(r"branches\s*:\s*\[\s*['\"]?main['\"]?\s*\]"
-                       r"|branches\s*:\s*\n\s*-\s*['\"]?main['\"]?\s*\n(?!\s*-)")
-# D18: public IPv4 addresses in evidence files (loopback, 0.0.0.0, private and link-local
-# ranges are allowed).
-IPV4 = re.compile(r"(?<![\d.])((?:25[0-5]|2[0-4]\d|1?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|1?\d?\d)){3})(?!\.?\d)")
+                       r"|branches\s*:\s*\n\s*-\s*['\"]?main['\"]?\s*(\n(?!\s*-)|$)")
+YAML_COMMENT = re.compile(r"(?m)(^|\s)#.*$")
+# C1: a number in Bicep, written bare (2) or, for a decimal, as json('0.2'), the only way
+# Bicep can write one.
+BICEP_NUMBER = r"(?:json\(\s*'([\d.]+)'\s*\)|([\d.]+))"
+BICEP_COMMENT = re.compile(r"/\*.*?\*/|(^|\s)//[^\n]*", re.S | re.M)
+# D18: public IP addresses in evidence files. IPv4 loopback, 0.0.0.0, private and
+# link-local ranges are allowed, and so are dotted version numbers such as
+# numpy==2.5.4.1, v3.13.1.0 or "version 2.31.0.5". IPv6 counts when it is a global address.
+IPV4 = re.compile(r"(?<![\d.])((?:25[0-5]|2[0-4]\d|1?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|1?\d?\d)){3})(?!\.?\d)(?![A-Za-z])")
+VERSION_BEFORE = re.compile(r"(?i)(?:[a-z_-]|[=<>~!]=|@|\bversion\b\s*[:=]?\s*)$")
 NOT_PUBLIC = re.compile(r"^(127\.|0\.0\.0\.0$|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.)")
+IPV6 = re.compile(r"(?<![\w:.])((?:[0-9A-Fa-f]{0,4}:){2,7}[0-9A-Fa-f]{0,4})(?![\w:])")
+# IPv6 counts only in the global unicast range, where every client address sits (the
+# documentation range 2001:db8::/32 included, as for IPv4). This leaves out loopback,
+# link-local and unique local addresses, and Python slices such as [::10] or [1::2].
+GLOBAL_V6 = ipaddress.ip_network("2000::/3")
+# Evidence files read for D18 even though other checks skip their type.
+EVIDENCE_TEXT = {".log", ".har"}
 # L5: names that look like scratch, temporary or backup files. Words a project needs
 # (temp for temperature, copy, old, debug) are left out.
 SCRATCH_NAME = re.compile(r"(?i)(^|[-_. ])(scratch|tmp|untitled|backup|bak)([-_. ]|$)"
@@ -109,8 +135,12 @@ FINGERPRINTED = ("GUARDRAILS.md", "guardrails/claude_hook.py", "guardrails/check
 
 
 def files(root: Path = ROOT) -> list[str]:
-    """Every file git tracks or would add (untracked files that are not ignored)."""
-    out = subprocess.run(["git", "ls-files", "--cached", "--others", "--exclude-standard"],
+    """Every file git tracks or would add (untracked files that are not ignored). Untracked
+    Python caches are left out: importing a guardrail module, as each part's guardrail test
+    does, writes guardrails/__pycache__/, which no .gitignore covers. A tracked cache file
+    still counts."""
+    out = subprocess.run(["git", "ls-files", "--cached", "--others", "--exclude-standard",
+                          "--exclude=__pycache__/", "--exclude=*.pyc"],
                          cwd=root, capture_output=True, text=True, check=True).stdout
     return sorted({p for p in out.splitlines() if (root / p).is_file()})
 
@@ -183,52 +213,140 @@ def name_findings(rel: str, parts: list[str], explicit: set[str]) -> list[str]:
     return found
 
 
-def workflow_findings(rel: str, text: str) -> list[str]:
-    """G12 for one GitHub Actions workflow, read as text."""
+def yaml_blocks(lines: list[str], indent: int) -> dict[str, str]:
+    """The keys at one indent and the text under each (key line included), for a YAML file
+    read as text. Keys may be quoted ("on":). Lines deeper than the indent belong to the
+    key above them."""
+    blocks: dict[str, list[str]] = {}
+    key = None
+    for line in lines:
+        if not line.strip():
+            continue
+        depth = len(line) - len(line.lstrip(" "))
+        if depth <= indent:
+            m = re.match(r"\s*(['\"]?)([\w.-]+)\1\s*:", line)
+            key = m.group(2) if m and depth == indent else None
+            if key:
+                blocks.setdefault(key, [])
+        if key:
+            blocks[key].append(line)
+    return {k: "\n".join(v) for k, v in blocks.items()}
+
+
+def workflow_jobs(jobs_text: str) -> dict[str, str]:
+    """Each job under jobs:, by name."""
+    lines = jobs_text.split("\n")[1:]
+    first = next((l for l in lines if l.strip()), None)
+    if first is None:
+        return {}
+    return yaml_blocks(lines, len(first) - len(first.lstrip(" ")))
+
+
+def workflow_findings(rel: str, text: str, deploy_actions: frozenset[str] = frozenset()) -> list[str]:
+    """G12 for one GitHub Actions workflow, read job by job. A deploy job is one with a deploy
+    step, or one that uses a local action (.github/actions/) holding a deploy step."""
+    text = YAML_COMMENT.sub(r"\1", text)
     found = []
     if "pull_request_target" in text:
         found.append(f"G12 {rel}: pull_request_target runs pull request code with the "
                      "repository's secrets; never use it")
-    if re.search(r"(?m)^ {0,2}id-token\s*:\s*write|^permissions\s*:\s*write-all", text):
+    top = yaml_blocks(text.split("\n"), 0)
+    outside = "\n".join(v for k, v in top.items() if k != "jobs")
+    if GRANT.search(outside):
         found.append(f"G12 {rel}: id-token: write (or write-all) is granted to the whole "
                      "workflow; grant it to the deploy job only")
-    if DEPLOY_STEP.search(text):
-        triggers = text.split("\njobs:", 1)[0]
-        if not PRODUCTION.search(text):
-            found.append(f"G12 {rel}: a deploy job must use the GitHub environment production")
-        if not MAIN_ONLY.search(triggers) or re.search(r"\bpull_request\b(?!_target)", triggers):
+    jobs = workflow_jobs(top.get("jobs", ""))
+    if not jobs and DEPLOY_STEP.search(text):
+        jobs = {"(whole file)": text}  # a layout the reader can't split: judge it as one job
+
+    def deploys(job: str) -> bool:
+        used = {u.rstrip("/").lower() for u in LOCAL_ACTION_USE.findall(job)}
+        return bool(DEPLOY_STEP.search(job) or used & deploy_actions)
+
+    deploy = [name for name, job in jobs.items() if deploys(job)]
+    for name, job in jobs.items():
+        if name not in deploy and GRANT.search(job):
+            found.append(f"G12 {rel}: job {name} holds id-token: write (or write-all) but has no "
+                         "deploy step; grant it to the deploy job only")
+    if deploy:
+        triggers = top.get("on", "")
+        if not MAIN_ONLY.search(triggers) or re.search(r"\bpull_request\b", triggers):
             found.append(f"G12 {rel}: a deploy workflow runs on pushes to main only, never on "
                          "pull requests")
-        if not re.search(r"(?m)^\s+needs\s*:", text):
-            found.append(f"G12 {rel}: a deploy job needs a test job first (needs:)")
+    for name in deploy:
+        if not PRODUCTION.search(jobs[name]):
+            found.append(f"G12 {rel}: deploy job {name} must use the GitHub environment production")
+        if not re.search(r"(?m)^\s+needs\s*:", jobs[name]):
+            found.append(f"G12 {rel}: deploy job {name} needs a test job first (needs:)")
     return found
+
+
+def deploy_actions(texts: dict[str, str]) -> frozenset[str]:
+    """Local actions (.github/actions/<name>/action.yml) that hold a deploy step, as the
+    folder a workflow's uses: line names."""
+    return frozenset(rel.rsplit("/", 1)[0].lower() for rel, text in texts.items()
+                     if DEPLOY_STEP.search(YAML_COMMENT.sub(r"\1", text)))
+
+
+def bicep_numbers(pattern: str, text: str) -> list[float]:
+    """Every value of a Bicep property, bare (2) or written json('0.2')."""
+    return [float(a or b) for a, b in re.findall(rf"(?i)\b{pattern}\s*:\s*{BICEP_NUMBER}", text)]
 
 
 def bicep_findings(texts: dict[str, str]) -> list[str]:
-    """C1 across every Bicep file: replica caps, a log cap, a budget, no private endpoint.
-    The values must be literals in the Bicep, so the caps are visible in review."""
+    """C1 across every Bicep file: replica caps, the smallest CPU and memory pair, a log cap,
+    a budget with alerts at 50% and 100%, no private endpoint. Comments are ignored and
+    resource types are matched in any case, as Bicep does. The values must be literals in
+    the Bicep, so the caps are visible in review."""
     found = []
-    for rel, text in texts.items():
-        if "Microsoft.Network/privateEndpoints" in text:
+    clean = {rel: BICEP_COMMENT.sub(lambda m: m.group(1) or "", text) for rel, text in texts.items()}
+    for rel, text in clean.items():
+        if re.search(r"(?i)Microsoft\.Network/privateEndpoints", text):
             found.append(f"C1 {rel}: no private endpoint (it adds an hourly charge)")
-        if "Microsoft.App/containerApps" in text:
-            mins = re.findall(r"minReplicas\s*:\s*(\d+)", text)
-            maxs = re.findall(r"maxReplicas\s*:\s*(\d+)", text)
-            if not mins or any(int(m) != 0 for m in mins):
+        if re.search(r"(?i)Microsoft\.App/containerApps", text):
+            mins = bicep_numbers("minReplicas", text)
+            maxs = bicep_numbers("maxReplicas", text)
+            cpus = bicep_numbers("cpu", text)
+            memory = [float(m) for m in re.findall(r"(?i)\bmemory\s*:\s*'([\d.]+)\s*Gi'", text)]
+            if not mins or any(m != 0 for m in mins):
                 found.append(f"C1 {rel}: a container app needs minReplicas: 0")
-            if not maxs or any(int(m) > 2 for m in maxs):
+            if not maxs or any(m > 2 for m in maxs):
                 found.append(f"C1 {rel}: a container app needs maxReplicas of 2 or less")
-        if "Microsoft.OperationalInsights/workspaces" in text:
-            caps = re.findall(r"dailyQuotaGb\s*:\s*([\d.]+)", text)
-            if not caps or any(float(c) > 0.2 for c in caps):
+            if not cpus or not memory or any(c > 0.25 for c in cpus) or any(m > 0.5 for m in memory):
+                found.append(f"C1 {rel}: a container app needs the smallest CPU and memory pair "
+                             "(cpu: json('0.25'), memory: '0.5Gi')")
+        if re.search(r"(?i)Microsoft\.OperationalInsights/workspaces", text):
+            caps = bicep_numbers("dailyQuotaGb", text)
+            if not caps or any(c > 0.2 for c in caps):
                 found.append(f"C1 {rel}: a Log Analytics workspace needs dailyQuotaGb of 0.2 or less")
-    joined = "\n".join(texts.values())
-    if "Microsoft.App/containerApps" in joined:
-        amounts = re.findall(r"Microsoft\.Consumption/budgets[\s\S]*?\bamount\s*:\s*([\d.]+)", joined)
-        if not amounts or any(float(a) > 5 for a in amounts):
+    joined = "\n".join(clean.values())
+    if re.search(r"(?i)Microsoft\.App/containerApps", joined):
+        budgets = [part for part in re.split(r"(?im)^\s*resource\s", joined)
+                   if re.search(r"(?i)Microsoft\.Consumption/budgets", part)]
+        amounts = [bicep_numbers("amount", b) for b in budgets]
+        if not budgets or not all(a and max(a) <= 5 for a in amounts):
             found.append("C1 (Bicep): a container app needs a Microsoft.Consumption/budgets "
                          "resource with amount of 5 or less")
+        elif not any({50.0, 100.0} <= set(bicep_numbers("threshold", b)) for b in budgets):
+            found.append("C1 (Bicep): the budget needs alerts at 50% and 100% "
+                         "(threshold: 50 and threshold: 100)")
     return found
+
+
+def public_addresses(text: str) -> str | None:
+    """The first public IP address in an evidence file's text (D18), or None."""
+    for m in IPV4.finditer(text):
+        if NOT_PUBLIC.match(m.group(1)) or VERSION_BEFORE.search(text[max(0, m.start() - 12):m.start()]):
+            continue
+        return m.group(1)
+    for m in IPV6.finditer(text):
+        try:
+            address = ipaddress.IPv6Address(m.group(1))
+        except ValueError:
+            continue
+        if address in GLOBAL_V6:
+            return m.group(1)
+    return None
 
 
 def fingerprint(path: Path) -> str:
@@ -281,7 +399,11 @@ def check(root: Path = ROOT) -> list[str]:
         mapped = None
     off_map: dict[str, list[str]] = {}
     bicep: dict[str, str] = {}
-    for rel in files(root):
+    tracked = files(root)
+    actions = deploy_actions({rel: (root / rel).read_text(encoding="utf-8", errors="replace")
+                              for rel in tracked if rel.startswith(LOCAL_ACTIONS)
+                              and rel.endswith(("/action.yml", "/action.yaml"))})
+    for rel in tracked:
         path = root / rel
         name = Path(rel).name
         if rel.startswith("old historical folders/"):
@@ -299,7 +421,9 @@ def check(root: Path = ROOT) -> list[str]:
                 findings += name_findings(rel, parts, set(patterns))
         if path.stat().st_size > MAX_BYTES:
             findings.append(f"D9 {rel}: {path.stat().st_size / 1e6:.1f} MB is over 50 MB")
-        if Path(rel).suffix.lower() not in TEXT:
+        evidence = "/evidence/" in f"/{rel}"
+        suffix = Path(rel).suffix.lower()
+        if suffix not in TEXT and not (evidence and suffix in EVIDENCE_TEXT):
             continue
         try:
             text = path.read_text(encoding="utf-8")
@@ -319,15 +443,14 @@ def check(root: Path = ROOT) -> list[str]:
             if m:
                 findings.append(f"D2 {rel}:{line_of(text, m.start())}: a name on the private banned list")
         if rel.startswith(WORKFLOWS) and rel.endswith((".yml", ".yaml")):
-            findings += workflow_findings(rel, text)
-        if rel.endswith(".bicep"):
+            findings += workflow_findings(rel, text, actions)
+        if rel.lower().endswith(".bicep"):
             bicep[rel] = text
-        if "/evidence/" in f"/{rel}":
-            for m in IPV4.finditer(text):
-                if not NOT_PUBLIC.match(m.group(1)):
-                    findings.append(f"D18 {rel}:{line_of(text, m.start())}: looks like a public "
-                                    "IP address; evidence holds no client data")
-                    break
+        if evidence:
+            address = public_addresses(text)
+            if address:
+                findings.append(f"D18 {rel}:{line_of(text, text.index(address))}: looks like a "
+                                "public IP address; evidence holds no client data")
         if markdown and rel not in SKIP_PROSE_CHECKS:
             for m in AMERICAN.finditer(own):
                 findings.append(f"W2 {rel}: American spelling '{m.group(0)}'")

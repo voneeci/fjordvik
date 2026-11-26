@@ -15,7 +15,8 @@ Rules it enforces (identifiers from GUARDRAILS.md):
   G2  no hook bypass, no change to the hooks setting or to .git/hooks
   G3  no force push
   G9  ask Reece before any change to the guardrail files, including a git rollback
-  G12 ask Reece before any change to a GitHub Actions workflow (.github/workflows/)
+  G12 ask Reece before any change to a GitHub Actions workflow (.github/workflows/), a local
+      action (.github/actions/) or a CODEOWNERS file
 It catches the common forms of each breach, not every form: GUARDRAILS.md lists what it
 doesn't catch, and the data tests, the fingerprints in GUARDRAILS.sha256 and the
 permission rules in .claude/settings.json are the backstops. It fails closed: a call it
@@ -44,8 +45,11 @@ PROTECTED = ("guardrails.md", "guardrails.sha256", ".claude/settings.json",
              ".claude/settings.local.json") + GUARD_TESTS
 PROTECTED_DIR, OPEN_DIR, GIT_HOOKS = "guardrails/", "guardrails/proposals/", ".git/hooks/"
 CLAUDE_DIR = ".claude/"
-# G9 and G12: workflows run with deploy rights, so Reece approves each change in any chat.
-WORKFLOWS_DIR = ".github/workflows/"
+# G9 and G12: workflows, and the local actions they run, have deploy rights, and CODEOWNERS
+# decides who reviews them, so Reece approves each change in any chat. GitHub reads
+# CODEOWNERS from .github/, the root or docs/. Paths are compared in lower case.
+GITHUB_ASK = (".github/workflows/", ".github/actions/", ".github/codeowners", "codeowners",
+              "docs/codeowners")
 # Cache folders and files: never generated data or guardrail files, so cleaning them is fine.
 CACHES = {"__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache"}
 # Names that find -name patterns are tested against, to see what a filtered delete could hit.
@@ -113,7 +117,8 @@ MESSAGES = {
 }
 ASK_REASONS = {
     "G9": "GUARDRAILS.md G9: only Attena edits the guardrail files. Approve only in the Attena chat.",
-    "G12": ("GUARDRAILS.md G9 and G12: workflows in .github/workflows/ run with deploy rights. "
+    "G12": ("GUARDRAILS.md G9 and G12: workflows in .github/workflows/ and the local actions in "
+            ".github/actions/ run with deploy rights, and CODEOWNERS decides who reviews them. "
             "Approve only if you have read the change."),
     "wrapped": ("GUARDRAILS.md: the guardrail hook can't read this wrapped or very long command. "
                 "Approve only if you know what it runs."),
@@ -418,9 +423,10 @@ def judge(segments: list[str], deleting: bool, generated: bool = True) -> str | 
         where = place(segments, p)
         if (where == "in" and not in_open) or (where == "above" and deleting):
             return "G9"
-    where = place(segments, WORKFLOWS_DIR)
-    if where == "in" or (where == "above" and deleting):
-        return "G12"
+    for p in GITHUB_ASK:
+        where = place(segments, p)
+        if where == "in" or (where == "above" and deleting):
+            return "G12"
     return None
 
 
@@ -523,10 +529,13 @@ def git_verdict(stage: str, cwd: str, root: str) -> str | None:
             if any(re.fullmatch(r"-\w*n\w*|--dry-run", a) for a in args):
                 return None
             paths = paths or ["."]
+        # git mv: the sources go (judged like a delete), and the destination is written, so
+        # a move into a protected folder asks too.
+        written = []
         if sub == "mv":
-            paths = paths[:-1]
+            paths, written = paths[:-1], paths[-1:]
         whole = ["." if unquote(p) in (":/", ":/*") else p for p in paths]
-        return check_paths([(p, True) for p in whole], cwd, root,
+        return check_paths([(p, True) for p in whole] + [(p, False) for p in written], cwd, root,
                            generated=sub in {"rm", "mv", "clean"})
     if sub == "reset" and any(a in ("--hard", "--keep", "--merge") for a in args):
         revs = [a for a in positional(args) if a != "--"][:1]
@@ -998,7 +1007,7 @@ def reason(call: dict, root: str) -> str | None:
             return MESSAGES["G2"]
         if is_protected(rel):
             return "ask:G9"
-        if rel.startswith(WORKFLOWS_DIR):
+        if any(rel.startswith(p) if p.endswith("/") else rel == p for p in GITHUB_ASK):
             return "ask:G12"
     if command:
         return shell_verdict(command, shell_cwd(call, args, root), root)
