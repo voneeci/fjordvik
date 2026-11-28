@@ -3,7 +3,7 @@
 Power BI Project (PBIP: TMDL model + PBIR report) over the synthetic Fjordvik dataset.
 One of five folders in the fjordvik repository: data (source of the data), mcp, powerbi,
 power-automate, service-ai. Permanent rules in
-`C:\Users\reece\Projects\knowledge\RULES.md` come first, then `..\GUARDRAILS.md`, then
+`C:\Users\reece\Admin\master-admin\rules\RULES.md` come first, then `..\GUARDRAILS.md`, then
 this file.
 
 ## Rules for this repo

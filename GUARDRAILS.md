@@ -10,7 +10,7 @@ First edition, 2 November 2026. Slimmed on 3 November 2026 after Jasila's review
 
 ## How these rules work
 
-- **Order of authority.** `C:\Users\reece\Projects\knowledge\RULES.md` comes first, then
+- **Order of authority.** `C:\Users\reece\Admin\master-admin\rules\RULES.md` comes first, then
   this file, then each folder's `CLAUDE.md`. This file may be stricter than RULES.md,
   never looser, and doesn't repeat it: where a rule here says "RULES.md", that file holds
   the rule. Report any contradiction to Reece.
@@ -99,7 +99,7 @@ First edition, 2 November 2026. Slimmed on 3 November 2026 after Jasila's review
 | W5 | Fjordvik is one project in five parts (data, mcp, powerbi, power-automate, service-ai), never "five projects" or "pieces". | `check.py` |
 | W6 | Every README and doc that shows data says it is synthetic, and that the emission factors are illustrative. | Review |
 | W7 | Lead each document with the business need, then the solution and the parts. | Review |
-| W9 | Documents follow Reece's voice guide, `C:\Users\reece\Projects\knowledge\raw\exports\house-style\VOICE.md` (or the reece-voice skill), for tone and style. It stays outside this repository because it holds his own writing samples: never copy or quote it here. Where it differs from W1 to W7, these rules win, and its job-application and spoken-answer sections don't apply. | Review |
+| W9 | Documents follow Reece's voice guide, `C:\Users\reece\Admin\master-admin\style\VOICE.md` (or the reece-voice skill), for tone and style. It stays outside this repository because it holds his own writing samples: never copy or quote it here. Where it differs from W1 to W7, these rules win, and its job-application and spoken-answer sections don't apply. | Review |
 
 ## 5. Repository layout
 
@@ -213,3 +213,4 @@ agrees, updates the fingerprint, and adds a line below.
 - 25 November 2026: fixes from Jinny's review of the 19 November change (Reece passed on her findings, in this chat; report `Project Grow\docs\checks\2026-11-25\2026-11-25-jinny-fjordvik-guardrail-review.md`). C1 reads `json('0.2')` and other Bicep decimals, ignores comments, matches resource types in any case, and now checks the smallest CPU and memory pair and the budget's alerts at 50% and 100%. G12 reads workflows job by job with comments removed: more deploy actions (every `azure/` action, the GitHub Pages actions, `docker push`, `az webapp`, `az acr`, `git push` to `gh-pages`, local actions that hold one), `id-token: write` or `write-all` at any indent, in flow style, or in a job that doesn't deploy. D18 reads IPv6 and `.log` and `.har` evidence files and skips dotted version numbers. G9 and the hook's G12 ask cover `.github/actions/` and `CODEOWNERS`, and the hook asks for `git mv` into a protected folder; `git apply` is listed under what the hook doesn't catch. Planted and normal cases for each in `shared_tests.py`.
 - 26 November 2026: follow-ups from Jinny's recheck of the 25 November fixes (verdict merge; Reece chose to fix two and list the rest, in the question box; report `Project Grow\docs\checks\2026-11-25\2026-11-25-jinny-fjordvik-guardrail-recheck.md`). `check.py` leaves untracked Python caches out, so the fast suite passes with bytecode writing on, and counts IPv6 only in the global unicast range, so slices such as `[::10]` in a saved run pass. The permission rules bullet names every ask rule, the note on patches no longer overstates the backstops, and "What the hook doesn't catch" lists parent-folder copies and extracts, `git stash pop`, `git cherry-pick`, `git merge`, combined `curl` options, and the workflow, Bicep and D18 limits she found. Must-pass cases for the slices and the cache in `shared_tests.py`.
 - 26 November 2026: the layout map adds a root `.gitignore` that ignores Python caches everywhere, including `guardrails/__pycache__/`, so a test run with bytecode writing on leaves `git status` clean (Jinny's review of pull request 4, finding 11; Reece asked for her minor findings to be fixed, in this chat).
+- 28 November 2026: the permanent rules and the voice guide moved to the master-admin repository. The order of authority now names `C:\Users\reece\Admin\master-admin\rules\RULES.md`, and W9 names `C:\Users\reece\Admin\master-admin\style\VOICE.md`. A-ron made the two path edits with Reece's approval; Attena reviewed them, added this line and refreshed the fingerprint. No rule's meaning changed. The root `CLAUDE.md`, `guardrails/CLAUDE.md` and each part's `CLAUDE.md` name the new path too.
