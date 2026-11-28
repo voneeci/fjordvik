@@ -2,7 +2,7 @@
 
 Synthetic dataset for Fjordvik Manufacturing Oy (fictional), shared by the other four
 folders of the fjordvik repository: mcp, powerbi, power-automate and service-ai. Permanent
-rules in `C:\Users\reece\Projects\knowledge\RULES.md` come first, then `..\GUARDRAILS.md`,
+rules in `C:\Users\reece\Admin\master-admin\rules\RULES.md` come first, then `..\GUARDRAILS.md`,
 then this file.
 
 ## Rules for this repo

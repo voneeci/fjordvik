@@ -2,7 +2,7 @@
 
 One portfolio project in five parts over the synthetic Fjordvik dataset, one folder each:
 `data` (source of the data), `mcp`, `powerbi`, `power-automate` and `service-ai`.
-Permanent rules in `C:\Users\reece\Projects\knowledge\RULES.md` come first, then
+Permanent rules in `C:\Users\reece\Admin\master-admin\rules\RULES.md` come first, then
 [GUARDRAILS.md](GUARDRAILS.md) (the project's master rules), then this file. Each folder's
 own `CLAUDE.md` holds the rules for that part and applies to any file in it.
 

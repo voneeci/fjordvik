@@ -4,7 +4,7 @@ The after-sales service AI over the synthetic Fjordvik dataset: forecasting, mac
 learning, scheduling, recommendations, a service assistant and an agent, built one phase
 at a time (phases 2 to 7). One of five folders in the fjordvik repository: data (source of
 the data), mcp, powerbi, power-automate and service-ai. Permanent rules in
-`C:\Users\reece\Projects\knowledge\RULES.md` come first, then `..\GUARDRAILS.md`, then
+`C:\Users\reece\Admin\master-admin\rules\RULES.md` come first, then `..\GUARDRAILS.md`, then
 this file.
 
 ## Rules for this part

@@ -1,6 +1,6 @@
 # guardrails: Attena's working rules
 
-Permanent rules in `C:\Users\reece\Projects\knowledge\RULES.md` come first, then
+Permanent rules in `C:\Users\reece\Admin\master-admin\rules\RULES.md` come first, then
 `..\GUARDRAILS.md`, then the repository's `CLAUDE.md`, then this file.
 
 - Only Attena edits this folder, `GUARDRAILS.md`, `GUARDRAILS.sha256`, every file in
